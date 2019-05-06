@@ -17,7 +17,7 @@ namespace JourneyCoreDisplay
         public bool IsActive => _window.IsOpen;
         public Vector2f ContentScale { get; set; }
         public Vector2f PositionScale { get; set; }
-        public List<DrawQueueItem> DrawQueue { get; }
+        private List<DrawQueueItem> DrawQueue { get; }
 
         public event EventHandler<KeyEventArgs> KeyPressed;
         public event EventHandler<KeyEventArgs> KeyReleased;
@@ -51,6 +51,11 @@ namespace JourneyCoreDisplay
             }
 
             _window.Display();
+        }
+
+        public void DrawItem(DrawQueueItem item)
+        {
+            DrawQueue.Add(item);
         }
 
         #region EVENTS

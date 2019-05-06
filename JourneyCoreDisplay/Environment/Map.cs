@@ -3,7 +3,6 @@ using JourneyCoreDisplay.Sprites;
 using SFML.Graphics;
 using SFML.System;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -12,7 +11,7 @@ namespace JourneyCoreDisplay.Environment
     public class Map
     {
         // todo - make the file location dynamic
-        public static Texture MapTextures { get; } = new Texture(@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Images\Sprites\MapSpriteSheet.png");
+        public static Texture MapTextures { get; } = new Texture(@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Images\Sprites\JourneyCore-MapSprites.png");
 
         private Chunk[][] _map;
 
@@ -52,25 +51,21 @@ namespace JourneyCoreDisplay.Environment
             VArray.Resize((uint)((SizeInTiles.X * SizeInTiles.Y * 4) + 1));
 
             _map = ParseMapToChunks(map, chunkSize);
-            LoadChunk(0, 0);
-            LoadChunk(1, 0);
-            LoadChunk(0, 2);
-            LoadChunk(2, 0);
-            LoadChunk(2, 2);
         }
 
-        private void LoadChunk(int x, int y)
+        public void LoadChunk(int x, int y)
         {
             LoadChunk(new Vector2i(x, y));
         }
 
-        private void LoadChunk(Vector2i coordinates)
+        public void LoadChunk(Vector2i coordinates)
         {
             for (int x = 0; x < ChunkSize.X; x++)
             {
                 for (int y = 0; y < ChunkSize.Y; y++)
                 {
-                    IntRect currentTile = SpriteLoader.LoadedSprites[_map[coordinates.X][coordinates.Y].ChunkData[x][y]];
+                    int tileSelection = _map[coordinates.X][coordinates.Y].ChunkData[x][y];
+                    IntRect currentTile = SpriteLoader.LoadedSprites.First(sprite => (int)sprite.Type == tileSelection).GetRandom();
 
                     if (currentTile.Left > 32)
                     {
@@ -101,6 +96,11 @@ namespace JourneyCoreDisplay.Environment
             }
         }
 
+        private void UnloadChunk(Vector2i coordinates)
+        {
+
+        }
+
         public int GetCoordinate(int x, int y)
         {
             if (_map.Length <= x || _map.GetLength(1) <= y)
@@ -111,6 +111,7 @@ namespace JourneyCoreDisplay.Environment
             return 0; //_map[x, y];
         }
 
+        #region STATIC METHODS
 
         public static Chunk[][] ParseMapToChunks(int[][] intMap, Vector2i chunkSize)
         {
@@ -180,5 +181,7 @@ namespace JourneyCoreDisplay.Environment
 
             return new Map(new Vector2i(width, height), tileSize, chunkSize, intMap, scale);
         }
+
+        #endregion
     }
 }

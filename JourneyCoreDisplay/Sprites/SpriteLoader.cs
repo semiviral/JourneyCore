@@ -1,23 +1,30 @@
 ﻿using SFML.Graphics;
-using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace JourneyCoreDisplay.Sprites
 {
     public static class SpriteLoader
     {
-        public static Dictionary<int, IntRect> LoadedSprites { get; set; }
+        public static List<SpriteTag> LoadedSprites { get; set; }
 
         static SpriteLoader()
         {
-            LoadedSprites = new Dictionary<int, IntRect>();
+            LoadedSprites = new List<SpriteTag>();
         }
 
-        public static IntRect LoadSprite(int index, int width, int height, int x, int y)
+        public static IntRect LoadSprite(SpriteType type, WeightedSprite weightedSprite)
         {
-            LoadedSprites.Add(index, new IntRect(x * width, y * height, width, height));
+            if (!LoadedSprites.Any(sprite => sprite.Type.Equals(type)))
+            {
+                LoadedSprites.Add(new SpriteTag(type, weightedSprite));
+            }
+            else
+            {
+                LoadedSprites.First(sprite => sprite.Type.Equals(type)).Sprites.Add(weightedSprite);
+            }
 
-            return LoadedSprites[index];
+            return LoadedSprites.First(sprite => sprite.Type.Equals(type)).GetRandom();
         }
     }
 }
