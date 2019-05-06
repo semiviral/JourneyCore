@@ -13,7 +13,7 @@ namespace JourneyCoreDisplay.Sprites
             LoadedSprites = new List<SpriteTag>();
         }
 
-        public static IntRect LoadSprite(SpriteType type, WeightedSprite weightedSprite)
+        public static void LoadSprite(SpriteType type, WeightedSprite weightedSprite)
         {
             if (!LoadedSprites.Any(sprite => sprite.Type.Equals(type)))
             {
@@ -23,8 +23,6 @@ namespace JourneyCoreDisplay.Sprites
             {
                 LoadedSprites.First(sprite => sprite.Type.Equals(type)).Sprites.Add(weightedSprite);
             }
-
-            return LoadedSprites.First(sprite => sprite.Type.Equals(type)).GetRandom();
         }
     }
 }

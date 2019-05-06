@@ -61,6 +61,10 @@ namespace JourneyCoreDisplay.Sprites
 
             return weightArray[_rand.Next(0, weightArray.Length)].Sprite;
         }
+
+        public IntRect this[int index] {
+            get => Sprites[index].Sprite;
+        }
     }
 
     public enum SpriteType

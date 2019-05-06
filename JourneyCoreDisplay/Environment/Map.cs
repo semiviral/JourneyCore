@@ -53,10 +53,42 @@ namespace JourneyCoreDisplay.Environment
             _map = ParseMapToChunks(map, chunkSize);
         }
 
-        public void LoadChunk(int x, int y)
+        public void LoadChunkRange(Vector2i start, Vector2i range)
         {
-            LoadChunk(new Vector2i(x, y));
+            if (start.X < 0)
+            {
+                start.X = 0;
+            }
+
+            if (start.Y < 0)
+            {
+                start.Y = 0;
+            }
+
+            if (range.X > _map.Length)
+            {
+                range.X = _map.Length;
+            }
+
+            if (range.Y > _map[0].Length)
+            {
+                range.Y = _map[0].Length;
+            }
+
+            for (int x = start.X; x < range.X; x++)
+            {
+                for (int y = start.Y; y < range.Y; y++)
+                {
+                    LoadChunk(x, y);
+                }
+            }
         }
+
+        public void LoadChunkRange(int startX, int startY, int maxX, int maxY)
+        {
+            LoadChunkRange(new Vector2i(startX, startY), new Vector2i(maxX, maxY));
+        }
+
 
         public void LoadChunk(Vector2i coordinates)
         {
@@ -96,9 +128,9 @@ namespace JourneyCoreDisplay.Environment
             }
         }
 
-        private void UnloadChunk(Vector2i coordinates)
+        public void LoadChunk(int x, int y)
         {
-
+            LoadChunk(new Vector2i(x, y));
         }
 
         public int GetCoordinate(int x, int y)
