@@ -45,7 +45,7 @@ namespace JourneyCoreGame
 
             InitialiseSprites();
 
-            SurfaceMap = MapLoader.LoadMap("Surface_01", new Vector2i(8, 8), 2);
+            SurfaceMap = Map.LoadMap("Surface_01", new Vector2i(8, 8), new Vector2i(8, 8), 2);
 
             Runtime();
         }
