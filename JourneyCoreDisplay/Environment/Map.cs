@@ -3,55 +3,78 @@ using JourneyCoreDisplay.Sprites;
 using SFML.Graphics;
 using SFML.System;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Xml.Serialization;
 
 namespace JourneyCoreDisplay.Environment
 {
+    [XmlRoot("map")]
     public class Map
     {
+        private Random _rand;
+
         // todo - make the file location dynamic
         public static Texture MapTextures { get; } = new Texture(@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Images\Sprites\JourneyCore-MapSprites.png");
 
-        private Chunk[][] _map;
+        [XmlElement("layer")]
+        public List<MapLayer> Layers { get; set; }
 
-        /// <summary>
-        ///     Size of chunk in tiles
-        /// </summary>
-        public Vector2i SizeInTiles { get; }
+        [XmlAttribute("width")]
+        public int Width { get; set; }
 
-        /// <summary>
-        ///     Map size in pixels
-        /// </summary>
-        public Vector2i SizeInPixels { get; }
+        [XmlAttribute("height")]
+        public int Height { get; set; }
 
-        /// <summary>
-        ///     Size of each tile in pixels
-        /// </summary>
-        public Vector2i TileSize { get; }
+        [XmlAttribute("tilewidth")]
+        public int PixelTileWidth { get; set; }
 
-        /// <summary>
-        ///     Tiled size of each chunk
-        /// </summary>
-        public Vector2i ChunkSize { get; }
+        [XmlAttribute("tileheight")]
+        public int PixelTileHeight { get; set; }
 
+        [XmlIgnore]
+        public int ChunkWidth { get; set; }
+        [XmlIgnore]
+        public int ChunkHeight { get; set; }
+        [XmlIgnore]
+        public int PixelWidth { get; set; }
+        [XmlIgnore]
+        public int PixelHeight { get; set; }
+        [XmlIgnore]
+        public int ScaledTilePixelWidth { get; set; }
+        [XmlIgnore]
+        public int ScaledTilePixelHeight { get; set; }
+        [XmlIgnore]
+        public VertexArray VArray { get; internal set; }
 
-
-        public VertexArray VArray { get; private set; }
-
-        public Map(Vector2i size, Vector2i tileSize, Vector2i chunkSize, int[][] map, int scale)
+        public Map()
         {
-            SizeInTiles = size;
-            TileSize = tileSize * scale;
-            SizeInPixels = new Vector2i(SizeInTiles.X * TileSize.X, SizeInTiles.Y * TileSize.Y) * scale;
-            ChunkSize = chunkSize;
+            ChunkWidth = 8;
+            ChunkHeight = 8;
 
-
-            VArray = new VertexArray(PrimitiveType.Quads);
-            VArray.Resize((uint)((SizeInTiles.X * SizeInTiles.Y * 4) + 1));
-
-            _map = ParseMapToChunks(map, chunkSize);
+            _rand = new Random();
         }
+
+        #region METHODS
+
+        public int GetCoordinate(int layerId, int x, int y)
+        {
+            if (Layers[layerId].ChunkMap.Length <= x || Layers[layerId].ChunkMap.GetLength(1) <= y)
+            {
+                return -1;
+            }
+
+            // todo implement this
+            return Layers[layerId].ChunkMap[x / ChunkWidth * ChunkWidth][y / ChunkHeight * ChunkHeight].ChunkData[x % ChunkWidth][y % ChunkHeight]; //_map[x, y];
+        }
+
+        #endregion
+
+
+
+        #region CHUNK LOADING
 
         public void LoadChunkRange(Vector2i start, Vector2i range)
         {
@@ -65,14 +88,14 @@ namespace JourneyCoreDisplay.Environment
                 start.Y = 0;
             }
 
-            if (range.X > _map.Length)
+            if (range.X > (Width / ChunkWidth) - 1)
             {
-                range.X = _map.Length;
+                range.X = (Width / ChunkWidth) - 1;
             }
 
-            if (range.Y > _map[0].Length)
+            if (range.Y > (Height / ChunkHeight) - 1)
             {
-                range.Y = _map[0].Length;
+                range.Y = (Height / ChunkHeight) - 1;
             }
 
             for (int x = start.X; x < range.X; x++)
@@ -90,40 +113,40 @@ namespace JourneyCoreDisplay.Environment
         }
 
 
-        public void LoadChunk(Vector2i coordinates)
+        public void LoadChunk(Vector2i chunkCoords)
         {
-            for (int x = 0; x < ChunkSize.X; x++)
+            for (int i = 0; i < Layers.Count; i++)
             {
-                for (int y = 0; y < ChunkSize.Y; y++)
-                {
-                    int tileSelection = _map[coordinates.X][coordinates.Y].ChunkData[x][y];
-                    IntRect currentTile = SpriteLoader.LoadedSprites.First(sprite => (int)sprite.Type == tileSelection).GetRandom();
+                MapLayer currentLayer = Layers[i];
 
-                    if (currentTile.Left > 32)
+                for (int x = 0; x < ChunkHeight; x++)
+                {
+                    if (currentLayer.ChunkMap[chunkCoords.X] == null)
                     {
-                        //break here
+                        continue;
                     }
 
-                    // actual coordinate values
-                    // specific tiles in VArray
-                    int realTileX = (coordinates.X * ChunkSize.X) + x;
-                    int realTileY = (coordinates.Y * ChunkSize.Y) + y;
+                    for (int y = 0; y < ChunkWidth; y++)
+                    {
+                        if (currentLayer.ChunkMap[chunkCoords.X][chunkCoords.Y] == null) {
+                            continue;
+                        }
 
-                    Vector2f topLeft = MathOps.CalculateVertexPosition(VertexCorner.TopLeft, realTileX, realTileY, TileSize.X, TileSize.Y);
-                    Vector2f topRight = MathOps.CalculateVertexPosition(VertexCorner.TopRight, realTileX, realTileY, TileSize.X, TileSize.Y);
-                    Vector2f bottomRight = MathOps.CalculateVertexPosition(VertexCorner.BottomRight, realTileX, realTileY, TileSize.X, TileSize.Y);
-                    Vector2f bottomLeft = MathOps.CalculateVertexPosition(VertexCorner.BottomLeft, realTileX, realTileY, TileSize.X, TileSize.Y);
+                        int tileSelection = currentLayer.ChunkMap[chunkCoords.X][chunkCoords.Y].ChunkData[x][y];
+                        Tile currentTile = TileLoader.GetById(tileSelection);
 
-                    uint index = (uint)((realTileX + realTileY * SizeInTiles.X) * 4);
+                        if (currentTile == null)
+                        {
+                            continue;
+                        }
 
-                    // Top left
-                    VArray[index + 0] = new Vertex(topLeft, new Vector2f(currentTile.Left, currentTile.Top));
-                    // Top right
-                    VArray[index + 1] = new Vertex(topRight, new Vector2f(currentTile.Left + currentTile.Width, currentTile.Top));
-                    // Bottom right
-                    VArray[index + 2] = new Vertex(bottomRight, new Vector2f(currentTile.Left + currentTile.Width, currentTile.Top + currentTile.Height));
-                    // Bottom left
-                    VArray[index + 3] = new Vertex(bottomLeft, new Vector2f(currentTile.Left, currentTile.Top + currentTile.Height));
+                        List<Tile> drawList = AllocateTiles(currentTile);
+
+                        for (int t = 0; t < drawList.Count; t++)
+                        {
+                            DrawTileToArray(drawList[t], chunkCoords, new Vector2i(x, y), currentLayer.Width);
+                        }
+                    }
                 }
             }
         }
@@ -133,31 +156,150 @@ namespace JourneyCoreDisplay.Environment
             LoadChunk(new Vector2i(x, y));
         }
 
-        public int GetCoordinate(int x, int y)
+        /// <summary>
+        ///     Allocates a list of tiles that must be drawn in the current tilespace
+        /// </summary>
+        /// <param name="currentTile"></param>
+        /// <returns></returns>
+        private List<Tile> AllocateTiles(Tile currentTile)
         {
-            if (_map.Length <= x || _map.GetLength(1) <= y)
+            List<Tile> allocatedTiles = new List<Tile>();
+
+            if (currentTile.IsRandomizable)
             {
-                return -1;
+                currentTile = TileLoader.GetRandom(TileLoader.GetByGroup(currentTile.Group));
             }
 
-            return 0; //_map[x, y];
+            allocatedTiles.Add(currentTile);
+
+            if (currentTile.IsAccentable)
+            {
+                int accentProbability = (int)(currentTile.AccentProbability * 100);
+
+                if (!(_rand.Next(1,100) <= accentProbability)) {
+                    return allocatedTiles;
+                }
+
+                List<Tile> accents = TileLoader.LoadedTiles.Where(tile => tile.AccentGroup.Equals(currentTile.Group)).ToList();
+
+                allocatedTiles.AddRange(AllocateTiles(TileLoader.GetRandom(accents)));
+            }
+
+            return allocatedTiles;
         }
+
+        private void DrawTileToArray(Tile tile, Vector2i chunkCoords, Vector2i currentChunk, int mapWidth)
+        {
+            // actual coordinate values
+            // specific tiles in VArray
+            int vArrayTileX = (chunkCoords.X * ChunkWidth) + currentChunk.X;
+            int vArrayTileY = (chunkCoords.Y * ChunkHeight) + currentChunk.Y;
+
+            int tileMapX = tile.Position.Left * PixelTileWidth;
+            int tileMapY = tile.Position.Top * PixelTileHeight;
+
+            Vector2f topLeft = MathOps.CalculateVertexPosition(VertexCorner.TopLeft, vArrayTileX, vArrayTileY, ScaledTilePixelWidth, ScaledTilePixelHeight);
+            Vector2f topRight = MathOps.CalculateVertexPosition(VertexCorner.TopRight, vArrayTileX, vArrayTileY, ScaledTilePixelWidth, ScaledTilePixelHeight);
+            Vector2f bottomRight = MathOps.CalculateVertexPosition(VertexCorner.BottomRight, vArrayTileX, vArrayTileY, ScaledTilePixelWidth, ScaledTilePixelHeight);
+            Vector2f bottomLeft = MathOps.CalculateVertexPosition(VertexCorner.BottomLeft, vArrayTileX, vArrayTileY, ScaledTilePixelWidth, ScaledTilePixelHeight);
+
+            uint index = (uint)((vArrayTileX + vArrayTileY * mapWidth) * 4);
+
+            QuadCoords texCoords = RotateTile(tile, new Vector2i(tileMapX, tileMapY));
+
+            // Top left
+            VArray[index + 0] = new Vertex(topLeft, texCoords.TopLeft);
+            // Top right
+            VArray[index + 1] = new Vertex(topRight, texCoords.TopRight);
+            // Bottom right
+            VArray[index + 2] = new Vertex(bottomRight, texCoords.BottomRight);
+            // Bottom left
+            VArray[index + 3] = new Vertex(bottomLeft, texCoords.BottomLeft);
+
+        }
+
+        private QuadCoords RotateTile(Tile tile, Vector2i position, int rotation = 0)
+        {
+            QuadCoords qTexCoords = new QuadCoords();
+
+            rotation = tile.IsRandomlyRotatable ? _rand.Next(0, 3) : rotation;
+
+            switch (rotation)
+            {
+                case 0:
+                    qTexCoords.TopLeft = new Vector2f(position.X, position.Y);
+                    qTexCoords.TopRight = new Vector2f(position.X + tile.Position.Width, position.Y);
+                    qTexCoords.BottomRight = new Vector2f(position.X + tile.Position.Width, position.Y + tile.Position.Height);
+                    qTexCoords.BottomLeft = new Vector2f(position.X, position.Y + tile.Position.Height);
+                    break;
+                case 1:
+                    qTexCoords.TopLeft = new Vector2f(position.X, position.Y + tile.Position.Height);
+                    qTexCoords.TopRight = new Vector2f(position.X, position.Y);
+                    qTexCoords.BottomRight = new Vector2f(position.X + tile.Position.Width, position.Y);
+                    qTexCoords.BottomLeft = new Vector2f(position.X + tile.Position.Width, position.Y + tile.Position.Height);
+                    break;
+                case 2:
+                    qTexCoords.TopLeft = new Vector2f(position.X + tile.Position.Width, position.Y + tile.Position.Height);
+                    qTexCoords.TopRight = new Vector2f(position.X, position.Y + tile.Position.Height);
+                    qTexCoords.BottomRight = new Vector2f(position.X, position.Y);
+                    qTexCoords.BottomLeft = new Vector2f(position.X + tile.Position.Width, position.Y);
+                    break;
+                case 3:
+                    qTexCoords.TopLeft = new Vector2f(position.X + tile.Position.Width, position.Y);
+                    qTexCoords.TopRight = new Vector2f(position.X + tile.Position.Width, position.Y + tile.Position.Height);
+                    qTexCoords.BottomRight = new Vector2f(position.X, position.Y + tile.Position.Height);
+                    qTexCoords.BottomLeft = new Vector2f(position.X, position.Y);
+                    break;
+                default:
+                    break;
+            }
+
+            return qTexCoords;
+        }
+
+        #endregion
+
+
 
         #region STATIC METHODS
 
-        public static Chunk[][] ParseMapToChunks(int[][] intMap, Vector2i chunkSize)
+        public static Map LoadMap(string mapName, Vector2i chunkSize, int scale)
         {
-            Vector2i sizeInTiles = new Vector2i(intMap.Length, intMap[0].Length);
-            Vector2i mapChunkSize = new Vector2i(sizeInTiles.X / chunkSize.X, sizeInTiles.Y / chunkSize.Y);
+            XmlSerializer mapSerializer = new XmlSerializer(typeof(Map));
 
-            Chunk[][] chunkData = new Chunk[sizeInTiles.X / chunkSize.X][];
-
-            // iterates by chunks, then interates each chunk internally
-            for (int chunkX = 0; chunkX < mapChunkSize.X; chunkX++)
+            using (StreamReader reader = new StreamReader($@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Maps\{mapName}.xml", Encoding.UTF8))
             {
-                chunkData[chunkX] = new Chunk[mapChunkSize.Y];
+                Map map = (Map)mapSerializer.Deserialize(reader);
+                map.ScaledTilePixelWidth = map.PixelTileWidth * scale;
+                map.ScaledTilePixelHeight = map.PixelTileHeight * scale;
+                map.PixelWidth = map.Width * map.ScaledTilePixelWidth;
+                map.PixelHeight = map.Height * map.ScaledTilePixelHeight;
+                map.VArray = new VertexArray(PrimitiveType.Quads);
+                map.VArray.Resize((uint)(((map.Width * map.Height * 4) + 1) * map.Layers.Count));
 
-                for (int chunkY = 0; chunkY < mapChunkSize.Y; chunkY++)
+                foreach (MapLayer layer in map.Layers)
+                {
+                    BuildChunkMap(map, layer, chunkSize);
+                }
+
+                return map;
+            }
+
+        }
+
+        private static void BuildChunkMap(Map map, MapLayer layer, Vector2i chunkSize)
+        {
+            string[] layerDataArray = layer.Data.Replace("\r\n", "\n").Replace("\n", ",").Split(',', StringSplitOptions.RemoveEmptyEntries);
+            int layerChunkWidth = layer.Width / map.ChunkWidth;
+            int layerChunkHeight = layer.Height / map.ChunkHeight;
+
+            layer.ChunkMap = new Chunk[layerChunkWidth][];
+
+            for (int chunkX = 0; chunkX < map.ChunkWidth; chunkX++)
+            {
+                layer.ChunkMap[chunkX] = new Chunk[layerChunkHeight];
+
+                for (int chunkY = 0; chunkY < layerChunkHeight; chunkY++)
                 {
                     Chunk currentChunk = new Chunk(new int[chunkSize.X][]);
 
@@ -167,51 +309,13 @@ namespace JourneyCoreDisplay.Environment
 
                         for (int y = 0; y < chunkSize.Y; y++)
                         {
-                            currentChunk.ChunkData[x][y] = intMap[(chunkX * chunkSize.X) + x][(chunkY * chunkSize.Y) + y];
+                            currentChunk.ChunkData[x][y] = int.Parse(layerDataArray[(layer.Width * (y + (chunkY * map.ChunkHeight)) + (x + (chunkX * map.ChunkWidth)))]);
                         }
                     }
 
-                    chunkData[chunkX][chunkY] = currentChunk;
+                    layer.ChunkMap[chunkX][chunkY] = currentChunk;
                 }
             }
-
-            return chunkData;
-        }
-
-        public static Map LoadMap(string mapName, Vector2i tileSize, Vector2i chunkSize, int scale)
-        {
-            string mapString = string.Empty;
-
-            using (StreamReader reader = new StreamReader($@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Maps\{mapName}.map"))
-            {
-                mapString = reader.ReadToEnd();
-            }
-
-            string[] stringArray = mapString.Replace("\r\n", "\n").Split(':', StringSplitOptions.RemoveEmptyEntries);
-            int[] mapArray = stringArray.Where(str => char.IsDigit(str[0])).Select(int.Parse).ToArray();
-
-            int width = Array.IndexOf(stringArray, "\n");
-            int height = mapArray.Length / width;
-            int[][] intMap = new int[width][];
-
-            for (int x = 0; x < width; x++)
-            {
-                intMap[x] = new int[height];
-
-                for (int y = 0; y < height; y++)
-                {
-                    if (y == 0)
-                    {
-                        intMap[x][y] = mapArray[x + y];
-
-                        continue;
-                    }
-
-                    intMap[x][y] = mapArray[(width * y) + x];
-                }
-            }
-
-            return new Map(new Vector2i(width, height), tileSize, chunkSize, intMap, scale);
         }
 
         #endregion

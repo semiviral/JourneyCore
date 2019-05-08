@@ -5,93 +5,66 @@ using JourneyCoreDisplay.Sprites;
 using JourneyCoreDisplay.Time;
 using SFML.Graphics;
 using SFML.System;
+using SFML.Window;
+using System;
+using System.IO;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace JourneyCoreGame
 {
     public class Program
     {
-        public static int TargetFps {
-            get => _targetFps;
-            set {
-                // fps changed stuff
 
-                _targetFps = value;
-                IndividualFrameTime = 1f / _targetFps;
-            }
-        }
-        private static int _targetFps;
-        public static float IndividualFrameTime { get; private set; }
 
         private static WindowManager WManager { get; set; }
         private static ConsoleManager CManager { get; set; }
 
-        private static Delta DeltaClock { get; set; }
-        private static float ElapsedTime => DeltaClock.GetDelta();
-
-        private static Map SurfaceMap { get; set; }
+        private static Map SpawnMap { get; set; }
 
         static void Main(string[] args)
         {
-            TargetFps = 60;
-
-            WManager = new WindowManager("Journey to the Core", new Vector2f(2f, 2f), 15f);
+            WManager = new WindowManager("Journey to the Core", new VideoMode(800, 800, 8), 60, new Vector2f(2f, 2f), 15f);
             CManager = new ConsoleManager();
             CManager.Hide(false);
 
-            DeltaClock = new Delta();
 
             InitialiseSprites();
 
-            SurfaceMap = Map.LoadMap("Surface_01", new Vector2i(8, 8), new Vector2i(8, 8), 3);
+            SpawnMap = Map.LoadMap("AdventurersGuild", new Vector2i(8, 8), 1);
 
             Runtime();
         }
 
         public static void Runtime()
         {
-            SurfaceMap.LoadChunkRange(0, 0, SurfaceMap.SizeInTiles.X / SurfaceMap.ChunkSize.X, SurfaceMap.SizeInTiles.Y / SurfaceMap.ChunkSize.Y);
+            SpawnMap.LoadChunkRange(0, 0, 96, 96);
+
+            //Shader transparency = new Shader(null, null, @"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Shaders\transparency.frag");
+            //transparency.SetUniform("opacity", 0.5f);
+            //transparency.SetUniform("texture", Map.MapTextures);
+
+            //RenderStates overlayStates = new RenderStates
+            //{
+            //    BlendMode = BlendMode.Alpha,
+            //    Shader = transparency,
+            //    Texture = Map.MapTextures
+            //};
+
+            WManager.DrawItem(new DrawQueueItem(DrawPriority.Background, (fTime, window) =>
+            {
+                window.Draw(SpawnMap.VArray, new RenderStates(Map.MapTextures));
+            }));
 
             while (WManager.IsActive)
             {
-                WManager.DrawItem(new DrawQueueItem(DrawPriority.Background, (fTime, window) =>
-                {
-                    window.Draw(SurfaceMap.VArray, new RenderStates(Map.MapTextures));
-                }));
-
-                AdjustFrameTime();
-
-                WManager.UpdateWindow(ElapsedTime);
+                WManager.UpdateWindow();
             }
-        }
-
-        private static void AdjustFrameTime()
-        {
-            if (ElapsedTime >= IndividualFrameTime)
-            {
-                return;
-            }
-
-            Task.Delay((int)(IndividualFrameTime - ElapsedTime));
         }
 
         private static void InitialiseSprites()
         {
-            SpriteLoader.LoadSprite(SpriteType.Nothing, new WeightedSprite(100, 16, 16, 0, 0));
-            SpriteLoader.LoadSprite(SpriteType.Grass, new WeightedSprite(150, 16, 16, 1, 0));
-            SpriteLoader.LoadSprite(SpriteType.Grass, new WeightedSprite(5, 16, 16, 1, 1));
-            SpriteLoader.LoadSprite(SpriteType.Grass, new WeightedSprite(5, 16, 16, 1, 2));
-            SpriteLoader.LoadSprite(SpriteType.Grass, new WeightedSprite(2, 16, 16, 1, 3));
-            SpriteLoader.LoadSprite(SpriteType.Grass, new WeightedSprite(2, 16, 16, 1, 4));
-            SpriteLoader.LoadSprite(SpriteType.Dirt, new WeightedSprite(100, 16, 16, 2, 0));
-            SpriteLoader.LoadSprite(SpriteType.Dirt, new WeightedSprite(100, 16, 16, 2, 1));
-            SpriteLoader.LoadSprite(SpriteType.Dirt, new WeightedSprite(100, 16, 16, 2, 2));
-            SpriteLoader.LoadSprite(SpriteType.Dirt, new WeightedSprite(100, 16, 16, 2, 3));
-            SpriteLoader.LoadSprite(SpriteType.Stone, new WeightedSprite(100, 16, 16, 3, 0));
-            SpriteLoader.LoadSprite(SpriteType.NexusPath, new WeightedSprite(100, 16, 16, 4, 0));
-            SpriteLoader.LoadSprite(SpriteType.SurfacePath, new WeightedSprite(100, 16, 16, 5, 0));
-            SpriteLoader.LoadSprite(SpriteType.SurfacePath, new WeightedSprite(100, 16, 16, 5, 1));
-            SpriteLoader.LoadSprite(SpriteType.SurfacePath, new WeightedSprite(100, 16, 16, 5, 2));
+            TileLoader.LoadTiles(@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Images\Util\Tiled_TileSheets\JourneyCore-MapTileSet.xml");
         }
     }
 }
