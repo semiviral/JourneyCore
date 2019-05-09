@@ -26,7 +26,13 @@ namespace JourneyCoreDisplay.Sprites
         [XmlIgnore]
         public Vector2i Size { get; set; }
         [XmlIgnore]
-        public IntRect Position { get; set; }
+        public IntRect TextureRect { get; set; }
+        [XmlIgnore]
+        public QuadCoords TexCoords { get; set; }
+        [XmlIgnore]
+        public int LayerId { get; set; }
+        [XmlIgnore]
+        public List<Tile> Accents { get; set; }
 
 
 
@@ -52,6 +58,8 @@ namespace JourneyCoreDisplay.Sprites
             Id = -1;
             Group = "None";
             Probability = 1.0f;
+            TexCoords = new QuadCoords();
+            Accents = new List<Tile>();
             IsRandomizable = false;
             IsRandomlyRotatable = false;
             IsAccentable = false;
@@ -80,7 +88,7 @@ namespace JourneyCoreDisplay.Sprites
                 Size = new Vector2i(16, 16);
             }
 
-            Position = new IntRect(x, y, Size.X, Size.Y);
+            TextureRect = new IntRect(x, y, Size.X, Size.Y);
         }
 
         private void ApplyProperties()

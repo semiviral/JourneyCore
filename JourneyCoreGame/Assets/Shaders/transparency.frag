@@ -1,4 +1,4 @@
-﻿uniform float opacity;
+uniform float opacity;
 uniform sampler2D texture;
 
 void main()

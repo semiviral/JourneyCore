@@ -1,10 +1,9 @@
-﻿using SFML.Graphics;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace JourneyCoreDisplay.Environment
 {
-    public class MapLayer
+    public class TileMapLayer
     {
         internal Chunk[][] ChunkMap { get; set; }
 
@@ -26,6 +25,6 @@ namespace JourneyCoreDisplay.Environment
         [XmlElement("data")]
         public string Data { get; set; }
 
-        public MapLayer() { }
+        public TileMapLayer() { }
     }
 }

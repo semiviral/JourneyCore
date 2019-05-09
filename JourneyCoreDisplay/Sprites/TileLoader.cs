@@ -54,6 +54,11 @@ namespace JourneyCoreDisplay.Sprites
             return LoadedTiles.Where(tile => tile.Group.Equals(groupName)).ToList();
         }
 
+        public static List<Tile> GetByAccentGroup(string accentGroupName)
+        {
+            return LoadedTiles.Where(tile => !string.IsNullOrWhiteSpace(tile.AccentGroup) && tile.AccentGroup.Equals(accentGroupName)).ToList();
+        }
+
         public static CustomProperty GetProperty(int id, string propertyName)
         {
             return GetById(id).Properties.FirstOrDefault(property => property.Name.Equals(propertyName));
@@ -62,6 +67,11 @@ namespace JourneyCoreDisplay.Sprites
         public static Tile GetRandom(List<Tile> candidates)
         {
             // optimizations to avoid useless iterating
+
+            if (candidates.Count < 1)
+            {
+                return default;
+            }
 
             // if only one sprite in list
             if (candidates.Count == 1)
