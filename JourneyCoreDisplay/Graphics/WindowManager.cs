@@ -33,7 +33,7 @@ namespace JourneyCoreLib
         private static int _targetFps;
         public static float IndividualFrameTime { get; private set; }
         private static Delta DeltaClock { get; set; }
-        private static int ElapsedTime => DeltaClock.GetDelta();
+        private static float ElapsedTime { get; set; }
 
         public event EventHandler<KeyEventArgs> KeyPressed;
         public event EventHandler<KeyEventArgs> KeyReleased;
@@ -57,6 +57,8 @@ namespace JourneyCoreLib
 
         public void UpdateWindow()
         {
+            ElapsedTime = DeltaClock.GetDelta();
+
             _window.DispatchEvents();
             _window.Clear();
             _window.PushGLStates();

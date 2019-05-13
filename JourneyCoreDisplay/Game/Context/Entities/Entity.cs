@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JourneyCoreLib.Core.Context.Entities.Attribute;
 using JourneyCoreLib.Drawing;
+using JourneyCoreLib.Game;
 using JourneyCoreLib.Game.Context.Entities.Attribute;
 using SFML.Graphics;
 using SFML.System;
@@ -53,15 +54,7 @@ namespace JourneyCoreLib.Core.Context.Entities
             wManager.KeyPressed += OnKeyPressed;
             wManager.KeyReleased += OnKeyReleased;
 
-            wManager.DrawPersistent(new DrawQueueItem(DrawPriority.Foreground, (fTime, window) =>
-            {
-                if (Movement != new Vector2f(0f, 0f))
-                {
-                    Graphic.Position = GetEntityMovement(Graphic.Position, fTime);
-                }
-
-                window.Draw(Graphic, new RenderStates(Graphic.Texture));
-            }));
+            wManager.DrawPersistent(new DrawQueueItem(DrawPriority.Foreground, MoveEntity));
         }
 
         #region ATTRIBUTES
@@ -139,17 +132,28 @@ namespace JourneyCoreLib.Core.Context.Entities
 
         private Vector2f GetSpeedModifiedVector(Vector2f vector)
         {
-            return vector * ((int)GetNativeAttribute(EntityAttributeType.Speed).Value / 20);
+            return vector * ((int)GetNativeAttribute(EntityAttributeType.Speed).Value / 20f);
         }
 
-        public Vector2f GetEntityMovement(Vector2f vector, int frameTime)
+        public Vector2f GetEntityMovement(Vector2f vector, float frameTime)
         {
             Vector2f speedVector = GetSpeedModifiedVector(Movement);
+            float travelDistance = GameLoop.MapTileSize.X * frameTime;
 
-            vector.X += speedVector.X * (1 / frameTime);
-            vector.Y += speedVector.Y * (1 / frameTime);
+            vector.X += speedVector.X * travelDistance;
+            vector.Y += speedVector.Y * travelDistance;
 
             return vector;
+        }
+
+        private void MoveEntity(float frameTime, RenderWindow window)
+        {
+            if (Movement != new Vector2f(0f, 0f))
+            {
+                Graphic.Position = GetEntityMovement(Graphic.Position, frameTime);
+            }
+
+            window.Draw(Graphic, new RenderStates(Graphic.Texture));
         }
 
         private bool IsMovementKey(Keyboard.Key key)
