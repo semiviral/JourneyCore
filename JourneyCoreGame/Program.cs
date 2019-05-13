@@ -48,8 +48,6 @@ namespace JourneyCoreGame
         {
             SpawnMap.LoadChunkRange(0, 0, 16, 16);
 
-
-
             //Shader transparency = new Shader(null, null, @"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Shaders\transparency.frag");
             //transparency.SetUniform("opacity", 0.5f);
             //transparency.SetUniform("texture", Map.MapTextures);

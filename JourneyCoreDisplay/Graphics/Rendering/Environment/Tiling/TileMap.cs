@@ -209,7 +209,7 @@ namespace JourneyCoreLib.Rendering.Environment.Tiling
         {
             RandomizeTile(tile);
             RotateTile(tile);
-            //AccentTile(tile);
+            AccentTile(tile);
 
             return tile;
         }

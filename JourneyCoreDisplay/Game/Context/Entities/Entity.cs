@@ -46,9 +46,6 @@ namespace JourneyCoreLib.Core.Context.Entities
 
             InitialiseBasicAttributes();
             InitialiseRendering(wManager);
-
-
-
         }
 
         private void InitialiseRendering(WindowManager wManager)
@@ -62,7 +59,7 @@ namespace JourneyCoreLib.Core.Context.Entities
             {
                 if (Movement != new Vector2f(0f, 0f))
                 {
-                    Graphic.Position = GetMovementAdjustedVector(Graphic.Position);
+                    Graphic.Position = GetEntityMovement(Graphic.Position, fTime);
                 }
 
                 window.Draw(Graphic, new RenderStates(Graphic.Texture));
@@ -126,6 +123,10 @@ namespace JourneyCoreLib.Core.Context.Entities
 
         #endregion
 
+
+
+        #region MOVEMENT
+
         public Vector2f AddMovementVector(Vector2f direction)
         {
             Movement += GetSpeedModifiedVector(direction);
@@ -143,12 +144,13 @@ namespace JourneyCoreLib.Core.Context.Entities
             return vector * ((int)GetNativeAttribute(EntityAttributeType.Speed).Value / 20);
         }
 
-        public Vector2f GetMovementAdjustedVector(Vector2f vector)
+        public Vector2f GetEntityMovement(Vector2f vector, float frameTime)
         {
+            float totalFrames = 1f / frameTime;
             Vector2f speedVector = GetSpeedModifiedVector(Movement);
 
-            vector.X += (float)Math.Floor(speedVector.X);
-            vector.Y += (float)Math.Floor(speedVector.Y);
+            vector.X += speedVector.X / totalFrames;
+            vector.Y += speedVector.Y / totalFrames;
 
             return vector;
         }
@@ -243,6 +245,10 @@ namespace JourneyCoreLib.Core.Context.Entities
         }
 
         public event EventHandler<Vector2f> MovementVectorChanged;
+
+        #endregion
+
+
 
         public void OnKeyPressed(object sender, KeyEventArgs args)
         {
