@@ -1,11 +1,13 @@
-﻿using JourneyCoreDisplay;
-using JourneyCoreDisplay.Drawing;
-using JourneyCoreDisplay.Environment;
-using JourneyCoreDisplay.Sprites;
-using JourneyCoreDisplay.Time;
+﻿using JourneyCoreLib;
+using JourneyCoreLib.Drawing;
+using JourneyCoreLib.Rendering.Environment.Tiling;
+using JourneyCoreLib.Graphics;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using JourneyCoreLib.Core.Context.Entities;
+using JourneyCoreLib.Game.Context;
+using System;
 
 namespace JourneyCoreGame
 {
@@ -18,6 +20,10 @@ namespace JourneyCoreGame
 
         private static TileMap SpawnMap { get; set; }
 
+        private static JourneyCoreLib.Game.Context.Context GameContext { get; set; }
+
+        public static Entity player { get; set; }
+
         static void Main(string[] args)
         {
             WManager = new WindowManager("Journey to the Core", new VideoMode(1920, 1080, 8), 60, new Vector2f(2f, 2f), 15f);
@@ -29,12 +35,20 @@ namespace JourneyCoreGame
 
             SpawnMap = TileMap.LoadTileMap("AdventurersGuild", new Vector2i(8, 8), 1);
 
+            GameContext = new JourneyCoreLib.Game.Context.Context(null, "GameContext", "game");
+
+            Sprite human = new Sprite(new Texture(@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Images\Sprites\Human.png", new IntRect(0, 0, 32, 32)));
+
+            player = new Entity(GameContext, WManager, "player", "player", human);
+
             Runtime();
         }
 
         public static void Runtime()
         {
-            SpawnMap.LoadChunkRange(0, 0, 2, 2);
+            SpawnMap.LoadChunkRange(0, 0, 16, 16);
+
+
 
             //Shader transparency = new Shader(null, null, @"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Shaders\transparency.frag");
             //transparency.SetUniform("opacity", 0.5f);
@@ -43,7 +57,7 @@ namespace JourneyCoreGame
             RenderStates overlayStates = new RenderStates(TileMap.MapTextures);
 
 
-            WManager.DrawItem(new DrawQueueItem(DrawPriority.Background, (fTime, window) =>
+            WManager.DrawPersistent(new DrawQueueItem(DrawPriority.Background, (fTime, window) =>
             {
                 window.Draw(SpawnMap.VArray, overlayStates);
             }));

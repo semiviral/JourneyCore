@@ -1,209 +1,92 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.2" tiledversion="1.2.3" name="JourneyCore-MapTileSet" tilewidth="16" tileheight="16" tilecount="900" columns="14">
- <image source="../../Sprites/JourneyCore-MapSprites.png" width="224" height="960"/>
- <tile id="0" type="Null">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="1" type="Grass">
+<tileset version="1.2" tiledversion="1.2.3" name="JourneyCore-MapTileSet" tilewidth="16" tileheight="16" tilecount="840" columns="13">
+ <image source="../../Sprites/JourneyCore-MapSprites.png" width="208" height="960"/>
+ <tile id="0" type="Grass">
   <properties>
    <property name="AccentProbability" type="float" value="0.05"/>
    <property name="IsAccentable" type="bool" value="true"/>
-   <property name="IsRandomizable" type="bool" value="false"/>
+   <property name="IsRandomizable" type="bool" value="true"/>
    <property name="IsRandomlyRotatable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="2" type="Dirt">
+ <tile id="1" type="Dirt">
   <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
    <property name="IsRandomlyRotatable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="3" type="Stone">
+ <tile id="2" type="Stone">
   <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
    <property name="IsRandomlyRotatable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="4" type="SpawnPath"/>
- <tile id="5" type="DamagedMarblePath">
+ <tile id="3" type="Gravel"/>
+ <tile id="4" type="DamagedSpawnPath">
   <properties>
    <property name="IsRandomizable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="6" type="MarblePath">
+ <tile id="5" type="MarblePath"/>
+ <tile id="6" type="MarblePath"/>
+ <tile id="7" type="MarblePath"/>
+ <tile id="8" type="MarblePath"/>
+ <tile id="9" type="MarblePath"/>
+ <tile id="10" type="MarblePath"/>
+ <tile id="11" type="MarblePath"/>
+ <tile id="12" type="MarblePath"/>
+ <tile id="13" type="Accent">
   <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="7" type="MarblePath">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="8" type="MarblePath">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="9" type="MarblePath">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="10" type="MarblePath">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="11" type="MarblePath">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="12" type="MarblePath">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="13" type="MarblePath">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
+   <property name="AccentGroup" value="Grass"/>
+   <property name="IsRandomlyRotatable" type="bool" value="true"/>
   </properties>
  </tile>
  <tile id="14" type="WoodWall"/>
- <tile id="15" type="Grass">
-  <properties>
-   <property name="AccentGroup" value="Grass"/>
-   <property name="IsRandomizable" type="bool" value="false"/>
-   <property name="IsRandomlyRotatable" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="16" type="Accent"/>
- <tile id="17" type="Grass"/>
- <tile id="18" type="Dirt"/>
- <tile id="19" type="DamagedMarblePath">
+ <tile id="15" type="Grass"/>
+ <tile id="17" type="DamagedSpawnPath">
   <properties>
    <property name="IsRandomizable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="20" type="SpawnPath"/>
- <tile id="21" type="DamagedSpawnPath"/>
- <tile id="22" type="MarblePath">
+ <tile id="20" type="MarblePath"/>
+ <tile id="21" type="MarblePath"/>
+ <tile id="22" type="MarblePath"/>
+ <tile id="23" type="MarblePath"/>
+ <tile id="24" type="MarblePath"/>
+ <tile id="25" type="MarblePath"/>
+ <tile id="26" type="Accent">
   <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
+   <property name="AccentGroup" value="Grass"/>
+   <property name="IsRandomlyRotatable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="23" type="MarblePath">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="24" type="MarblePath">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="25" type="MarblePath">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="26" type="MarblePath">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="27" type="MarblePath">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
+ <tile id="27" type="MarblePath"/>
  <tile id="28" type="SpawnPath"/>
- <tile id="29" type="Grass">
-  <properties>
-   <property name="AccentGroup" value="Grass"/>
-   <property name="IsRandomizable" type="bool" value="false"/>
-   <property name="IsRandomlyRotatable" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="30" type="WoodWall"/>
- <tile id="31" type="Accent"/>
- <tile id="33" type="DamagedMarblePath">
+ <tile id="29" type="Grass"/>
+ <tile id="30" type="DamagedSpawnPath">
   <properties>
    <property name="IsRandomizable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="35" type="WoodFloor">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="36" type="WoodWall">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="37" type="WoodWall">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="38" type="WoodWall">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="39" type="WoodWall">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="40" type="WoodWall">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="41" type="WoodWall">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="43" probability="0.02"/>
- <tile id="44" type="SpawnPath"/>
- <tile id="46" type="WoodWall"/>
- <tile id="50" type="WoodWall">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="51" type="WoodWall">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="52" type="WoodWall">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="53" type="WoodWall">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="54" type="WoodWall">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="55" type="WoodWall">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="57" probability="0.02"/>
+ <tile id="32" type="WoodFloor"/>
+ <tile id="33" type="WoodFloor"/>
+ <tile id="34" type="WoodFloor"/>
+ <tile id="35" type="WoodFloor"/>
+ <tile id="36" type="WoodFloor"/>
+ <tile id="37" type="WoodFloor"/>
+ <tile id="38" type="WoodFloor"/>
+ <tile id="39" type="WoodWall"/>
+ <tile id="40" type="WoodWall"/>
+ <tile id="41" type="WoodWall"/>
+ <tile id="46" type="WoodFloor"/>
+ <tile id="47" type="WoodFloor"/>
+ <tile id="48" type="WoodFloor"/>
+ <tile id="49" type="WoodFloor"/>
+ <tile id="50" type="WoodFloor"/>
+ <tile id="51" type="WoodFloor"/>
+ <tile id="52" type="WoodWall"/>
+ <tile id="53" type="WoodWall"/>
+ <tile id="54" type="WoodWall"/>
+ <tile id="55" type="WoodWall"/>
+ <tile id="58" type="SmoothStonePath"/>
  <tile id="60" type="SpawnPath"/>
  <tile id="62" type="WoodWall"/>
  <tile id="68" type="SpawnPath"/>
@@ -218,38 +101,20 @@
  <tile id="94" type="WoodWall"/>
  <tile id="100" type="SpawnPath"/>
  <tile id="102" type="WoodWall"/>
- <tile id="140">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="154">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
  <tile id="464" type="Water"/>
  <tile id="465" type="Water"/>
  <tile id="472" type="Lava"/>
  <tile id="473" type="Lava"/>
- <tile id="812">
+ <tile id="754" type="Water"/>
+ <tile id="755" type="Water">
   <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
+   <property name="AnimationGroup" value="Water"/>
   </properties>
  </tile>
- <tile id="813">
+ <tile id="767" type="Lava"/>
+ <tile id="768" type="Lava">
   <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="826">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
-  </properties>
- </tile>
- <tile id="827">
-  <properties>
-   <property name="IsRandomizable" type="bool" value="false"/>
+   <property name="AnimationGroup" value="Lava"/>
   </properties>
  </tile>
 </tileset>
