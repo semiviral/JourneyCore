@@ -11,9 +11,9 @@ namespace JourneyCoreLib.Time
             InternalClock = new Clock();
         }
 
-        public float GetDelta()
+        public int GetDelta()
         {
-            return InternalClock.Restart().AsSeconds();
+            return InternalClock.Restart().AsMilliseconds();
         }
     }
 }

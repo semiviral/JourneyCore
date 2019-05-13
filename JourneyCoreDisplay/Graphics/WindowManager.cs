@@ -33,7 +33,7 @@ namespace JourneyCoreLib
         private static int _targetFps;
         public static float IndividualFrameTime { get; private set; }
         private static Delta DeltaClock { get; set; }
-        private static float ElapsedTime => DeltaClock.GetDelta();
+        private static int ElapsedTime => DeltaClock.GetDelta();
 
         public event EventHandler<KeyEventArgs> KeyPressed;
         public event EventHandler<KeyEventArgs> KeyReleased;
@@ -71,16 +71,6 @@ namespace JourneyCoreLib
 
             _window.PopGLStates();
             _window.Display();
-        }
-
-        private void AdjustFrameTime()
-        {
-            if (ElapsedTime >= IndividualFrameTime)
-            {
-                return;
-            }
-
-            Task.Delay((int)(IndividualFrameTime - ElapsedTime));
         }
 
         public void DrawPersistent(DrawQueueItem item)

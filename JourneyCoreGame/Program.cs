@@ -8,6 +8,8 @@ using SFML.Window;
 using JourneyCoreLib.Core.Context.Entities;
 using JourneyCoreLib.Game.Context;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace JourneyCoreGame
 {
@@ -26,7 +28,7 @@ namespace JourneyCoreGame
 
         static void Main(string[] args)
         {
-            WManager = new WindowManager("Journey to the Core", new VideoMode(1920, 1080, 8), 60, new Vector2f(2f, 2f), 15f);
+            WManager = new WindowManager("Journey to the Core", new VideoMode(1920, 1080, 8), 144, new Vector2f(2f, 2f), 15f);
             CManager = new ConsoleManager();
             CManager.Hide(false);
 
@@ -53,7 +55,6 @@ namespace JourneyCoreGame
             //transparency.SetUniform("texture", Map.MapTextures);
 
             RenderStates overlayStates = new RenderStates(TileMap.MapTextures);
-
 
             WManager.DrawPersistent(new DrawQueueItem(DrawPriority.Background, (fTime, window) =>
             {

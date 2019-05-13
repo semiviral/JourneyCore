@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JourneyCoreLib.Core.Context.Entities.Attribute;
 using JourneyCoreLib.Drawing;
-using JourneyCoreLib.Game.Context;
 using JourneyCoreLib.Game.Context.Entities.Attribute;
-using JourneyCoreLib.System.Math;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -144,13 +142,12 @@ namespace JourneyCoreLib.Core.Context.Entities
             return vector * ((int)GetNativeAttribute(EntityAttributeType.Speed).Value / 20);
         }
 
-        public Vector2f GetEntityMovement(Vector2f vector, float frameTime)
+        public Vector2f GetEntityMovement(Vector2f vector, int frameTime)
         {
-            float totalFrames = 1f / frameTime;
             Vector2f speedVector = GetSpeedModifiedVector(Movement);
 
-            vector.X += speedVector.X / totalFrames;
-            vector.Y += speedVector.Y / totalFrames;
+            vector.X += speedVector.X * (1 / frameTime);
+            vector.Y += speedVector.Y * (1 / frameTime);
 
             return vector;
         }
