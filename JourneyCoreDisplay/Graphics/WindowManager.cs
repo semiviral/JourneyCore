@@ -15,11 +15,12 @@ namespace JourneyCoreLib
         #region VARIABLES
 
         private readonly RenderWindow _window;
+        private readonly List<DrawQueueItem> _drawQueue;
 
+        public bool IsInMenu { get; private set; }
         public bool IsActive => _window.IsOpen;
         public Vector2f ContentScale { get; set; }
         public Vector2f PositionScale { get; set; }
-        private List<DrawQueueItem> DrawQueue { get; }
 
         public static int TargetFps {
             get => _targetFps;
@@ -35,7 +36,7 @@ namespace JourneyCoreLib
 
         public static float ElapsedTime { get; private set; }
         public static float IndividualFrameTime { get; private set; }
-        
+
         public event EventHandler<KeyEventArgs> KeyPressed;
         public event EventHandler<KeyEventArgs> KeyReleased;
 
@@ -52,22 +53,30 @@ namespace JourneyCoreLib
             _window.KeyReleased += OnKeyReleased;
             _window.SetFramerateLimit((uint)targetFps);
 
-            DrawQueue = new List<DrawQueueItem>();
+            _drawQueue = new List<DrawQueueItem>();
             _deltaClock = new Delta();
         }
 
         public void UpdateWindow()
         {
+            DateTime abosluteNow = DateTime.Now;
+
             ElapsedTime = _deltaClock.GetDelta();
 
             _window.DispatchEvents();
             _window.Clear();
             _window.PushGLStates();
 
-            if (DrawQueue.Count > 0)
+            if (_drawQueue.Count > 0)
             {
-                foreach (DrawQueueItem drawItem in DrawQueue.OrderByDescending(item => item.PriorityLevel))
+                foreach (DrawQueueItem drawItem in _drawQueue.OrderByDescending(item => item.PriorityLevel))
                 {
+                    if (drawItem.Lifetime.Ticks < abosluteNow.Ticks && drawItem.Lifetime.Ticks != DateTime.MinValue.Ticks)
+                    {
+                        _drawQueue.Remove(drawItem);
+                        continue;
+                    }
+
                     drawItem.Draw(ElapsedTime, _window);
                 }
             }
@@ -76,9 +85,9 @@ namespace JourneyCoreLib
             _window.Display();
         }
 
-        public void DrawPersistent(DrawQueueItem item)
+        public void DrawItem(DrawQueueItem item)
         {
-            DrawQueue.Add(item);
+            _drawQueue.Add(item);
         }
 
         #region EVENTS

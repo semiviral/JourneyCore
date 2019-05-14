@@ -7,11 +7,13 @@ namespace JourneyCoreLib.Drawing
     {
         public DrawPriority PriorityLevel { get; }
         public Action<float, RenderWindow> Draw { get; }
-
-        public DrawQueueItem(DrawPriority priorityLevel, Action<float, RenderWindow> drawingFunction)
+        public DateTime Lifetime { get; }
+        
+        public DrawQueueItem(DrawPriority priorityLevel, Action<float, RenderWindow> drawingFunction, DateTime lifetime = default)
         {
             PriorityLevel = priorityLevel;
             Draw = drawingFunction;
+            Lifetime = lifetime;
         }
     }
 }

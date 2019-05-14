@@ -46,7 +46,7 @@ namespace JourneyCoreLib.Game.InputWatchers
             return _watchedButtons.SingleOrDefault(buttonWatch => buttonWatch.Button.Equals(button));
         }
 
-        public void CheckWatchedKeys()
+        public void CheckWatchedButtons()
         {
             foreach (Mouse.Button watchedButton in GetWatchedButtons())
             {

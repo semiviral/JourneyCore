@@ -11,10 +11,7 @@ namespace JourneyCoreLib.Game.Context.Entities.Attribute
         public EntityAttributeType Type { get; }
         public object Value {
             get => _value; set {
-                if (value.GetType() == _value.GetType())
-                {
-                    throw new AttributeTypeMismatchException(this, $"Attribute '{value.GetType().AssemblyQualifiedName}' does not match actual type of '{_value.GetType().AssemblyQualifiedName}'");
-                }
+                _value = value;
 
                 EntityAttributeUpdatedEvent?.Invoke(this, new EntityAttributeUpdatedEventArgs(this, _value, value));
 

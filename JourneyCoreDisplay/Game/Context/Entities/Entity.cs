@@ -8,37 +8,33 @@ using SFML.System;
 
 namespace JourneyCoreLib.Game.Context.Entities
 {
-    public class Entity : Context
+    public class Entity : Context, IDisposable
     {
         public Sprite Graphic { get; private set; }
         public EntityView EntityView { get; private set; }
         public List<EntityAttribute> EntityAttributes { get; }
+        public DateTime Lifetime { get; }
+        public DateTime ProjectileCooldown { get; set; }
+        public int MaxPixelsTravelable { get; set; }
 
         public event EventHandler<Vector2f> PositionChanged;
         public event EventHandler<float> RotationChanged;
 
-        public Entity(Context owner, string name, string primaryTag, Texture texture, params EntityAttribute[] attributes) : base(owner, name, primaryTag)
+        public Entity(Context owner, string name, string primaryTag, DateTime lifetime, Sprite sprite) : base(owner, name, primaryTag)
         {
+            Lifetime = lifetime;
             EntityAttributes = new List<EntityAttribute>();
 
-            foreach (EntityAttribute attribute in attributes)
-            {
-                EntityAttributes.Add(attribute);
-            }
-
-            InitialiseSprite(texture);
+            InitialiseSprite(sprite);
             InitialiseView(Graphic);
             InitialiseBasicAttributes();
         }
 
-        private void InitialiseSprite(Texture texture)
+        private void InitialiseSprite(Sprite sprite)
         {
-            Graphic = new Sprite(texture, new IntRect(0, 0, (int)texture.Size.X, (int)texture.Size.Y))
-            {
-                Origin = new Vector2f(texture.Size.X / 2, texture.Size.Y / 2),
-                Position = new Vector2f(0f, 0f),
-            };
-
+            Graphic = sprite;
+            Graphic.Origin = new Vector2f(Graphic.TextureRect.Width / 2, Graphic.TextureRect.Height / 2);
+            Graphic.Position = new Vector2f(0f, 0f);
         }
 
         private void InitialiseView(Sprite sprite)
@@ -123,7 +119,7 @@ namespace JourneyCoreLib.Game.Context.Entities
             return vector * ((int)GetNativeAttribute(EntityAttributeType.Speed).Value / 5f);
         }
 
-        public void MoveEntity(Vector2f direction)
+        public void Move(Vector2f direction)
         {
             Graphic.Position += GetSpeedModifiedVector(direction) * GameLoop.MapTileSize.X * WindowManager.ElapsedTime; ;
             PositionChanged?.Invoke(this, Graphic.Position);
@@ -131,18 +127,19 @@ namespace JourneyCoreLib.Game.Context.Entities
 
         public void RotateEntity(float rotation, bool isClockwise)
         {
-            rotation *= WindowManager.ElapsedTime; 
+            rotation *= WindowManager.ElapsedTime;
 
             if (!isClockwise)
             {
                 rotation *= -1;
-                
+
             }
 
             if (Graphic.Rotation + rotation > 360)
             {
                 rotation -= 360;
-            } else if (Graphic.Rotation + rotation < 0)
+            }
+            else if (Graphic.Rotation + rotation < 0)
             {
                 rotation += 360;
             }
@@ -150,6 +147,35 @@ namespace JourneyCoreLib.Game.Context.Entities
             Graphic.Rotation += rotation;
 
             RotationChanged(this, Graphic.Rotation);
+        }
+
+        #endregion
+
+        public Entity GetProjectile()
+        {
+            if (DateTime.Now < ProjectileCooldown)
+            {
+                return null;
+            }
+
+            ProjectileCooldown = DateTime.Now.AddSeconds(1);
+
+            Entity projectile = new Entity(this, "playerProjectile", "projectile", DateTime.Now.AddSeconds(2), GameLoop.Projectiles.GetSprite(0, 0));
+            projectile.Graphic.Rotation = Graphic.Rotation;
+            projectile.Graphic.Position = Graphic.Position;
+            projectile.SetNativeAttribute(EntityAttributeType.Speed, 50);
+
+            return projectile;
+        }
+
+
+
+        #region DISPOSE
+
+        public void Dispose()
+        {
+            Graphic.Dispose();
+
         }
 
         #endregion

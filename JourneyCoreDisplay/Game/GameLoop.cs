@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using JourneyCoreLib.Drawing;
 using JourneyCoreLib.Game.Context.Entities;
 using JourneyCoreLib.Game.InputWatchers;
+using JourneyCoreLib.Graphics.Rendering.Sprites;
 using JourneyCoreLib.Rendering.Environment.Tiling;
 using JourneyCoreLib.System;
 using SFML.Graphics;
@@ -14,7 +14,7 @@ namespace JourneyCoreLib.Game
     public class GameLoop
     {
         public static Vector2i MapTileSize { get; private set; }
-
+        
         private WindowManager _wManager;
         private Context.Context _gameContext;
         private TileMap _currentMap;
@@ -22,6 +22,7 @@ namespace JourneyCoreLib.Game
         private KeyWatcher _keyWatcher;
         private ButtonWatcher _buttonWatcher;
 
+        public static SpriteSheet Projectiles { get; private set; }
 
         public GameLoop()
         {
@@ -33,27 +34,11 @@ namespace JourneyCoreLib.Game
             MapTileSize = new Vector2i(_currentMap.PixelTileWidth, _currentMap.PixelTileHeight);
 
             InitialiseWindowManager();
+            InitialiseSpriteSheets();
             InitialiseKeyWatcher();
+            InitialiseButtonWatcher();
             InitialisePlayer();
             InitialiseView();
-
-            Font font = new Font(@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Fonts\Courier New.ttf");
-
-            _wManager.DrawPersistent(new DrawQueueItem(DrawPriority.UI, (fTime, window) =>
-            {
-                window.Draw(new Text($"{Math.Sin(_player.Graphic.Rotation * (Math.PI / 180))}", font)
-                {
-                    Position = new Vector2f(0f, 0f)
-                });
-                window.Draw(new Text($"{Math.Cos(_player.Graphic.Rotation * (Math.PI / 180))}", font)
-                {
-                    Position = new Vector2f(0f, 50f)
-                });
-                window.Draw(new Text(_player.Graphic.Rotation.ToString(), font)
-                {
-                    Position = new Vector2f(0f, 100f)
-                });
-            }));
         }
 
 
@@ -71,12 +56,18 @@ namespace JourneyCoreLib.Game
             _wManager = new WindowManager("Journey to the Core", new VideoMode(1000, 600, 8), 300, new Vector2f(2f, 2f), 15f);
         }
 
+        private void InitialiseSpriteSheets()
+        {
+            Projectiles = new SpriteSheet(@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Images\Sprites\JourneyCore-Projectiles_8x8.png", new Vector2i(8, 8));
+        }
+
         private void InitialisePlayer()
         {
-            _player = new Entity(_gameContext, "player", "player", new Texture(@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Images\Sprites\Human.png"));
-            _wManager.DrawPersistent(new DrawQueueItem(DrawPriority.Foreground, (fTime, window) =>
+            _player = new Entity(_gameContext, "player", "player", DateTime.MinValue, new Sprite(new Texture(@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Images\Sprites\Human.png")));
+            _wManager.DrawItem(new DrawQueueItem(DrawPriority.Foreground, (fTime, window) =>
             {
                 _keyWatcher.CheckWatchedKeys();
+                _buttonWatcher.CheckWatchedButtons();
                 window.Draw(_player.Graphic);
             }));
         }
@@ -102,7 +93,7 @@ namespace JourneyCoreLib.Game
                     movement *= 0.5f;
                 }
 
-                _player.MoveEntity(movement);
+                _player.Move(movement);
             });
 
             _keyWatcher.AddWatchedKeyAction(Keyboard.Key.A, (key) =>
@@ -114,7 +105,7 @@ namespace JourneyCoreLib.Game
                     movement *= 0.5f;
                 }
 
-                _player.MoveEntity(movement);
+                _player.Move(movement);
             });
 
             _keyWatcher.AddWatchedKeyAction(Keyboard.Key.S, (key) =>
@@ -126,7 +117,7 @@ namespace JourneyCoreLib.Game
                     movement *= 0.5f;
                 }
 
-                _player.MoveEntity(movement);
+                _player.Move(movement);
             });
 
             _keyWatcher.AddWatchedKeyAction(Keyboard.Key.D, (key) =>
@@ -138,7 +129,7 @@ namespace JourneyCoreLib.Game
                     movement *= 0.5f;
                 }
 
-                _player.MoveEntity(movement);
+                _player.Move(movement);
             });
 
             _keyWatcher.AddWatchedKeyAction(Keyboard.Key.Q, (key) =>
@@ -149,6 +140,37 @@ namespace JourneyCoreLib.Game
             _keyWatcher.AddWatchedKeyAction(Keyboard.Key.E, (key) =>
             {
                 _player.RotateEntity(180f, true);
+            });
+        }
+
+        private void InitialiseButtonWatcher()
+        {
+            _buttonWatcher = new ButtonWatcher();
+
+            _buttonWatcher.AddWatchedButtonAction(Mouse.Button.Left, (button) =>
+            {
+               if (_wManager.IsInMenu)
+                {
+                    return;
+                }
+
+
+                Entity projectile = _player.GetProjectile();
+
+                // projectile cooldown
+                if (projectile == null)
+                {
+                    return;
+                }
+
+                _wManager.DrawItem(new DrawQueueItem(DrawPriority.Foreground, (fTime, window) =>
+                {
+                    Vector2f movement = new Vector2f(RadianMath.SinFromDegrees(projectile.Graphic.Rotation), RadianMath.CosFromDegrees(projectile.Graphic.Rotation) * -1f);
+
+                    projectile.Move(movement);
+
+                    window.Draw(projectile.Graphic);
+                }, projectile.Lifetime));
             });
         }
 
@@ -164,7 +186,7 @@ namespace JourneyCoreLib.Game
 
             RenderStates overlayStates = new RenderStates(TileMap.MapTextures);
 
-            _wManager.DrawPersistent(new DrawQueueItem(DrawPriority.Background, (fTime, window) =>
+            _wManager.DrawItem(new DrawQueueItem(DrawPriority.Background, (fTime, window) =>
             {
                 window.Draw(_currentMap.VArray, overlayStates);
             }));
