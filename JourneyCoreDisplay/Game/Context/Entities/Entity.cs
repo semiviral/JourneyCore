@@ -2,59 +2,60 @@
 using System.Collections.Generic;
 using System.Linq;
 using JourneyCoreLib.Core.Context.Entities.Attribute;
-using JourneyCoreLib.Drawing;
-using JourneyCoreLib.Game;
 using JourneyCoreLib.Game.Context.Entities.Attribute;
 using SFML.Graphics;
 using SFML.System;
-using SFML.Window;
 
-namespace JourneyCoreLib.Core.Context.Entities
+namespace JourneyCoreLib.Game.Context.Entities
 {
-    public class Entity : Game.Context.Context
+    public class Entity : Context
     {
-        public Sprite Graphic { get; set; }
-        private List<Keyboard.Key> RegisteredKeys { get; }
-
+        public Sprite Graphic { get; private set; }
+        public EntityView EntityView { get; private set; }
         public List<EntityAttribute> EntityAttributes { get; }
-        public Vector2f Movement {
-            get => _movement;
-            set {
-                if (_movement == value)
-                {
-                    return;
-                }
 
-                _movement = value;
-                MovementVectorChanged?.Invoke(this, _movement);
-            }
-        }
-        private Vector2f _movement;
+        public event EventHandler<Vector2f> PositionChanged;
+        public event EventHandler<float> RotationChanged;
 
-        public Entity(Game.Context.Context owner, WindowManager wManager, string name, string primaryTag, Sprite sprite, params EntityAttribute[] attributes) : base(owner, name, primaryTag)
+        public Entity(Context owner, WindowManager wManager, string name, string primaryTag, Texture texture, params EntityAttribute[] attributes) : base(owner, name, primaryTag)
         {
             EntityAttributes = new List<EntityAttribute>();
-            Movement = new Vector2f(0f, 0f);
-            RegisteredKeys = new List<Keyboard.Key>();
-            Graphic = sprite;
 
             foreach (EntityAttribute attribute in attributes)
             {
                 EntityAttributes.Add(attribute);
             }
 
+            InitialiseSprite(texture);
+            InitialiseView(Graphic);
             InitialiseBasicAttributes();
-            InitialiseRendering(wManager);
+
+            Graphic.Position = new Vector2f(0, 0);
         }
 
-        private void InitialiseRendering(WindowManager wManager)
+        private void InitialiseSprite(Texture texture)
         {
-            Graphic.Position = new Vector2f(0, 0);
+            Graphic = new Sprite(texture, new IntRect(0, 0, (int)texture.Size.X, (int)texture.Size.Y))
+            {
+                Origin = new Vector2f(texture.Size.X / 2, texture.Size.Y / 2),
 
-            wManager.KeyPressed += OnKeyPressed;
-            wManager.KeyReleased += OnKeyReleased;
+            };
 
-            wManager.DrawPersistent(new DrawQueueItem(DrawPriority.Foreground, MoveEntity));
+        }
+
+        private void InitialiseView(Sprite sprite)
+        {
+            EntityView = new EntityView(sprite.Position, new Vector2f(200f, 200f));
+
+            PositionChanged += (sender, args) =>
+            {
+                EntityView.SetPosition(args);
+            };
+
+            RotationChanged += (sender, args) =>
+            {
+                EntityView.SetRotation(args);
+            };
         }
 
         #region ATTRIBUTES
@@ -118,153 +119,31 @@ namespace JourneyCoreLib.Core.Context.Entities
 
         #region MOVEMENT
 
-        public Vector2f AddMovementVector(Vector2f direction)
-        {
-            Movement += GetSpeedModifiedVector(direction);
-            return Movement;
-        }
-
-        public Vector2f RemoveMovementVector(Vector2f direction)
-        {
-            Movement -= GetSpeedModifiedVector(direction);
-            return Movement;
-        }
-
         private Vector2f GetSpeedModifiedVector(Vector2f vector)
         {
-            return vector * ((int)GetNativeAttribute(EntityAttributeType.Speed).Value / 20f);
+            return vector * ((int)GetNativeAttribute(EntityAttributeType.Speed).Value / 10f);
         }
 
-        public Vector2f GetEntityMovement(Vector2f vector, float frameTime)
+        public void MoveEntity(Vector2f direction)
         {
-            Vector2f speedVector = GetSpeedModifiedVector(Movement);
-            float travelDistance = GameLoop.MapTileSize.X * frameTime;
-
-            vector.X += speedVector.X * travelDistance;
-            vector.Y += speedVector.Y * travelDistance;
-
-            return vector;
+            Graphic.Position += GetSpeedModifiedVector(direction) * GameLoop.MapTileSize.X * WindowManager.ElapsedTime; ;
+            PositionChanged?.Invoke(this, Graphic.Position);
         }
 
-        private void MoveEntity(float frameTime, RenderWindow window)
+        public void RotateEntity(float rotation, bool isClockwise)
         {
-            if (Movement != new Vector2f(0f, 0f))
+            if (isClockwise)
             {
-                Graphic.Position = GetEntityMovement(Graphic.Position, frameTime);
+                Graphic.Rotation += rotation * WindowManager.ElapsedTime;
+            }
+            else
+            {
+                Graphic.Rotation -= rotation * WindowManager.ElapsedTime;
             }
 
-            window.Draw(Graphic, new RenderStates(Graphic.Texture));
+            RotationChanged(this, Graphic.Rotation);
         }
-
-        private bool IsMovementKey(Keyboard.Key key)
-        {
-            return key.Equals(Keyboard.Key.W) || key.Equals(Keyboard.Key.A) || key.Equals(Keyboard.Key.S) || key.Equals(Keyboard.Key.D);
-        }
-
-
-        private void RegisterMovmentKey(Keyboard.Key key, bool isPressed)
-        {
-            switch (key)
-            {
-                case Keyboard.Key.W:
-                    if (isPressed)
-                    {
-                        if (RegisteredKeys.Contains(Keyboard.Key.W))
-                        {
-                            break;
-                        }
-
-                        RegisteredKeys.Add(Keyboard.Key.W);
-
-                        Movement += new Vector2f(0f, -1f);
-                    }
-                    else
-                    {
-                        RegisteredKeys.Remove(Keyboard.Key.W);
-
-                        Movement -= new Vector2f(0f, -1f);
-                    }
-                    break;
-                case Keyboard.Key.A:
-                    if (isPressed)
-                    {
-                        if (RegisteredKeys.Contains(Keyboard.Key.A))
-                        {
-                            break;
-                        }
-
-                        RegisteredKeys.Add(Keyboard.Key.A);
-
-                        Movement += new Vector2f(-1f, 0f);
-                    }
-                    else
-                    {
-                        RegisteredKeys.Remove(Keyboard.Key.A);
-
-                        Movement -= new Vector2f(-1f, 0f);
-                    }
-                    break;
-                case Keyboard.Key.S:
-                    if (isPressed)
-                    {
-                        if (RegisteredKeys.Contains(Keyboard.Key.S))
-                        {
-                            break;
-                        }
-
-                        RegisteredKeys.Add(Keyboard.Key.S);
-
-                        Movement += new Vector2f(0f, 1f);
-                    }
-                    else
-                    {
-                        RegisteredKeys.Remove(Keyboard.Key.S);
-
-                        Movement -= new Vector2f(0f, 1f);
-                    }
-                    break;
-                case Keyboard.Key.D:
-                    if (isPressed)
-                    {
-                        if (RegisteredKeys.Contains(Keyboard.Key.D))
-                        {
-                            break;
-                        }
-
-                        RegisteredKeys.Add(Keyboard.Key.D);
-
-                        Movement += new Vector2f(1f, 0f);
-                    }
-                    else
-                    {
-                        RegisteredKeys.Remove(Keyboard.Key.D);
-
-                        Movement -= new Vector2f(1f, 0f);
-                    }
-                    break;
-            }
-        }
-
-        public event EventHandler<Vector2f> MovementVectorChanged;
 
         #endregion
-
-
-
-        public void OnKeyPressed(object sender, KeyEventArgs args)
-        {
-            if (IsMovementKey(args.Code))
-            {
-                RegisterMovmentKey(args.Code, true);
-            }
-        }
-
-        public void OnKeyReleased(object sender, KeyEventArgs args)
-        {
-            if (IsMovementKey(args.Code))
-            {
-                RegisterMovmentKey(args.Code, false);
-            }
-        }
     }
 }

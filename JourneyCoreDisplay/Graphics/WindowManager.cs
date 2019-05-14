@@ -31,10 +31,11 @@ namespace JourneyCoreLib
             }
         }
         private static int _targetFps;
-        public static float IndividualFrameTime { get; private set; }
-        private static Delta DeltaClock { get; set; }
-        private static float ElapsedTime { get; set; }
+        private static Delta _deltaClock;
 
+        public static float ElapsedTime { get; private set; }
+        public static float IndividualFrameTime { get; private set; }
+        
         public event EventHandler<KeyEventArgs> KeyPressed;
         public event EventHandler<KeyEventArgs> KeyReleased;
 
@@ -52,12 +53,12 @@ namespace JourneyCoreLib
             _window.SetFramerateLimit((uint)targetFps);
 
             DrawQueue = new List<DrawQueueItem>();
-            DeltaClock = new Delta();
+            _deltaClock = new Delta();
         }
 
         public void UpdateWindow()
         {
-            ElapsedTime = DeltaClock.GetDelta();
+            ElapsedTime = _deltaClock.GetDelta();
 
             _window.DispatchEvents();
             _window.Clear();
@@ -96,6 +97,29 @@ namespace JourneyCoreLib
         {
             RenderWindow window = (RenderWindow)sender;
             window.Close();
+        }
+
+        #endregion
+
+        #region VIEW
+
+        public View SetView(View view)
+        {
+            _window.SetView(view);
+
+            return GetView();
+        }
+
+        public View GetView()
+        {
+            return _window.GetView();
+        }
+
+        public View SetViewport(FloatRect viewport)
+        {
+            GetView().Viewport = viewport;
+
+            return GetView();
         }
 
         #endregion
