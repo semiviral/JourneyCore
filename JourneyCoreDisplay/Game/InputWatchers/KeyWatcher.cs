@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SFML.Window;
 
-namespace JourneyCoreLib.Game.Keys
+namespace JourneyCoreLib.Game.InputWatchers
 {
     public class KeyWatcher
     {

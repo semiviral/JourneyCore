@@ -1,6 +1,6 @@
 ﻿using JourneyCoreLib.Game.Context.Entities.Attribute;
 
-namespace JourneyCoreLib.Event
+namespace JourneyCoreLib.System.Event
 {
     public class EntityAttributeUpdatedEventArgs
     {

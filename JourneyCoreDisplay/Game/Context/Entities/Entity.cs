@@ -17,7 +17,7 @@ namespace JourneyCoreLib.Game.Context.Entities
         public event EventHandler<Vector2f> PositionChanged;
         public event EventHandler<float> RotationChanged;
 
-        public Entity(Context owner, WindowManager wManager, string name, string primaryTag, Texture texture, params EntityAttribute[] attributes) : base(owner, name, primaryTag)
+        public Entity(Context owner, string name, string primaryTag, Texture texture, params EntityAttribute[] attributes) : base(owner, name, primaryTag)
         {
             EntityAttributes = new List<EntityAttribute>();
 
@@ -33,7 +33,7 @@ namespace JourneyCoreLib.Game.Context.Entities
 
         private void InitialiseSprite(Texture texture)
         {
-            Graphic = new Sprite(texture, new IntRect(0, 0, 32, 32))
+            Graphic = new Sprite(texture, new IntRect(0, 0, (int)texture.Size.X, (int)texture.Size.Y))
             {
                 Origin = new Vector2f(texture.Size.X / 2, texture.Size.Y / 2),
                 Position = new Vector2f(0f, 0f),
@@ -44,6 +44,7 @@ namespace JourneyCoreLib.Game.Context.Entities
         private void InitialiseView(Sprite sprite)
         {
             EntityView = new EntityView(sprite.Position, new Vector2f(200f, 200f));
+            EntityView.SetViewport(new FloatRect(0f, 0f, 0.8f, 1f));
 
             PositionChanged += (sender, args) =>
             {
@@ -119,7 +120,7 @@ namespace JourneyCoreLib.Game.Context.Entities
 
         private Vector2f GetSpeedModifiedVector(Vector2f vector)
         {
-            return vector * ((int)GetNativeAttribute(EntityAttributeType.Speed).Value / 10f);
+            return vector * ((int)GetNativeAttribute(EntityAttributeType.Speed).Value / 5f);
         }
 
         public void MoveEntity(Vector2f direction)

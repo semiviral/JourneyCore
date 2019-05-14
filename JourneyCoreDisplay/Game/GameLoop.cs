@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using JourneyCoreLib.Drawing;
 using JourneyCoreLib.Game.Context.Entities;
-using JourneyCoreLib.Game.Keys;
+using JourneyCoreLib.Game.InputWatchers;
 using JourneyCoreLib.Rendering.Environment.Tiling;
 using JourneyCoreLib.System;
 using SFML.Graphics;
@@ -20,6 +20,7 @@ namespace JourneyCoreLib.Game
         private TileMap _currentMap;
         private Entity _player;
         private KeyWatcher _keyWatcher;
+        private ButtonWatcher _buttonWatcher;
 
 
         public GameLoop()
@@ -67,12 +68,12 @@ namespace JourneyCoreLib.Game
 
         private void InitialiseWindowManager()
         {
-            _wManager = new WindowManager("Journey to the Core", new VideoMode(1920, 1080, 8), 300, new Vector2f(2f, 2f), 15f);
+            _wManager = new WindowManager("Journey to the Core", new VideoMode(1000, 600, 8), 300, new Vector2f(2f, 2f), 15f);
         }
 
         private void InitialisePlayer()
         {
-            _player = new Entity(_gameContext, _wManager, "player", "player", new Texture(@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Images\Sprites\Human.png"));
+            _player = new Entity(_gameContext, "player", "player", new Texture(@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Images\Sprites\Human.png"));
             _wManager.DrawPersistent(new DrawQueueItem(DrawPriority.Foreground, (fTime, window) =>
             {
                 _keyWatcher.CheckWatchedKeys();
@@ -94,22 +95,50 @@ namespace JourneyCoreLib.Game
 
             _keyWatcher.AddWatchedKeyAction(Keyboard.Key.W, (key) =>
             {
-                _player.MoveEntity(new Vector2f(RadianMath.SinFromDegrees(_player.Graphic.Rotation), RadianMath.CosFromDegrees(_player.Graphic.Rotation) * -1f));
+                Vector2f movement = new Vector2f(RadianMath.SinFromDegrees(_player.Graphic.Rotation), RadianMath.CosFromDegrees(_player.Graphic.Rotation) * -1f);
+
+                if (Keyboard.IsKeyPressed(Keyboard.Key.A) || Keyboard.IsKeyPressed(Keyboard.Key.D))
+                {
+                    movement *= 0.5f;
+                }
+
+                _player.MoveEntity(movement);
             });
 
             _keyWatcher.AddWatchedKeyAction(Keyboard.Key.A, (key) =>
             {
-                _player.MoveEntity(new Vector2f(RadianMath.CosFromDegrees(_player.Graphic.Rotation) * -1f, RadianMath.SinFromDegrees(_player.Graphic.Rotation) * -1f));
+                Vector2f movement = new Vector2f(RadianMath.CosFromDegrees(_player.Graphic.Rotation) * -1f, RadianMath.SinFromDegrees(_player.Graphic.Rotation) * -1f);
+
+                if (Keyboard.IsKeyPressed(Keyboard.Key.W) || Keyboard.IsKeyPressed(Keyboard.Key.S))
+                {
+                    movement *= 0.5f;
+                }
+
+                _player.MoveEntity(movement);
             });
 
             _keyWatcher.AddWatchedKeyAction(Keyboard.Key.S, (key) =>
             {
-                _player.MoveEntity(new Vector2f(RadianMath.SinFromDegrees(_player.Graphic.Rotation) * -1f, RadianMath.CosFromDegrees(_player.Graphic.Rotation)));
+                Vector2f movement = new Vector2f(RadianMath.SinFromDegrees(_player.Graphic.Rotation) * -1f, RadianMath.CosFromDegrees(_player.Graphic.Rotation));
+
+                if (Keyboard.IsKeyPressed(Keyboard.Key.A) || Keyboard.IsKeyPressed(Keyboard.Key.D))
+                {
+                    movement *= 0.5f;
+                }
+
+                _player.MoveEntity(movement);
             });
 
             _keyWatcher.AddWatchedKeyAction(Keyboard.Key.D, (key) =>
             {
-                _player.MoveEntity(new Vector2f(RadianMath.CosFromDegrees(_player.Graphic.Rotation), RadianMath.SinFromDegrees(_player.Graphic.Rotation)));
+                Vector2f movement = new Vector2f(RadianMath.CosFromDegrees(_player.Graphic.Rotation), RadianMath.SinFromDegrees(_player.Graphic.Rotation));
+
+                if (Keyboard.IsKeyPressed(Keyboard.Key.W) || Keyboard.IsKeyPressed(Keyboard.Key.S))
+                {
+                    movement *= 0.5f;
+                }
+
+                _player.MoveEntity(movement);
             });
 
             _keyWatcher.AddWatchedKeyAction(Keyboard.Key.Q, (key) =>

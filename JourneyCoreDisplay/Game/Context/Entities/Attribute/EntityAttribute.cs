@@ -1,6 +1,6 @@
 ﻿using JourneyCoreLib.Core.Context.Entities.Attribute;
-using JourneyCoreLib.Event;
 using JourneyCoreLib.Exceptions;
+using JourneyCoreLib.System.Event;
 using System;
 
 namespace JourneyCoreLib.Game.Context.Entities.Attribute

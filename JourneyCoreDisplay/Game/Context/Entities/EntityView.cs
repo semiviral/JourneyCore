@@ -41,5 +41,12 @@ namespace JourneyCoreLib.Game.Context.Entities
 
             return _internalView;
         }
+
+        public View SetViewport(FloatRect viewport)
+        {
+            _internalView.Viewport = viewport;
+
+            return _internalView;
+        }
     }
 }

@@ -1,20 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using JourneyCoreLib.System.Event;
 using SFML.Window;
 
-namespace JourneyCoreLib.Game.Keys
+namespace JourneyCoreLib.Game.InputWatchers
 {
     public class KeyWatch
     {
-        public bool IsPressed { get; set; }
         public Keyboard.Key Key { get; }
         private List<Action<Keyboard.Key>> _keyActions;
 
         public KeyWatch(Keyboard.Key key, params Action<Keyboard.Key>[] keyActions)
         {
-            IsPressed = false;
             Key = key;
             _keyActions = new List<Action<Keyboard.Key>>();
 
@@ -41,11 +37,5 @@ namespace JourneyCoreLib.Game.Keys
         {
             _keyActions.Remove(keyAction);
         }
-    }
-
-    public enum KeyActionType
-    {
-        Press,
-        Release,
     }
 }
