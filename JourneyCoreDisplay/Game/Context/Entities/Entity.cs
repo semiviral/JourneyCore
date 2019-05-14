@@ -29,16 +29,14 @@ namespace JourneyCoreLib.Game.Context.Entities
             InitialiseSprite(texture);
             InitialiseView(Graphic);
             InitialiseBasicAttributes();
-
-            Graphic.Position = new Vector2f(0, 0);
         }
 
         private void InitialiseSprite(Texture texture)
         {
-            Graphic = new Sprite(texture, new IntRect(0, 0, (int)texture.Size.X, (int)texture.Size.Y))
+            Graphic = new Sprite(texture, new IntRect(0, 0, 32, 32))
             {
                 Origin = new Vector2f(texture.Size.X / 2, texture.Size.Y / 2),
-
+                Position = new Vector2f(0f, 0f),
             };
 
         }
@@ -132,14 +130,23 @@ namespace JourneyCoreLib.Game.Context.Entities
 
         public void RotateEntity(float rotation, bool isClockwise)
         {
-            if (isClockwise)
+            rotation *= WindowManager.ElapsedTime; 
+
+            if (!isClockwise)
             {
-                Graphic.Rotation += rotation * WindowManager.ElapsedTime;
+                rotation *= -1;
+                
             }
-            else
+
+            if (Graphic.Rotation + rotation > 360)
             {
-                Graphic.Rotation -= rotation * WindowManager.ElapsedTime;
+                rotation -= 360;
+            } else if (Graphic.Rotation + rotation < 0)
+            {
+                rotation += 360;
             }
+
+            Graphic.Rotation += rotation;
 
             RotationChanged(this, Graphic.Rotation);
         }
