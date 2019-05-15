@@ -1,27 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
-using JourneyCoreLib.Core.Context.Entities.Attribute;
+using System.Runtime.CompilerServices;
 using JourneyCoreLib.Game.Context.Entities.Attribute;
+using JourneyCoreLib.System;
+using JourneyCoreLib.System.Event;
 using SFML.Graphics;
 using SFML.System;
 
 namespace JourneyCoreLib.Game.Context.Entities
 {
-    public class Entity : Context, IDisposable
+    public class Entity : Context, IDisposable, IStatedObject
     {
+        public string Guid { get; }
+        
         public Sprite Graphic { get; private set; }
         public EntityView EntityView { get; private set; }
         public List<EntityAttribute> EntityAttributes { get; }
         public DateTime Lifetime { get; }
         public DateTime ProjectileCooldown { get; set; }
-        public int MaxPixelsTravelable { get; set; }
-
+        
         public event EventHandler<Vector2f> PositionChanged;
         public event EventHandler<float> RotationChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public Entity(Context owner, string name, string primaryTag, DateTime lifetime, Sprite sprite) : base(owner, name, primaryTag)
         {
+            Guid = new Guid().ToString();
+
             Lifetime = lifetime;
             EntityAttributes = new List<EntityAttribute>();
 
@@ -179,5 +186,10 @@ namespace JourneyCoreLib.Game.Context.Entities
         }
 
         #endregion
+
+        public void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged(this, new StatedObjectPropertyChangedEventArgs(Guid, propertyName));
+        }
     }
 }

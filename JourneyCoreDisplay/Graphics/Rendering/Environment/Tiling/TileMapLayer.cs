@@ -7,7 +7,7 @@ namespace JourneyCoreLib.Rendering.Environment.Tiling
 {
     public class TileMapLayer
     {
-        internal Chunk[][] ChunkMap { get; set; }
+        public Chunk[][] ChunkMap { get; set; }
 
         [XmlElement("properties")]
         public List<CustomProperty> CustomProperties { get; set; }

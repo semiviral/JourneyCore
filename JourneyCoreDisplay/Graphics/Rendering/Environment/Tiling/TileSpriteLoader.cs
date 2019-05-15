@@ -8,13 +8,13 @@ using System.Xml.Serialization;
 
 namespace JourneyCoreLib.Rendering.Environment.Tiling
 {
-    public static class TileLoader
+    public static class TileSpriteLoader
     {
         private static Random _rand;
 
         public static List<Tile> LoadedTiles { get; set; }
 
-        static TileLoader()
+        static TileSpriteLoader()
         {
             _rand = new Random();
             LoadedTiles = new List<Tile>();

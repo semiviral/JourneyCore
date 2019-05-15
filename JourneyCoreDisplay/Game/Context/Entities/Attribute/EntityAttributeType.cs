@@ -1,5 +1,6 @@
 ﻿using System;
-namespace JourneyCoreLib.Core.Context.Entities.Attribute
+
+namespace JourneyCoreLib.Game.Context.Entities.Attribute
 {
     public enum EntityAttributeType
     {

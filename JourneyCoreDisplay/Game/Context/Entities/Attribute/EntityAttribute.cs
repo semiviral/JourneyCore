@@ -1,5 +1,4 @@
-﻿using JourneyCoreLib.Core.Context.Entities.Attribute;
-using JourneyCoreLib.Exceptions;
+﻿using JourneyCoreLib.Exceptions;
 using JourneyCoreLib.System.Event;
 using System;
 

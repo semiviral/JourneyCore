@@ -1,12 +1,9 @@
 ﻿using JourneyCoreLib.Drawing;
-using JourneyCoreLib.Rendering.Environment.Chunking;
 using SFML.Graphics;
 using SFML.System;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
 
 namespace JourneyCoreLib.Rendering.Environment.Tiling
@@ -47,7 +44,7 @@ namespace JourneyCoreLib.Rendering.Environment.Tiling
         [XmlIgnore]
         public int ScaledTilePixelHeight { get; set; }
         [XmlIgnore]
-        public VertexArray VArray { get; internal set; }
+        public VertexArray VArray { get; set; }
 
         public TileMap()
         {
@@ -147,7 +144,7 @@ namespace JourneyCoreLib.Rendering.Environment.Tiling
                             continue;
                         }
 
-                        Tile currentTile = TileLoader.GetById(tileId);
+                        Tile currentTile = TileSpriteLoader.GetById(tileId);
 
                         if (currentTile == null)
                         {
@@ -267,7 +264,7 @@ namespace JourneyCoreLib.Rendering.Environment.Tiling
                 return tile;
             }
 
-            return TileLoader.GetRandom(TileLoader.GetByGroup(tile.Group));
+            return TileSpriteLoader.GetRandom(TileSpriteLoader.GetByGroup(tile.Group));
         }
 
         private Tile AccentTile(Tile tile)
@@ -284,7 +281,7 @@ namespace JourneyCoreLib.Rendering.Environment.Tiling
                 return tile;
             }
 
-            Tile accent = TileLoader.GetRandom(TileLoader.GetByAccentGroup(tile.Group));
+            Tile accent = TileSpriteLoader.GetRandom(TileSpriteLoader.GetByAccentGroup(tile.Group));
 
             if (accent == default(Tile))
             {
@@ -295,67 +292,6 @@ namespace JourneyCoreLib.Rendering.Environment.Tiling
             tile.Accents.Add(accent);
 
             return tile;
-        }
-
-        #endregion
-
-
-
-        #region STATIC METHODS
-
-        public static TileMap LoadTileMap(string mapName, Vector2i chunkSize, int scale)
-        {
-            XmlSerializer mapSerializer = new XmlSerializer(typeof(TileMap));
-
-            using (StreamReader reader = new StreamReader($@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\JourneyCoreGame\Assets\Maps\{mapName}.xml", Encoding.UTF8))
-            {
-                TileMap map = (TileMap)mapSerializer.Deserialize(reader);
-                map.ScaledTilePixelWidth = map.PixelTileWidth * scale;
-                map.ScaledTilePixelHeight = map.PixelTileHeight * scale;
-                map.PixelWidth = map.Width * map.ScaledTilePixelWidth;
-                map.PixelHeight = map.Height * map.ScaledTilePixelHeight;
-                map.VArray = new VertexArray(PrimitiveType.Quads);
-                map.VArray.Resize((uint)((map.Width * map.Height * 4 + 1) * map.Layers.Count + 1));
-
-                foreach (TileMapLayer layer in map.Layers)
-                {
-                    BuildChunkMap(map, layer, chunkSize);
-                }
-
-                return map;
-            }
-
-        }
-
-        private static void BuildChunkMap(TileMap map, TileMapLayer layer, Vector2i chunkSize)
-        {
-            string[] layerDataArray = layer.Data.Replace("\r\n", "\n").Replace("\n", ",").Split(',', StringSplitOptions.RemoveEmptyEntries);
-            int layerChunkWidth = layer.Width / map.ChunkWidth;
-            int layerChunkHeight = layer.Height / map.ChunkHeight;
-
-            layer.ChunkMap = new Chunk[layerChunkWidth][];
-
-            for (int chunkX = 0; chunkX < map.ChunkWidth; chunkX++)
-            {
-                layer.ChunkMap[chunkX] = new Chunk[layerChunkHeight];
-
-                for (int chunkY = 0; chunkY < layerChunkHeight; chunkY++)
-                {
-                    Chunk currentChunk = new Chunk(new int[chunkSize.X][]);
-
-                    for (int x = 0; x < chunkSize.X; x++)
-                    {
-                        currentChunk.ChunkData[x] = new int[chunkSize.Y];
-
-                        for (int y = 0; y < chunkSize.Y; y++)
-                        {
-                            currentChunk.ChunkData[x][y] = int.Parse(layerDataArray[layer.Width * (y + chunkY * map.ChunkHeight) + x + chunkX * map.ChunkWidth]);
-                        }
-                    }
-
-                    layer.ChunkMap[chunkX][chunkY] = currentChunk;
-                }
-            }
         }
 
         #endregion
