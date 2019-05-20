@@ -3,8 +3,6 @@
  <image source="../../Images/Sprites/JourneyCore-MapSprites.png" width="208" height="960"/>
  <tile id="0" type="Grass">
   <properties>
-   <property name="AccentProbability" type="float" value="0.05"/>
-   <property name="IsAccentable" type="bool" value="true"/>
    <property name="IsRandomizable" type="bool" value="true"/>
    <property name="IsRandomlyRotatable" type="bool" value="true"/>
   </properties>
@@ -33,9 +31,9 @@
  <tile id="10" type="MarblePath"/>
  <tile id="11" type="MarblePath"/>
  <tile id="12" type="MarblePath"/>
- <tile id="13" type="Accent">
+ <tile id="13" type="Flowers" probability="0.05">
   <properties>
-   <property name="AccentGroup" value="Grass"/>
+   <property name="IsRandomizable" type="bool" value="true"/>
    <property name="IsRandomlyRotatable" type="bool" value="true"/>
   </properties>
  </tile>
@@ -52,9 +50,9 @@
  <tile id="23" type="MarblePath"/>
  <tile id="24" type="MarblePath"/>
  <tile id="25" type="MarblePath"/>
- <tile id="26" type="Accent">
+ <tile id="26" type="Flowers" probability="0.05">
   <properties>
-   <property name="AccentGroup" value="Grass"/>
+   <property name="IsRandomizable" type="bool" value="true"/>
    <property name="IsRandomlyRotatable" type="bool" value="true"/>
   </properties>
  </tile>

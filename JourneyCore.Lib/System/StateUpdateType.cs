@@ -3,6 +3,6 @@
     public enum StateUpdateType
     {
         Position,
-        Rotation,
+        Rotation
     }
 }

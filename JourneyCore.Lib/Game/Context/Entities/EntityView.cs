@@ -2,24 +2,31 @@
 using SFML.Graphics;
 using SFML.System;
 
-namespace JourneyCoreLib.Game.Context.Entities
+namespace JourneyCore.Lib.Game.Context.Entities
 {
     public class EntityView
     {
-        private View _internalView;
+        private readonly View _internalView;
+
+        public EntityView(float centerLeft, float centerTop, float width, float height) : this(
+            new Vector2f(centerLeft, centerTop), new Vector2f(width, height))
+        {
+        }
+
+        public EntityView(Vector2f center, Vector2f size) : this(new View(center, size))
+        {
+        }
+
+        public EntityView(View view)
+        {
+            _internalView = view;
+        }
 
         public float Width => _internalView.Viewport.Width;
         public float Height => _internalView.Viewport.Height;
 
         public event EventHandler<View> PositionChanged;
         public event EventHandler<View> RotationChanged;
-
-        public EntityView(float centerLeft, float centerTop, float width, float height) : this(new Vector2f(centerLeft, centerTop), new Vector2f(width, height)) { }
-        public EntityView(Vector2f center, Vector2f size) : this(new View(center, size)) { }
-        public EntityView(View view)
-        {
-            _internalView = view;
-        }
 
         public View GetView()
         {

@@ -15,12 +15,12 @@ namespace JourneyCore.Lib.System
 
         public static float CosFromDegrees(float degrees)
         {
-            return (float)Math.Cos(degrees * (Math.PI / 180));
+            return (float) Math.Cos(degrees * (Math.PI / 180));
         }
 
         public static float SinFromDegrees(float degrees)
         {
-            return (float)Math.Sin(degrees * (Math.PI / 180));
+            return (float) Math.Sin(degrees * (Math.PI / 180));
         }
 
         public static Vector2f CalculateVertexPosition(VertexCorner corner, int x, int y, int sizeX, int sizeY)
@@ -61,6 +61,6 @@ namespace JourneyCore.Lib.System
         TopLeft,
         TopRight,
         BottomRight,
-        BottomLeft,
+        BottomLeft
     }
 }

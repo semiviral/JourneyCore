@@ -1,15 +1,9 @@
 ﻿using System.Collections.Generic;
 
-namespace JourneyCoreLib.Game.Context
+namespace JourneyCore.Lib.Game.Context
 {
     public class Context
     {
-        public Context Owner { get; }
-        public string Name { get; }
-        public string PrimaryTag { get; }
-        public List<string> Tags { get; }
-        public bool Initialised { get; set; } = false;
-
         public Context(Context owner, string name, string primaryTag, params string[] tags)
         {
             Owner = owner;
@@ -24,5 +18,11 @@ namespace JourneyCoreLib.Game.Context
 
             Initialised = owner != null && !string.IsNullOrWhiteSpace(Name) && !string.IsNullOrWhiteSpace(PrimaryTag);
         }
+
+        public Context Owner { get; }
+        public string Name { get; }
+        public string PrimaryTag { get; }
+        public List<string> Tags { get; }
+        public bool Initialised { get; set; }
     }
 }

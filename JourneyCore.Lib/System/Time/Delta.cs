@@ -4,12 +4,12 @@ namespace JourneyCore.Lib.System.Time
 {
     public class Delta
     {
-        private Clock InternalClock { get; }
-
         public Delta()
         {
             InternalClock = new Clock();
         }
+
+        private Clock InternalClock { get; }
 
         public float GetDelta()
         {
@@ -20,6 +20,5 @@ namespace JourneyCore.Lib.System.Time
         {
             return InternalClock.Restart().AsMilliseconds();
         }
-
     }
 }

@@ -2,23 +2,22 @@
 using System.Threading;
 using System.Threading.Tasks;
 using JourneyCore.Lib.System;
-using JourneyCore.Server.Net.SignalR.Proxies;
+using JourneyCore.Server.Net.SignalR.Services;
 using Microsoft.AspNetCore.SignalR;
 using SFML.System;
-using SFML.Window;
 
 namespace JourneyCore.Server.Net.SignalR.Hubs
 {
     public class GameClientHub : Hub<IGameClientHub>
     {
-        private IGameProxy GameProxy { get; }
-        private CancellationToken IsCancelled { get; }
-
-        public GameClientHub(IGameProxy gameProxy)
+        public GameClientHub(IGameService gameService)
         {
-            GameProxy = gameProxy;
+            GameService = gameService;
             IsCancelled = new CancellationToken(false);
         }
+
+        private IGameService GameService { get; }
+        private CancellationToken IsCancelled { get; }
 
         /// <summary>
         ///     Method called when hub connection is created
@@ -33,22 +32,22 @@ namespace JourneyCore.Server.Net.SignalR.Hubs
 
         public async Task RequestServerStatus()
         {
-            await GameProxy.RequestServerStatus(Context.ConnectionId);
+            await GameService.SendServerStatus(Context.ConnectionId);
         }
 
         public async Task RequestTextureList()
         {
-            await GameProxy.RequestTextureList(Context.ConnectionId);
+            await GameService.SendTextureList(Context.ConnectionId);
         }
 
-        public async Task RequestTileMap(string tileMapName)
+        public async Task RequestChunks(string tileMapName, Vector2i playerChunk)
         {
-            await GameProxy.RequestTileMap(Context.ConnectionId, tileMapName);
+            await GameService.SendChunks(Context.ConnectionId, tileMapName, playerChunk);
         }
 
         public async Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages)
         {
-            await GameProxy.ReceiveUpdatePackages(updatePackages);
+            await GameService.ReceiveUpdatePackages(updatePackages);
         }
 
         #endregion

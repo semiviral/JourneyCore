@@ -4,66 +4,64 @@ using System.Text;
 using System.Xml.Serialization;
 using JourneyCore.Lib.Graphics.Rendering.Environment.Chunking;
 using JourneyCore.Lib.Graphics.Rendering.Environment.Tiling;
-using SFML.Graphics;
-using SFML.System;
 
 namespace JourneyCore.Lib.System.Components.Loaders
 {
     public static class TileMapLoader
     {
-        static TileMapLoader() { }
+        public const short ChunkSize = 8;
+        public const short ChunkLoadRadius = 3;
+        public static short Scale = 1;
 
-        public static TileMap LoadMap(string mapPath, int tileScale)
+        public static TileMap LoadMap(string mapPath, short tileScale)
         {
+            Scale = tileScale;
+
             XmlSerializer mapSerializer = new XmlSerializer(typeof(TileMap));
 
             using (StreamReader reader = new StreamReader(mapPath, Encoding.UTF8))
             {
-                TileMap map = (TileMap)mapSerializer.Deserialize(reader);
-                map.ScaledTilePixelWidth = map.PixelTileWidth * tileScale;
-                map.ScaledTilePixelHeight = map.PixelTileHeight * tileScale;
-                map.PixelWidth = map.Width * map.ScaledTilePixelWidth;
-                map.PixelHeight = map.Height * map.ScaledTilePixelHeight;
-                map.TileSet = TileSetLoader.LoadTileSet($@"{Path.GetDirectoryName(mapPath)}\TileSets\{Path.GetFileName(map.TileSetSource.Source)}");
-
-                return map;
+                return (TileMap)mapSerializer.Deserialize(reader); ;
             }
         }
 
-        public static TileMap BuildChunkMap(TileMap map, Vector2i chunkSize)
+        public static TileMap BuildChunkMap(TileMap map)
         {
-            map.VArray = new VertexArray(PrimitiveType.Quads);
-            map.VArray.Resize((uint)((map.Width * map.Height * 4 + 1) * map.Layers.Count + 1));
-
-            foreach (TileMapLayer layer in map.Layers)
+            for (int layer = 0; layer < map.Layers.Length; layer++)
             {
-                string[] layerDataArray = layer.Data.Replace("\r\n", "\n").Replace("\n", ",").Split(',', StringSplitOptions.RemoveEmptyEntries);
-                int layerChunkWidth = layer.Width / map.ChunkWidth;
-                int layerChunkHeight = layer.Height / map.ChunkHeight;
+                TileMapLayer modifiedLayer = new TileMapLayer();
 
-                layer.ChunkMap = new Chunk[layerChunkWidth][];
+                string[] layerDataArray = modifiedLayer.Data.Replace("\r\n", "\n").Replace("\n", ",")
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries);
+                int layerChunkWidth = modifiedLayer.Width / ChunkSize;
+                int layerChunkHeight = modifiedLayer.Height / ChunkSize;
 
-                for (int chunkX = 0; chunkX < map.ChunkWidth; chunkX++)
+                modifiedLayer.ChunkMap = new Chunk[layerChunkWidth][];
+
+                for (int chunkX = 0; chunkX < layerChunkWidth; chunkX++)
                 {
-                    layer.ChunkMap[chunkX] = new Chunk[layerChunkHeight];
+                    modifiedLayer.ChunkMap[chunkX] = new Chunk[layerChunkHeight];
 
                     for (int chunkY = 0; chunkY < layerChunkHeight; chunkY++)
                     {
-                        Chunk currentChunk = new Chunk(new int[chunkSize.X][]);
+                        Chunk currentChunk = new Chunk(new short[ChunkSize][]);
 
-                        for (int x = 0; x < chunkSize.X; x++)
+                        for (int x = 0; x < ChunkSize; x++)
                         {
-                            currentChunk.ChunkData[x] = new int[chunkSize.Y];
+                            currentChunk.ChunkData[x] = new short[ChunkSize];
 
-                            for (int y = 0; y < chunkSize.Y; y++)
-                            {
-                                currentChunk.ChunkData[x][y] = int.Parse(layerDataArray[layer.Width * (y + chunkY * map.ChunkHeight) + x + chunkX * map.ChunkWidth]);
-                            }
+                            for (int y = 0; y < ChunkSize; y++)
+                                currentChunk.ChunkData[x][y] =
+                                    short.Parse(
+                                        layerDataArray[
+                                            modifiedLayer.Width * (y + chunkY * ChunkSize) + x + chunkX * ChunkSize]);
                         }
 
-                        layer.ChunkMap[chunkX][chunkY] = currentChunk;
+                        modifiedLayer.ChunkMap[chunkX][chunkY] = currentChunk;
                     }
                 }
+
+                map.Layers[layer] = modifiedLayer;
             }
 
             return map;

@@ -1,10 +1,12 @@
-﻿using JourneyCore.Lib.Graphics.Rendering;
-using JourneyCore.Lib.Graphics.Rendering.Environment.Tiling;
-using SFML.System;
-using System;
+﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
+using JourneyCore.Lib.Graphics.Rendering;
+using JourneyCore.Lib.Graphics.Rendering.Environment.Tiling;
+using SFML.Graphics;
+using SFML.System;
 
 namespace JourneyCore.Lib.System.Components.Loaders
 {
@@ -26,20 +28,26 @@ namespace JourneyCore.Lib.System.Components.Loaders
             {
                 tileSet = (TileSet)sheetSerializer.Deserialize(reader);
 
-                for (int i = 0; i < tileSet.Tiles.Count; i++)
+                for (int i = 0; i < tileSet.Tiles.Length; i++)
                 {
-                    tileSet.Tiles[i].Id += 1;
-                    tileSet.Tiles[i].Size = new Vector2i(tileSet.TileHeight, tileSet.TileWidth);
-                    tileSet.Tiles[i].Initialise(tileSet.Columns);
-
-                    foreach (CustomProperty property in tileSet.Tiles[i].Properties)
+                    Tile modifiedTile = new Tile
                     {
-                        property.QualifyValue();
-                    }
+                        Id = (short)(tileSet.Tiles[i].Id + 1),
+                        SizeX = tileSet.TileHeight,
+                        SizeY = tileSet.TileWidth,
+                        TextureRect = new IntRect((tileSet.Tiles[i].Id - 1) / tileSet.Columns, (tileSet.Tiles[i].Id - 1) % tileSet.Columns,
+                            tileSet.Tiles[i].SizeX, tileSet.Tiles[i].SizeY),
+                    };
+
+                    modifiedTile.ApplyProperties();
+
+                    tileSet.Tiles[i] = modifiedTile;
                 }
             }
 
             return tileSet;
         }
+
+
     }
 }

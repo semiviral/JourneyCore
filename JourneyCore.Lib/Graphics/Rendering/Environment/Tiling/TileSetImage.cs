@@ -2,15 +2,10 @@
 
 namespace JourneyCore.Lib.Graphics.Rendering.Environment.Tiling
 {
-    public class TileSetImage
+    public struct TileSetImage
     {
-        [XmlAttribute("source")]
-        public string Source { get; set; }
-
-        [XmlAttribute("width")]
-        public int Width { get; set; }
-
-        [XmlAttribute("height")]
-        public int Height { get; set; }
+        [XmlAttribute("source")] public string Source { get; set; }
+        [XmlAttribute("width")] public short Width { get; set; }
+        [XmlAttribute("height")] public short Height { get; set; }
     }
 }

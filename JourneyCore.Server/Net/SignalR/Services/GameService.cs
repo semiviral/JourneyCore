@@ -4,27 +4,21 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using JourneyCore.Lib.Game.Context.Entities;
+using JourneyCore.Lib.Graphics.Rendering.Environment.Chunking;
 using JourneyCore.Lib.Graphics.Rendering.Environment.Tiling;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
 using JourneyCore.Server.Net.SignalR.Contexts;
-using JourneyCoreLib.Game.Context.Entities;
 using SFML.System;
-using SFML.Window;
 
 namespace JourneyCore.Server.Net.SignalR.Services
 {
     public class GameService : IGameService
     {
+        public const ushort ChunkLoadRadius = 3;
+
         private const string AssetRoot = @"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\Assets";
-        private bool ServerStatus { get; set; }
-
-        public List<Instance> WorldInstances { get; }
-        public Dictionary<string, TileMap> TileMaps { get; }
-        public Dictionary<string, byte[]> GameTextures { get; }
-        public List<Entity> Players { get; private set; }
-
-        private IGameClientContext GameClientContext { get; }
 
         public GameService(IGameClientContext gameClientContext)
         {
@@ -32,33 +26,20 @@ namespace JourneyCore.Server.Net.SignalR.Services
 
             WorldInstances = new List<Instance>();
             TileMaps = new Dictionary<string, TileMap>();
+            TileSets = new Dictionary<string, TileSet>();
             GameTextures = new Dictionary<string, byte[]>();
             Players = new List<Entity>();
         }
 
+        private bool ServerStatus { get; set; }
+        public Dictionary<string, TileSet> TileSets { get; }
+        public Dictionary<string, byte[]> GameTextures { get; }
+        public List<Entity> Players { get; }
 
-        #region INIT
+        private IGameClientContext GameClientContext { get; }
 
-        private void InitialiseGameTextures()
-        {
-            foreach (string filePath in Directory.EnumerateFiles($@"{AssetRoot}\Images", "*.png", SearchOption.AllDirectories))
-            {
-                GameTextures.Add(Path.GetFileNameWithoutExtension(filePath), File.ReadAllBytes(filePath));
-            }
-        }
-
-        private void InitialiseTileMaps()
-        {
-            int scale = 2;
-
-            foreach (string filePath in Directory.EnumerateFiles($@"{AssetRoot}\Maps", "*.xml", SearchOption.TopDirectoryOnly))
-            {
-                TileMaps.Add(Path.GetFileNameWithoutExtension(filePath), TileMapLoader.LoadMap(filePath, scale));
-            }
-        }
-
-        #endregion
-
+        public List<Instance> WorldInstances { get; }
+        public Dictionary<string, TileMap> TileMaps { get; }
 
 
         public Instance GetInstanceById(string id)
@@ -69,6 +50,7 @@ namespace JourneyCore.Server.Net.SignalR.Services
         public Task StartAsync(CancellationToken cancellationToken)
         {
             InitialiseGameTextures();
+            InitialiseTileSets();
             InitialiseTileMaps();
 
             // start instances
@@ -81,9 +63,41 @@ namespace JourneyCore.Server.Net.SignalR.Services
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
+
+        #region INIT
+
+        private void InitialiseGameTextures()
+        {
+            foreach (string filePath in Directory.EnumerateFiles($@"{AssetRoot}\Images", "*.png",
+                SearchOption.AllDirectories))
+                GameTextures.Add(Path.GetFileNameWithoutExtension(filePath), File.ReadAllBytes(filePath));
+        }
+
+        private void InitialiseTileMaps()
+        {
+            short scale = 2;
+
+            foreach (string filePath in Directory.EnumerateFiles($@"{AssetRoot}\Maps", "*.xml",
+                SearchOption.TopDirectoryOnly))
+            {
+                TileMap map = TileMapLoader.LoadMap(filePath, scale);
+                TileMapLoader.BuildChunkMap(map);
+
+                TileMaps.Add(Path.GetFileNameWithoutExtension(filePath), map);
+            }
+        }
+
+        private void InitialiseTileSets()
+        {
+            foreach (string filePath in Directory.EnumerateFiles($@"{AssetRoot}\Maps\TileSets", "*.xml",
+                SearchOption.TopDirectoryOnly))
+                TileSets.Add(Path.GetFileNameWithoutExtension(filePath), TileSetLoader.LoadTileSet(filePath));
+        }
+
+        #endregion
 
 
         #region CLIENT-TO-SERVER REQUESTS
@@ -95,15 +109,42 @@ namespace JourneyCore.Server.Net.SignalR.Services
 
         public async Task SendTextureList(string connectionId)
         {
-            foreach (KeyValuePair<string, byte[]> kvp in GameTextures)
-            {
-                await GameClientContext.SendTexture(connectionId, kvp.Key, kvp.Value);
-            }
+            foreach ((string key, byte[] value) in GameTextures)
+                await GameClientContext.SendTexture(connectionId, key, value);
         }
 
-        public async Task SendTileMap(string connectionId, string tileMapName)
+        public async Task SendChunks(string connectionId, string mapName, Vector2i playerChunk)
         {
-            await GameClientContext.SendTileMap(connectionId, TileMaps[tileMapName]);
+            int minX = playerChunk.X - ChunkLoadRadius <= 0 ? 0 : playerChunk.X - ChunkLoadRadius;
+            int minY = playerChunk.Y - ChunkLoadRadius <= 0 ? 0 : playerChunk.Y - ChunkLoadRadius;
+
+            int width = minX + ChunkLoadRadius + 1;
+            int height = minY + ChunkLoadRadius + 1;
+
+            Chunk[][][] chunks = new Chunk[TileMaps[mapName].Layers.Length][][];
+
+            for (int layer = 0; layer < TileMaps[mapName].Layers.Length; layer++)
+            {
+                chunks[layer] = new Chunk[width][];
+
+                for (int x = minX; x < width; x++)
+                {
+                    chunks[layer][x] = new Chunk[height];
+                    for (int y = minY; y < height; y++)
+                        chunks[layer][x][y] = TileMaps[mapName].Layers[layer].ChunkMap[x][y];
+                }
+            }
+
+            // TODO fix tilesetsource.First()
+            // is temp solution
+            List<short> usedTileIds = TileMaps[mapName].Layers.SelectMany(layer => layer.ChunkMap)
+                .SelectMany(chunk => chunk).SelectMany(chunkData => chunkData.ChunkData).SelectMany(tileId => tileId)
+                .Distinct().ToList();
+
+            await GameClientContext.SendChunks(connectionId,
+                Path.GetFileNameWithoutExtension(TileMaps[mapName].TileSetSources.First().Source), chunks,
+                TileSets.SelectMany(tileSet => tileSet.Value.Tiles).Select(tile => tile)
+                    .Where(tile => usedTileIds.Contains(tile.Id)).ToArray());
         }
 
         public Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages)
@@ -111,6 +152,6 @@ namespace JourneyCore.Server.Net.SignalR.Services
             return Task.CompletedTask;
         }
 
-        #endregion  
+        #endregion
     }
 }

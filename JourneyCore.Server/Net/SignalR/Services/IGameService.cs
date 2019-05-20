@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using JourneyCore.Lib.Graphics.Rendering.Environment.Tiling;
 using JourneyCore.Lib.System;
 using Microsoft.Extensions.Hosting;
+using SFML.System;
 
 namespace JourneyCore.Server.Net.SignalR.Services
 {
@@ -15,6 +16,6 @@ namespace JourneyCore.Server.Net.SignalR.Services
         Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages);
         Task SendServerStatus(string connectionId);
         Task SendTextureList(string connectionId);
-        Task SendTileMap(string connectionId, string tileMapName);
+        Task SendChunks(string connectionId, string mapName, Vector2i playerChunk);
     }
 }

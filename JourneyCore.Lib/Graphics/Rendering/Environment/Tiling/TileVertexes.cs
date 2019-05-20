@@ -4,10 +4,6 @@ namespace JourneyCore.Lib.Graphics.Rendering.Environment.Tiling
 {
     public class TileVertexes
     {
-        public int DrawingLayer { get; }
-        public uint VArrayIndex { get; }
-        public Vertex[] Vertexes { get; set; }
-
         public TileVertexes(int drawingLayer, uint vArrayIndex, Vertex v0, Vertex v1, Vertex v2, Vertex v3)
         {
             DrawingLayer = drawingLayer;
@@ -18,5 +14,9 @@ namespace JourneyCore.Lib.Graphics.Rendering.Environment.Tiling
             Vertexes[2] = v2;
             Vertexes[3] = v3;
         }
+
+        public int DrawingLayer { get; }
+        public uint VArrayIndex { get; }
+        public Vertex[] Vertexes { get; set; }
     }
 }

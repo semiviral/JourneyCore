@@ -1,20 +1,20 @@
-﻿using Microsoft.AspNetCore.SignalR;
-using JourneyCore.Server.Net.SignalR.Hubs;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+﻿using System.Threading.Tasks;
+using JourneyCore.Lib.Graphics.Rendering.Environment.Chunking;
 using JourneyCore.Lib.Graphics.Rendering.Environment.Tiling;
+using JourneyCore.Server.Net.SignalR.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using SFML.System;
 
 namespace JourneyCore.Server.Net.SignalR.Contexts
 {
     public class GameClientContext : IGameClientContext
     {
-        public IHubContext<GameClientHub> HubContext { get; }
-
         public GameClientContext(IHubContext<GameClientHub> gameClientHub)
         {
             HubContext = gameClientHub;
         }
+
+        public IHubContext<GameClientHub> HubContext { get; }
 
         public async Task SendServerStatus(bool serverStatus)
         {
@@ -26,9 +26,10 @@ namespace JourneyCore.Server.Net.SignalR.Contexts
             await HubContext.Clients.Client(connectionId).SendAsync("ReceiveTexture", key, texture);
         }
 
-        public async Task SendTileMap(string connectionId, TileMap tileMap)
+        public async Task SendChunks(string connectionId, string textureName, Chunk[][][] chunks,
+            Tile[] usedTiles)
         {
-            await HubContext.Clients.Client(connectionId).SendAsync("ReceiveTileMap", tileMap);
+            await HubContext.Clients.Client(connectionId).SendAsync("ReceiveChunks", textureName, chunks, usedTiles);
         }
 
         public async Task MovePlayer(string connectionId, Vector2f movement)

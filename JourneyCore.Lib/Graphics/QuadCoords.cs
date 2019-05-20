@@ -2,7 +2,7 @@
 
 namespace JourneyCore.Lib.Graphics
 {
-    public class QuadCoords
+    public struct QuadCoords
     {
         public Vector2f TopLeft { get; set; }
         public Vector2f TopRight { get; set; }

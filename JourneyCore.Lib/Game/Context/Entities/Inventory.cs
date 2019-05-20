@@ -1,15 +1,15 @@
-﻿using JourneyCoreLib.Core.Context.Items;
+﻿using JourneyCore.Lib.Game.Context.Items;
 
-namespace JourneyCoreLib.Core.Context.Entities
+namespace JourneyCore.Lib.Game.Context.Entities
 {
     public class Inventory
     {
-        public Item[] Items { get; }
-
         public Inventory()
         {
             Items = new Item[11];
         }
+
+        public Item[] Items { get; }
 
         public void AddInventoryItem(int slot, Item newItem)
         {
@@ -23,10 +23,7 @@ namespace JourneyCoreLib.Core.Context.Entities
 
         public void MoveInventorySlot(int slot, int newSlot)
         {
-            if (Items[slot] == null)
-            {
-                return;
-            }
+            if (Items[slot] == null) return;
 
             bool emptyTempIndex = false;
 
@@ -52,9 +49,8 @@ namespace JourneyCoreLib.Core.Context.Entities
         public int FindFirstOpenItemSlot()
         {
             for (int i = 0; i < Items.Length; i++)
-            {
-                if (Items[i] == null) return i;
-            }
+                if (Items[i] == null)
+                    return i;
 
             return -1;
         }

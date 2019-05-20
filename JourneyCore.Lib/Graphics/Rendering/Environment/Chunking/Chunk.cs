@@ -1,12 +1,10 @@
 ﻿namespace JourneyCore.Lib.Graphics.Rendering.Environment.Chunking
 {
-    public class Chunk
+    public struct Chunk
     {
-        public int[][] ChunkData { get; set; }
+        public short[][] ChunkData { get; set; }
 
-        public Chunk() { }
-
-        public Chunk(int[][] chunkData)
+        public Chunk(short[][] chunkData)
         {
             ChunkData = chunkData;
         }

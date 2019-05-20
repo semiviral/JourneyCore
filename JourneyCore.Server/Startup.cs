@@ -1,6 +1,5 @@
 ﻿using JourneyCore.Server.Net.SignalR.Contexts;
 using JourneyCore.Server.Net.SignalR.Hubs;
-using JourneyCore.Server.Net.SignalR.Proxies;
 using JourneyCore.Server.Net.SignalR.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -10,8 +9,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Serialization;
+using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
-namespace JourneyCore.Transmission
+namespace JourneyCore.Server
 {
     public class Startup
     {
@@ -43,13 +43,10 @@ namespace JourneyCore.Transmission
             services.AddSingleton<GameService>();
             services.AddSingleton<IHostedService>(provider => provider.GetRequiredService<GameService>());
             services.AddSingleton<IGameService>(provider => provider.GetRequiredService<GameService>());
-
-            services.AddSingleton<GameProxy>();
-            services.AddSingleton<IGameProxy>(provider => provider.GetRequiredService<GameProxy>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -62,8 +59,6 @@ namespace JourneyCore.Transmission
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseCookiePolicy();
-            app.UseHttpsRedirection();
             app.UseMvc();
             app.UseSignalR(routes => routes.MapHub<GameClientHub>("/GameClient"));
         }

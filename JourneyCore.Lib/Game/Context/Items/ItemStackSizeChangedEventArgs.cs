@@ -1,14 +1,14 @@
-﻿namespace JourneyCoreLib.Core.Context.Items
+﻿namespace JourneyCore.Lib.Game.Context.Items
 {
     public class ItemStackSizeChangedEventArgs
     {
-        public int OldStackSize { get; private set; }
-        public int NewStackSize { get; private set; }
-
         public ItemStackSizeChangedEventArgs(int oldSize, int newSize)
         {
             OldStackSize = oldSize;
             NewStackSize = newSize;
         }
+
+        public int OldStackSize { get; }
+        public int NewStackSize { get; }
     }
 }

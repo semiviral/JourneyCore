@@ -1,22 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using SFML.Graphics;
+﻿using SFML.Graphics;
 using SFML.System;
 
-namespace JourneyCoreLib.Graphics.Rendering.Sprites
+namespace JourneyCore.Lib.Graphics.Rendering.Sprites
 {
     public class SpriteSheet
     {
-        private Texture _sheet;
-
-        public Vector2i Size { get; }
+        private readonly Texture _sheet;
 
         public SpriteSheet(string file, Vector2i size)
         {
             _sheet = new Texture(file);
             Size = size;
         }
+
+        public Vector2i Size { get; }
 
         public Sprite GetSprite(int left, int top)
         {

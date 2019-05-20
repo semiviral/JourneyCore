@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -10,43 +9,39 @@ namespace JourneyCore.Client
 {
     public class ServerSynchroniser
     {
-        private int TickIntreval { get; }
-        private Timer TickTimer { get; }
-        private AutoResetEvent AutoReset { get; }
-        private List<UpdatePackage> UpdatePackages { get; set; }
-        private HubConnection Connection { get; }
-        private Stopwatch Watch { get; }
-
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="connection"></param>
-        /// <param name="tickIntreval">Time intreval in milliseconds to dequeue all state updates</param>
-        public ServerSynchroniser(HubConnection connection, int tickIntreval)
+        /// <param name="tickInterval">Time intreval in milliseconds to dequeue all state updates</param>
+        public ServerSynchroniser(HubConnection connection, int tickInterval)
         {
-            TickIntreval = tickIntreval;
+            TickInterval = tickInterval;
             AutoReset = new AutoResetEvent(false);
-            TickTimer = new Timer(OnTickTimerElapsed, AutoReset, TickIntreval, 0);
+            TickTimer = new Timer(OnTickTimerElapsed, AutoReset, TickInterval, 0);
 
             UpdatePackages = new List<UpdatePackage>();
             Connection = connection;
             Watch = new Stopwatch();
         }
 
+        private int TickInterval { get; }
+        private Timer TickTimer { get; }
+        private AutoResetEvent AutoReset { get; }
+        private List<UpdatePackage> UpdatePackages { get; set; }
+        private HubConnection Connection { get; }
+        private Stopwatch Watch { get; }
+
         private void OnTickTimerElapsed(object state)
         {
             Watch.Restart();
 
-            if (UpdatePackages.Count() > 0)
-            {
-                SendStatePackage();
-            }
+            if (UpdatePackages.Any()) SendStatePackage();
 
             Watch.Stop();
 
-            ((AutoResetEvent)state).Set();
+            ((AutoResetEvent) state).Set();
 
-            long nextTickDue = Watch.ElapsedMilliseconds == 0 ? TickIntreval : Watch.ElapsedMilliseconds % TickIntreval;
+            long nextTickDue = Watch.ElapsedMilliseconds == 0 ? TickInterval : Watch.ElapsedMilliseconds % TickInterval;
 
             TickTimer.Change(nextTickDue, 0);
         }
@@ -62,7 +57,7 @@ namespace JourneyCore.Client
 
         public void AllocateStateUpdate(StateUpdateType packageType, params object[] args)
         {
-            UpdatePackages.Add(new UpdatePackage { UpdateType = packageType, Args = args });
+            UpdatePackages.Add(new UpdatePackage {UpdateType = packageType, Args = args});
         }
     }
 }
