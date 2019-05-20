@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using JourneyCore.Lib.Graphics.Rendering.Environment.Chunking;
 using JourneyCore.Lib.Graphics.Rendering.Environment.Tiling;
 using JourneyCore.Server.Net.SignalR.Hubs;
 using Microsoft.AspNetCore.SignalR;
@@ -26,10 +25,9 @@ namespace JourneyCore.Server.Net.SignalR.Contexts
             await HubContext.Clients.Client(connectionId).SendAsync("ReceiveTexture", key, texture);
         }
 
-        public async Task SendChunks(string connectionId, string textureName, Chunk[][][] chunks,
-            Tile[] usedTiles)
+        public async Task SendMap(string connectionId, string textureName, TileMap map, Tile[] usedTiles)
         {
-            await HubContext.Clients.Client(connectionId).SendAsync("ReceiveChunks", textureName, chunks, usedTiles);
+            await HubContext.Clients.Client(connectionId).SendAsync("ReceiveMap", textureName, map, usedTiles);
         }
 
         public async Task MovePlayer(string connectionId, Vector2f movement)

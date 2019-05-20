@@ -21,7 +21,8 @@ namespace JourneyCore.Lib.System.Components.Loaders
 
             using (StreamReader reader = new StreamReader(mapPath, Encoding.UTF8))
             {
-                return (TileMap)mapSerializer.Deserialize(reader); ;
+                return (TileMap) mapSerializer.Deserialize(reader);
+                ;
             }
         }
 
@@ -29,18 +30,16 @@ namespace JourneyCore.Lib.System.Components.Loaders
         {
             for (int layer = 0; layer < map.Layers.Length; layer++)
             {
-                TileMapLayer modifiedLayer = new TileMapLayer();
-
-                string[] layerDataArray = modifiedLayer.Data.Replace("\r\n", "\n").Replace("\n", ",")
+                string[] layerDataArray = map.Layers[layer].Data.Replace("\r\n", "\n").Replace("\n", ",")
                     .Split(',', StringSplitOptions.RemoveEmptyEntries);
-                int layerChunkWidth = modifiedLayer.Width / ChunkSize;
-                int layerChunkHeight = modifiedLayer.Height / ChunkSize;
+                int layerChunkWidth = map.Layers[layer].Width / ChunkSize;
+                int layerChunkHeight = map.Layers[layer].Height / ChunkSize;
 
-                modifiedLayer.ChunkMap = new Chunk[layerChunkWidth][];
+                map.Layers[layer].ChunkMap = new Chunk[layerChunkWidth][];
 
                 for (int chunkX = 0; chunkX < layerChunkWidth; chunkX++)
                 {
-                    modifiedLayer.ChunkMap[chunkX] = new Chunk[layerChunkHeight];
+                    map.Layers[layer].ChunkMap[chunkX] = new Chunk[layerChunkHeight];
 
                     for (int chunkY = 0; chunkY < layerChunkHeight; chunkY++)
                     {
@@ -54,14 +53,12 @@ namespace JourneyCore.Lib.System.Components.Loaders
                                 currentChunk.ChunkData[x][y] =
                                     short.Parse(
                                         layerDataArray[
-                                            modifiedLayer.Width * (y + chunkY * ChunkSize) + x + chunkX * ChunkSize]);
+                                            map.Layers[layer].Width * (y + chunkY * ChunkSize) + x + chunkX * ChunkSize]);
                         }
 
-                        modifiedLayer.ChunkMap[chunkX][chunkY] = currentChunk;
+                        map.Layers[layer].ChunkMap[chunkX][chunkY] = currentChunk;
                     }
                 }
-
-                map.Layers[layer] = modifiedLayer;
             }
 
             return map;

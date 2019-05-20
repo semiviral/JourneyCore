@@ -1,24 +1,14 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
-using JourneyCore.Lib.Graphics.Rendering;
 using JourneyCore.Lib.Graphics.Rendering.Environment.Tiling;
 using SFML.Graphics;
-using SFML.System;
 
 namespace JourneyCore.Lib.System.Components.Loaders
 {
     public class TileSetLoader
     {
-        private static Random _rand;
-
-        static TileSetLoader()
-        {
-            _rand = new Random();
-        }
-
         public static TileSet LoadTileSet(string filePath)
         {
             TileSet tileSet;
@@ -26,20 +16,40 @@ namespace JourneyCore.Lib.System.Components.Loaders
             XmlSerializer sheetSerializer = new XmlSerializer(typeof(TileSet));
             using (StreamReader reader = new StreamReader(filePath, Encoding.UTF8))
             {
-                tileSet = (TileSet)sheetSerializer.Deserialize(reader);
+                tileSet = (TileSet) sheetSerializer.Deserialize(reader);
 
                 for (int i = 0; i < tileSet.Tiles.Length; i++)
                 {
+                    bool isRandomizable = false;
+                    bool isRandomlyRotatable = false;
+
+                    if (tileSet.Tiles[i].Properties
+                        != null)
+                    {
+                        isRandomizable = tileSet.Tiles[i].GetProperty("IsRandomizable")?.Value != null &&
+                                              (bool) Convert.ChangeType(
+                                                  tileSet.Tiles[i].GetProperty("IsRandomizable").Value,
+                                                  typeof(bool));
+                        isRandomlyRotatable = tileSet.Tiles[i].GetProperty("IsRandomlyRotatable")?.Value != null &&
+                                              (bool) Convert.ChangeType(
+                                                  tileSet.Tiles[i].GetProperty("IsRandomlyRotatable").Value,
+                                                  typeof(bool));
+                    }
+
                     Tile modifiedTile = new Tile
                     {
-                        Id = (short)(tileSet.Tiles[i].Id + 1),
+                        Id = (short) (tileSet.Tiles[i].Id + 1),
+                        Group = tileSet.Tiles[i].Group,
+                        Probability = tileSet.Tiles[i].Probability,
                         SizeX = tileSet.TileHeight,
                         SizeY = tileSet.TileWidth,
-                        TextureRect = new IntRect((tileSet.Tiles[i].Id - 1) / tileSet.Columns, (tileSet.Tiles[i].Id - 1) % tileSet.Columns,
-                            tileSet.Tiles[i].SizeX, tileSet.Tiles[i].SizeY),
+                        TextureRect = new IntRect(tileSet.Tiles[i].Id % tileSet.Columns,
+                            tileSet.Tiles[i].Id / tileSet.Columns,
+                            tileSet.TileWidth, tileSet.TileHeight),
+                        TextureCoords =  tileSet.Tiles[i].TextureCoords,
+                        IsRandomizable = isRandomizable,
+                        IsRandomlyRotatable = isRandomlyRotatable,
                     };
-
-                    modifiedTile.ApplyProperties();
 
                     tileSet.Tiles[i] = modifiedTile;
                 }
@@ -47,7 +57,5 @@ namespace JourneyCore.Lib.System.Components.Loaders
 
             return tileSet;
         }
-
-
     }
 }

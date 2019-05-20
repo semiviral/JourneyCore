@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using JourneyCore.Client.Display;
+using JourneyCore.Client.Net;
 using JourneyCore.Lib.Game.Context.Entities;
 using JourneyCore.Lib.Game.InputWatchers;
 using JourneyCore.Lib.Graphics;
@@ -21,29 +24,6 @@ namespace JourneyCore.Client
     {
         private string currentTextureName;
 
-        private Random Rand { get; }
-        private HubConnection Connection { get; set; }
-        private WindowManager WManager { get; set; }
-        private Entity Player { get; set; }
-        private KeyWatcher KeyWatcher { get; }
-        private ButtonWatcher ButtonWatcher { get; set; }
-        private Dictionary<string, byte[]> Textures { get; }
-        private bool IsServerReady { get; set; }
-        private ServerSynchroniser ServerStateSynchroniser { get; set; }
-        private Vector2i CurrentChunkLoadCenter { get; set; }
-        private VertexArray CurrentVArray { get; set; }
-        private RenderStates MapRenderState { get; set; }
-        private string CurrentTextureName {
-            get => currentTextureName;
-            set {
-                currentTextureName = value;
-
-                if (!Textures.ContainsKey(CurrentTextureName)) return;
-
-                MapRenderState = new RenderStates(new Texture(Textures[value]));
-            }
-        }
-
         public GameLoop()
         {
             Rand = new Random();
@@ -55,6 +35,32 @@ namespace JourneyCore.Client
 
             CurrentTextureName = "JourneyCore-MapSprites";
             CurrentVArray = new VertexArray(PrimitiveType.Quads);
+        }
+
+        private Random Rand { get; }
+        private HubConnection Connection { get; set; }
+        private WindowManager WManager { get; set; }
+        private Entity Player { get; set; }
+        private KeyWatcher KeyWatcher { get; }
+        private ButtonWatcher ButtonWatcher { get; set; }
+        private Dictionary<string, byte[]> Textures { get; }
+        private bool IsServerReady { get; set; }
+        private ServerSynchroniser ServerStateSynchroniser { get; set; }
+        private TileMap CurrentTileMap { get; set; }
+        private VertexArray CurrentVArray { get; }
+        private RenderStates MapRenderState { get; set; }
+
+        private string CurrentTextureName
+        {
+            get => currentTextureName;
+            set
+            {
+                currentTextureName = value;
+
+                if (!Textures.ContainsKey(CurrentTextureName)) return;
+
+                MapRenderState = new RenderStates(new Texture(Textures[value]));
+            }
         }
 
         public void Runtime()
@@ -109,7 +115,7 @@ namespace JourneyCore.Client
 
             Connection.On<string, byte[]>("ReceiveTexture", ReceiveTexture);
 
-            Connection.On<string, Chunk[][][], Tile[]>("ReceiveChunks", ReceiveChunks);
+            Connection.On<string, TileMap, Tile[]>("ReceiveMap", ReceiveMap);
 
             await Connection.StartAsync();
 
@@ -125,7 +131,7 @@ namespace JourneyCore.Client
             }
 
             await Connection.InvokeAsync("RequestTextureList");
-            await Connection.InvokeAsync("RequestChunks", "AdventurersGuild", new Vector2i(0, 0));
+            await Connection.InvokeAsync("RequestMap", "AdventurersGuild");
         }
 
         private void InitialiseWindowManager()
@@ -140,11 +146,6 @@ namespace JourneyCore.Client
                 new Sprite(new Texture(Textures["JourneyCore-Human"])));
             Player.PositionChanged += PlayerPositionChanged;
             Player.RotationChanged += PlayerRotationChanged;
-            Player.ChunkChanged += async (sender, newChunk) =>
-            {
-                // TODO fix current map name
-                await Connection.InvokeAsync("RequestChunks", "AdventurersGuild", newChunk);
-            };
 
             WManager.DrawItem(new DrawQueueItem(DrawPriority.Foreground, (fTime, window) =>
             {
@@ -175,7 +176,7 @@ namespace JourneyCore.Client
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.A) || Keyboard.IsKeyPressed(Keyboard.Key.D)) movement *= 0.5f;
 
-                Player.Move(movement, 16, WManager.ElapsedTime);
+                Player.Move(movement, CurrentTileMap.PixelTileWidth * TileMapLoader.Scale, WManager.ElapsedTime);
 
                 return Task.CompletedTask;
             });
@@ -189,7 +190,7 @@ namespace JourneyCore.Client
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.W) || Keyboard.IsKeyPressed(Keyboard.Key.S)) movement *= 0.5f;
 
-                Player.Move(movement, 16, WManager.ElapsedTime);
+                Player.Move(movement, CurrentTileMap.PixelTileWidth * TileMapLoader.Scale, WManager.ElapsedTime);
 
                 return Task.CompletedTask;
             });
@@ -203,7 +204,7 @@ namespace JourneyCore.Client
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.A) || Keyboard.IsKeyPressed(Keyboard.Key.D)) movement *= 0.5f;
 
-                Player.Move(movement, 16, WManager.ElapsedTime);
+                Player.Move(movement, CurrentTileMap.PixelTileWidth * TileMapLoader.Scale, WManager.ElapsedTime);
 
                 return Task.CompletedTask;
             });
@@ -217,7 +218,7 @@ namespace JourneyCore.Client
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.W) || Keyboard.IsKeyPressed(Keyboard.Key.S)) movement *= 0.5f;
 
-                Player.Move(movement, 16, WManager.ElapsedTime);
+                Player.Move(movement, CurrentTileMap.PixelTileWidth * TileMapLoader.Scale, WManager.ElapsedTime);
 
                 return Task.CompletedTask;
             });
@@ -281,7 +282,7 @@ namespace JourneyCore.Client
             WManager.MoveView(position);
 
             ServerStateSynchroniser.AllocateStateUpdate(StateUpdateType.Position,
-                new Vector2i((int)position.X, (int)position.Y));
+                new Vector2i((int) position.X, (int) position.Y));
 
             return Task.CompletedTask;
         }
@@ -290,13 +291,12 @@ namespace JourneyCore.Client
         {
             WManager.RotateView(rotation);
 
-            ServerStateSynchroniser.AllocateStateUpdate(StateUpdateType.Rotation, (int)rotation);
+            ServerStateSynchroniser.AllocateStateUpdate(StateUpdateType.Rotation, (int) rotation);
 
             return Task.CompletedTask;
         }
 
         #endregion
-
 
 
         #region SERVER-TO-CLIENT RECEPTION METHODS
@@ -311,72 +311,65 @@ namespace JourneyCore.Client
             Textures.Add(key, texture);
         }
 
-        private void ReceiveChunks(string textureName, Chunk[][][] chunks, Tile[] usedTiles)
+        private void ReceiveMap(string textureName, TileMap map, Tile[] usedTiles)
         {
-            CurrentTextureName = textureName;
-
-            BuildGraphicMap(chunks, usedTiles);
+            CurrentTextureName = Path.GetFileNameWithoutExtension(textureName);
+            CurrentTileMap = map;
+            BuildGraphicMap(map, usedTiles);
         }
 
         #endregion
 
 
-
         #region MAP BUILDING
 
-        public void BuildGraphicMap(Chunk[][][] chunks, Tile[] usedTiles)
+        public void BuildGraphicMap(TileMap map, Tile[] usedTiles)
         {
             CurrentVArray.Clear();
-            CurrentVArray.Resize((uint)(chunks.GetLength(0) * chunks.GetLength(1) * TileMapLoader.ChunkSize * chunks.GetLength(2) * TileMapLoader.ChunkSize * 4 + 1));
+            CurrentVArray.Resize(
+                (uint) (map.Width * TileMapLoader.ChunkSize * map.Height * TileMapLoader.ChunkSize * 4 + 1));
 
-            foreach (Chunk[][] chunkMap in chunks)
-                for (int x = 0; x < chunks.Length; x++)
-                    for (int y = 0; y < chunks[0].Length; y++)
-                        LoadChunk(chunkMap[x][y], Player.CurrentChunk, usedTiles, chunkMap.GetLength(0));
+            foreach (TileMapLayer layer in map.Layers)
+                for (int x = 0; x < layer.ChunkMap.Length; x++)
+                for (int y = 0; y < layer.ChunkMap[0].Length; y++)
+                    LoadChunk(layer.ChunkMap[x][y], new Vector2i(x, y), usedTiles, layer.ChunkMap.GetLength(0), layer.Id);
         }
 
-        private void LoadChunk(Chunk chunk, Vector2i chunkCoords, Tile[] usedTiles, int mapWidth)
+        private void LoadChunk(Chunk chunk, Vector2i chunkCoords, Tile[] usedTiles, int mapWidth, int layerId)
         {
             for (int x = 0; x < TileMapLoader.ChunkSize; x++)
-                for (int y = 0; y < TileMapLoader.ChunkSize; y++)
-                {
-                    int tileId = chunk.ChunkData[x][y] - 1;
+            for (int y = 0; y < TileMapLoader.ChunkSize; y++)
+            {
+                int tileId = chunk.ChunkData[x][y];
 
-                    // in this case, the selected tile
-                    // is void
-                    if (tileId == 0)
-                    {
-                        continue;
-                    }
+                // in this case, the selected tile
+                // is void
+                if (tileId == 0) continue;
 
-                    Tile currentTile = usedTiles.SingleOrDefault(tile => tile.Id == tileId);
-                    Tile parsedTile = ParseTile(usedTiles, currentTile);
+                Tile currentTile = usedTiles.SingleOrDefault(tile => tile.Id == tileId);
+                Tile parsedTile = ParseTile(usedTiles, currentTile);
 
-                    AllocateTileToVArray(parsedTile, chunkCoords, new Vector2i(x, y), mapWidth);
-                }
+                AllocateTileToVArray(parsedTile, chunkCoords, new Vector2i(x, y), mapWidth, layerId);
+            }
         }
 
         private void AllocateTileToVArray(Tile tile, Vector2i chunkCoords, Vector2i innerChunkCoords,
-            int mapWidth)
-        {
-            // todo set up scale for (* 2)
-            int tilePixelSize = ((tile.SizeX + tile.SizeY) / 2) * TileMapLoader.Scale;
-
+            int mapWidth, int layerId) {
             // actual coordinate values
             // specific tiles in VArray
             int vArrayTileX = chunkCoords.X * TileMapLoader.ChunkSize + innerChunkCoords.X;
             int vArrayTileY = chunkCoords.Y * TileMapLoader.ChunkSize + innerChunkCoords.Y;
 
             Vector2f topLeft = GraphMath.CalculateVertexPosition(VertexCorner.TopLeft, vArrayTileX, vArrayTileY,
-                tilePixelSize, tilePixelSize);
+                tile.SizeX * TileMapLoader.Scale, tile.SizeY * TileMapLoader.Scale);
             Vector2f topRight = GraphMath.CalculateVertexPosition(VertexCorner.TopRight, vArrayTileX, vArrayTileY,
-                tilePixelSize, tilePixelSize);
+                tile.SizeX * TileMapLoader.Scale, tile.SizeY * TileMapLoader.Scale);
             Vector2f bottomRight = GraphMath.CalculateVertexPosition(VertexCorner.BottomRight, vArrayTileX, vArrayTileY,
-                tilePixelSize, tilePixelSize);
+                tile.SizeX * TileMapLoader.Scale, tile.SizeY * TileMapLoader.Scale);
             Vector2f bottomLeft = GraphMath.CalculateVertexPosition(VertexCorner.BottomLeft, vArrayTileX, vArrayTileY,
-                tilePixelSize, tilePixelSize);
+                tile.SizeX * TileMapLoader.Scale, tile.SizeY * TileMapLoader.Scale);
 
-            uint index = (uint)((vArrayTileX + vArrayTileY * mapWidth) * 4 * tile.LayerId);
+            uint index = (uint) ((vArrayTileX + vArrayTileY * mapWidth) * 4 * layerId);
 
             CurrentVArray[index + 0] = new Vertex(topLeft, tile.TextureCoords.TopLeft);
             CurrentVArray[index + 1] = new Vertex(topRight, tile.TextureCoords.TopRight);
@@ -384,15 +377,10 @@ namespace JourneyCore.Client
             CurrentVArray[index + 3] = new Vertex(bottomLeft, tile.TextureCoords.BottomLeft);
         }
 
-        /// <summary>
-        ///     Allocates a list of tiles that must be drawn in the current tilespace
-        /// </summary>
-        /// <param name="tile"></param>
-        /// <returns></returns>
         private Tile ParseTile(IEnumerable<Tile> usedTiles, Tile tile)
         {
-            RandomizeTile(usedTiles, tile);
-            RotateTile(tile);
+            tile = RandomizeTile(usedTiles, tile);
+            tile = RotateTile(tile);
 
             return tile;
         }
@@ -448,7 +436,9 @@ namespace JourneyCore.Client
 
         private Tile RandomizeTile(IEnumerable<Tile> usedTiles, Tile subjectTile)
         {
-            return !subjectTile.IsRandomizable ? subjectTile : GetRandom(usedTiles.Where(tile => tile.Group.Equals(subjectTile.Group)).ToArray());
+            return !subjectTile.IsRandomizable
+                ? subjectTile
+                : GetRandom(usedTiles.Where(tile => tile.Group.Equals(subjectTile.Group)).ToArray());
         }
 
 
@@ -462,12 +452,13 @@ namespace JourneyCore.Client
             if (candidates.Count == 1) return candidates[0];
 
             // in case all have equal weights
-            if (candidates.Select(tile => tile.Probability).All(weight => Math.Abs(weight - candidates[0].Probability) < 0.01))
+            if (candidates.Select(tile => tile.Probability)
+                .All(weight => Math.Abs(weight - candidates[0].Probability) < 0.01))
                 return candidates[Rand.Next(0, candidates.Count)];
 
             // end optimizations
 
-            int totalWeight = candidates.Select(sprite => (int)(sprite.Probability * 100)).Sum();
+            int totalWeight = candidates.Select(sprite => (int) (sprite.Probability * 100)).Sum();
 
             Tile[] weightArray = new Tile[totalWeight];
 

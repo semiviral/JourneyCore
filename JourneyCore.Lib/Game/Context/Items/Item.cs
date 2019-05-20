@@ -2,13 +2,13 @@
 
 namespace JourneyCore.Lib.Game.Context.Items
 {
-    public class Item : Game.Context.Context
+    public class Item : Context
     {
         private int _stackSize;
 
         public EventHandler<ItemStackSizeChangedEventArgs> ItemStackSizeChanged;
 
-        public Item(Game.Context.Context owner, string name, string primaryTag, int maxStackSize) : base(owner, name,
+        public Item(Context owner, string name, string primaryTag, int maxStackSize) : base(owner, name,
             primaryTag)
         {
             MaxStackSize = maxStackSize;

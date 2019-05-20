@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using JourneyCore.Lib.System;
-using SFML.System;
 
 namespace JourneyCore.Server.Net.SignalR.Hubs
 {
@@ -9,7 +8,7 @@ namespace JourneyCore.Server.Net.SignalR.Hubs
     {
         Task RequestServerStatus();
         Task RequestTextureList();
-        Task RequestChunks(string tileMapName, Vector2i playerChunk);
+        Task RequestMap(string tileMapName);
         Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages);
     }
 }

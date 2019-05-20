@@ -5,7 +5,7 @@ using System.Threading;
 using JourneyCore.Lib.System;
 using Microsoft.AspNetCore.SignalR.Client;
 
-namespace JourneyCore.Client
+namespace JourneyCore.Client.Net
 {
     public class ServerSynchroniser
     {

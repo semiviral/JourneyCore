@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using JourneyCore.Client.Display;
 
 namespace JourneyCore.Client
 {
@@ -6,7 +7,7 @@ namespace JourneyCore.Client
     {
         private static ConsoleManager CManager { get; set; }
 
-        public static GameLoop gLoop { get; private set; }
+        public static GameLoop GLoop { get; private set; }
 
 
         private static async Task Main(string[] args)
@@ -14,8 +15,8 @@ namespace JourneyCore.Client
             CManager = new ConsoleManager();
             CManager.Hide(false);
 
-            gLoop = new GameLoop();
-            await gLoop.Initialise("http://localhost:5000/GameClient", (int) (1f / 30f * 1000f));
+            GLoop = new GameLoop();
+            await GLoop.Initialise("http://localhost:5000/GameClient", (int) (1f / 30f * 1000f));
         }
     }
 }

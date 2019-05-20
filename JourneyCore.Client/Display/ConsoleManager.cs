@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace JourneyCore.Client
+namespace JourneyCore.Client.Display
 {
     public class ConsoleManager
     {

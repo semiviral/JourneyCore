@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using JourneyCore.Lib.System.Components.Loaders;
 using JourneyCore.Lib.System.Event;
 using SFML.Graphics;
 using SFML.System;
@@ -21,17 +20,12 @@ namespace JourneyCore.Lib.Game.Context.Entities
             InitialiseSprite(sprite);
             InitialiseDefaultAttributes();
 
-            PositionChanged += CheckChunkChanged;
-
-            CurrentChunk = new Vector2i(0, 0);
-
             // TODO set up entity anchors
         }
 
         public string Guid { get; }
 
         public Sprite Graphic { get; private set; }
-        public Vector2i CurrentChunk { get; private set; }
         public DateTime Lifetime { get; }
         public DateTime ProjectileCooldown { get; set; }
 
@@ -47,7 +41,6 @@ namespace JourneyCore.Lib.Game.Context.Entities
 
         public event AsyncEventHandler<Vector2f> PositionChanged;
         public event AsyncEventHandler<float> RotationChanged;
-        public event AsyncEventHandler<Vector2i> ChunkChanged;
         public event PropertyChangedEventHandler PropertyChanged;
 
         public Entity GetProjectile()
@@ -69,6 +62,16 @@ namespace JourneyCore.Lib.Game.Context.Entities
 
             return null;
         }
+
+
+        #region EVENT
+
+        public void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new StatedObjectPropertyChangedEventArgs(Guid, propertyName));
+        }
+
+        #endregion
 
         #region ATTRIBUTES
 
@@ -132,36 +135,6 @@ namespace JourneyCore.Lib.Game.Context.Entities
             if (RotationChanged == null) return;
 
             await RotationChanged?.Invoke(this, Graphic.Rotation);
-        }
-
-        #endregion
-
-
-        #region EVENT
-
-        public void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new StatedObjectPropertyChangedEventArgs(Guid, propertyName));
-        }
-
-        private async Task OnChunkChanged(object sender, Vector2i newChunk)
-        {
-            if (ChunkChanged == null) return;
-
-            await ChunkChanged?.Invoke(sender, newChunk);
-        }
-
-        private async Task CheckChunkChanged(object sender, Vector2f position)
-        {
-            // todo fix scale
-            int newX = (int)position.X / (TileMapLoader.ChunkSize * TileMapLoader.Scale);
-            int newY = (int)position.Y / (TileMapLoader.ChunkSize * TileMapLoader.Scale);
-
-            if (newX == CurrentChunk.X && newY == CurrentChunk.Y) return;
-
-            CurrentChunk = new Vector2i(newX, newY);
-
-            await OnChunkChanged(sender, CurrentChunk);
         }
 
         #endregion

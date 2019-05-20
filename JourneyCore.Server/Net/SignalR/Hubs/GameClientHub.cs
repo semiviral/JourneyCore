@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using JourneyCore.Lib.System;
 using JourneyCore.Server.Net.SignalR.Services;
 using Microsoft.AspNetCore.SignalR;
-using SFML.System;
 
 namespace JourneyCore.Server.Net.SignalR.Hubs
 {
@@ -40,9 +39,9 @@ namespace JourneyCore.Server.Net.SignalR.Hubs
             await GameService.SendTextureList(Context.ConnectionId);
         }
 
-        public async Task RequestChunks(string tileMapName, Vector2i playerChunk)
+        public async Task RequestMap(string tileMapName)
         {
-            await GameService.SendChunks(Context.ConnectionId, tileMapName, playerChunk);
+            await GameService.SendMap(Context.ConnectionId, tileMapName);
         }
 
         public async Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages)

@@ -7,7 +7,7 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
-namespace JourneyCore.Client
+namespace JourneyCore.Client.Display
 {
     public class WindowManager
     {
@@ -32,7 +32,7 @@ namespace JourneyCore.Client
             DateTime abosluteNow = DateTime.Now;
 
             ElapsedTime = _deltaClock.GetDelta();
-            
+
             _window.DispatchEvents();
             _window.Clear();
             _window.PushGLStates();

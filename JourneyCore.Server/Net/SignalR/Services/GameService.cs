@@ -5,12 +5,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JourneyCore.Lib.Game.Context.Entities;
-using JourneyCore.Lib.Graphics.Rendering.Environment.Chunking;
 using JourneyCore.Lib.Graphics.Rendering.Environment.Tiling;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
 using JourneyCore.Server.Net.SignalR.Contexts;
-using SFML.System;
 
 namespace JourneyCore.Server.Net.SignalR.Services
 {
@@ -47,6 +45,9 @@ namespace JourneyCore.Server.Net.SignalR.Services
             return WorldInstances.SingleOrDefault(instance => instance.Id.Equals(id));
         }
 
+
+        #region INTERFACES IMPLEMENTATIONS
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
             InitialiseGameTextures();
@@ -65,6 +66,8 @@ namespace JourneyCore.Server.Net.SignalR.Services
         {
             throw new NotImplementedException();
         }
+
+        #endregion
 
 
         #region INIT
@@ -113,38 +116,16 @@ namespace JourneyCore.Server.Net.SignalR.Services
                 await GameClientContext.SendTexture(connectionId, key, value);
         }
 
-        public async Task SendChunks(string connectionId, string mapName, Vector2i playerChunk)
+        public async Task SendMap(string connectionId, string mapName)
         {
-            int minX = playerChunk.X - ChunkLoadRadius <= 0 ? 0 : playerChunk.X - ChunkLoadRadius;
-            int minY = playerChunk.Y - ChunkLoadRadius <= 0 ? 0 : playerChunk.Y - ChunkLoadRadius;
-
-            int width = minX + ChunkLoadRadius + 1;
-            int height = minY + ChunkLoadRadius + 1;
-
-            Chunk[][][] chunks = new Chunk[TileMaps[mapName].Layers.Length][][];
-
-            for (int layer = 0; layer < TileMaps[mapName].Layers.Length; layer++)
-            {
-                chunks[layer] = new Chunk[width][];
-
-                for (int x = minX; x < width; x++)
-                {
-                    chunks[layer][x] = new Chunk[height];
-                    for (int y = minY; y < height; y++)
-                        chunks[layer][x][y] = TileMaps[mapName].Layers[layer].ChunkMap[x][y];
-                }
-            }
-
-            // TODO fix tilesetsource.First()
-            // is temp solution
-            List<short> usedTileIds = TileMaps[mapName].Layers.SelectMany(layer => layer.ChunkMap)
+            short[] usedTileIds = TileMaps[mapName].Layers.SelectMany(layer => layer.ChunkMap)
                 .SelectMany(chunk => chunk).SelectMany(chunkData => chunkData.ChunkData).SelectMany(tileId => tileId)
-                .Distinct().ToList();
+                .Distinct().ToArray();
+            Tile[] usedTiles = TileSets.SelectMany(tileSet => tileSet.Value.Tiles)
+                .Where(tile => usedTileIds.Contains(tile.Id)).ToArray();
 
-            await GameClientContext.SendChunks(connectionId,
-                Path.GetFileNameWithoutExtension(TileMaps[mapName].TileSetSources.First().Source), chunks,
-                TileSets.SelectMany(tileSet => tileSet.Value.Tiles).Select(tile => tile)
-                    .Where(tile => usedTileIds.Contains(tile.Id)).ToArray());
+            await GameClientContext.SendMap(connectionId, TileMaps[mapName].TileSetSources.First().Source,
+                TileMaps[mapName], usedTiles);
         }
 
         public Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages)
