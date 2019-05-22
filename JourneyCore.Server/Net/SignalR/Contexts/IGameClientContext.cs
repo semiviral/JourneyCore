@@ -13,6 +13,6 @@ namespace JourneyCore.Server.Net.SignalR.Contexts
         Task MovePlayer(string connectionId, Vector2f movement);
         Task SendServerStatus(bool serverReady);
         Task SendTexture(string connectionId, string key, byte[] texture);
-        Task SendMap(string connectionId, string textureName, TileMap map, Tile[] usedTiles);
+        Task SendMap(string connectionId, string textureName, Tile[][][] map);
     }
 }

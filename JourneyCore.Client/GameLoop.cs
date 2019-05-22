@@ -7,9 +7,7 @@ using JourneyCore.Client.Display;
 using JourneyCore.Client.Net;
 using JourneyCore.Lib.Game.Context.Entities;
 using JourneyCore.Lib.Game.InputWatchers;
-using JourneyCore.Lib.Graphics;
 using JourneyCore.Lib.Graphics.Drawing;
-using JourneyCore.Lib.Graphics.Rendering.Environment.Chunking;
 using JourneyCore.Lib.Graphics.Rendering.Environment.Tiling;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
@@ -46,7 +44,6 @@ namespace JourneyCore.Client
         private Dictionary<string, byte[]> Textures { get; }
         private bool IsServerReady { get; set; }
         private ServerSynchroniser ServerStateSynchroniser { get; set; }
-        private TileMap CurrentTileMap { get; set; }
         private VertexArray CurrentVArray { get; }
         private RenderStates MapRenderState { get; set; }
 
@@ -115,7 +112,7 @@ namespace JourneyCore.Client
 
             Connection.On<string, byte[]>("ReceiveTexture", ReceiveTexture);
 
-            Connection.On<string, TileMap, Tile[]>("ReceiveMap", ReceiveMap);
+            Connection.On<string, Tile[][][]>("ReceiveMap", ReceiveMap);
 
             await Connection.StartAsync();
 
@@ -176,7 +173,7 @@ namespace JourneyCore.Client
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.A) || Keyboard.IsKeyPressed(Keyboard.Key.D)) movement *= 0.5f;
 
-                Player.Move(movement, CurrentTileMap.PixelTileWidth * TileMapLoader.Scale, WManager.ElapsedTime);
+                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, WManager.ElapsedTime);
 
                 return Task.CompletedTask;
             });
@@ -190,7 +187,7 @@ namespace JourneyCore.Client
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.W) || Keyboard.IsKeyPressed(Keyboard.Key.S)) movement *= 0.5f;
 
-                Player.Move(movement, CurrentTileMap.PixelTileWidth * TileMapLoader.Scale, WManager.ElapsedTime);
+                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, WManager.ElapsedTime);
 
                 return Task.CompletedTask;
             });
@@ -204,7 +201,7 @@ namespace JourneyCore.Client
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.A) || Keyboard.IsKeyPressed(Keyboard.Key.D)) movement *= 0.5f;
 
-                Player.Move(movement, CurrentTileMap.PixelTileWidth * TileMapLoader.Scale, WManager.ElapsedTime);
+                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, WManager.ElapsedTime);
 
                 return Task.CompletedTask;
             });
@@ -218,7 +215,7 @@ namespace JourneyCore.Client
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.W) || Keyboard.IsKeyPressed(Keyboard.Key.S)) movement *= 0.5f;
 
-                Player.Move(movement, CurrentTileMap.PixelTileWidth * TileMapLoader.Scale, WManager.ElapsedTime);
+                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, WManager.ElapsedTime);
 
                 return Task.CompletedTask;
             });
@@ -311,11 +308,10 @@ namespace JourneyCore.Client
             Textures.Add(key, texture);
         }
 
-        private void ReceiveMap(string textureName, TileMap map, Tile[] usedTiles)
+        private void ReceiveMap(string textureName, Tile[][][] map)
         {
             CurrentTextureName = Path.GetFileNameWithoutExtension(textureName);
-            CurrentTileMap = map;
-            BuildGraphicMap(map, usedTiles);
+            BuildGraphicMap(map);
         }
 
         #endregion
@@ -323,155 +319,46 @@ namespace JourneyCore.Client
 
         #region MAP BUILDING
 
-        public void BuildGraphicMap(TileMap map, Tile[] usedTiles)
+        public void BuildGraphicMap(Tile[][][] layerMap)
         {
             CurrentVArray.Clear();
             CurrentVArray.Resize(
-                (uint) (map.Width * TileMapLoader.ChunkSize * map.Height * TileMapLoader.ChunkSize * 4 + 1));
+                (uint) (layerMap.Length * layerMap[0].Length * 4 + 1));
 
-            foreach (TileMapLayer layer in map.Layers)
-                for (int x = 0; x < layer.ChunkMap.Length; x++)
-                for (int y = 0; y < layer.ChunkMap[0].Length; y++)
-                    LoadChunk(layer.ChunkMap[x][y], new Vector2i(x, y), usedTiles, layer.ChunkMap.GetLength(0), layer.Id);
+            for (int layer = 0; layer < layerMap.Length; layer++)
+                for (int x = 0; x < layerMap[0].Length; x++)
+                for (int y = 0; y < layerMap[0][0].Length; y++)
+                    LoadChunk(layerMap[layer], layer);
         }
 
-        private void LoadChunk(Chunk chunk, Vector2i chunkCoords, Tile[] usedTiles, int mapWidth, int layerId)
+        private void LoadChunk(Tile[][] map, int layerId)
         {
-            for (int x = 0; x < TileMapLoader.ChunkSize; x++)
-            for (int y = 0; y < TileMapLoader.ChunkSize; y++)
+            for (int x = 0; x < map.Length; x++)
+            for (int y = 0; y < map[0].Length; y++)
             {
-                int tileId = chunk.ChunkData[x][y];
-
-                // in this case, the selected tile
-                // is void
-                if (tileId == 0) continue;
-
-                Tile currentTile = usedTiles.SingleOrDefault(tile => tile.Id == tileId);
-                Tile parsedTile = ParseTile(usedTiles, currentTile);
-
-                AllocateTileToVArray(parsedTile, chunkCoords, new Vector2i(x, y), mapWidth, layerId);
+                AllocateTileToVArray(map[x][y], new Vector2i(x, y), map.Length, layerId);
             }
         }
 
-        private void AllocateTileToVArray(Tile tile, Vector2i chunkCoords, Vector2i innerChunkCoords,
-            int mapWidth, int layerId) {
-            // actual coordinate values
-            // specific tiles in VArray
-            int vArrayTileX = chunkCoords.X * TileMapLoader.ChunkSize + innerChunkCoords.X;
-            int vArrayTileY = chunkCoords.Y * TileMapLoader.ChunkSize + innerChunkCoords.Y;
+        private void AllocateTileToVArray(Tile tile, Vector2i tileCoords, int mapWidth, int layerId) {
+            Vector2f topLeft = GraphMath.CalculateVertexPosition(VertexCorner.TopLeft, tileCoords.X, tileCoords.Y,
+                tile.SizeX * MapLoader.Scale, tile.SizeY * MapLoader.Scale);
+            Vector2f topRight = GraphMath.CalculateVertexPosition(VertexCorner.TopRight, tileCoords.X, tileCoords.Y,
+                tile.SizeX * MapLoader.Scale, tile.SizeY * MapLoader.Scale);
+            Vector2f bottomRight = GraphMath.CalculateVertexPosition(VertexCorner.BottomRight, tileCoords.X, tileCoords.Y,
+                tile.SizeX * MapLoader.Scale, tile.SizeY * MapLoader.Scale);
+            Vector2f bottomLeft = GraphMath.CalculateVertexPosition(VertexCorner.BottomLeft, tileCoords.X, tileCoords.Y,
+                tile.SizeX * MapLoader.Scale, tile.SizeY * MapLoader.Scale);
 
-            Vector2f topLeft = GraphMath.CalculateVertexPosition(VertexCorner.TopLeft, vArrayTileX, vArrayTileY,
-                tile.SizeX * TileMapLoader.Scale, tile.SizeY * TileMapLoader.Scale);
-            Vector2f topRight = GraphMath.CalculateVertexPosition(VertexCorner.TopRight, vArrayTileX, vArrayTileY,
-                tile.SizeX * TileMapLoader.Scale, tile.SizeY * TileMapLoader.Scale);
-            Vector2f bottomRight = GraphMath.CalculateVertexPosition(VertexCorner.BottomRight, vArrayTileX, vArrayTileY,
-                tile.SizeX * TileMapLoader.Scale, tile.SizeY * TileMapLoader.Scale);
-            Vector2f bottomLeft = GraphMath.CalculateVertexPosition(VertexCorner.BottomLeft, vArrayTileX, vArrayTileY,
-                tile.SizeX * TileMapLoader.Scale, tile.SizeY * TileMapLoader.Scale);
+            if (layerId == 2) { 
+}
 
-            uint index = (uint) ((vArrayTileX + vArrayTileY * mapWidth) * 4 * layerId);
+            uint index = (uint) ((tileCoords.X + tileCoords.Y * mapWidth) * 4 * layerId);
 
             CurrentVArray[index + 0] = new Vertex(topLeft, tile.TextureCoords.TopLeft);
             CurrentVArray[index + 1] = new Vertex(topRight, tile.TextureCoords.TopRight);
             CurrentVArray[index + 2] = new Vertex(bottomRight, tile.TextureCoords.BottomRight);
             CurrentVArray[index + 3] = new Vertex(bottomLeft, tile.TextureCoords.BottomLeft);
-        }
-
-        private Tile ParseTile(IEnumerable<Tile> usedTiles, Tile tile)
-        {
-            tile = RandomizeTile(usedTiles, tile);
-            tile = RotateTile(tile);
-
-            return tile;
-        }
-
-        private Tile RotateTile(Tile tile)
-        {
-            int randNum = Rand.Next(0, 3);
-
-            if (!tile.IsRandomlyRotatable) randNum = 0;
-
-            // width and height of all textures in a map will be the same
-            int actualPixelLeft = tile.TextureRect.Left * tile.TextureRect.Width;
-            int actualPixelTop = tile.TextureRect.Top * tile.TextureRect.Height;
-
-            QuadCoords finalCoords = new QuadCoords();
-
-            switch (randNum)
-            {
-                case 0:
-                    finalCoords.TopLeft = new Vector2f(actualPixelLeft, actualPixelTop);
-                    finalCoords.TopRight = new Vector2f(actualPixelLeft + tile.TextureRect.Width, actualPixelTop);
-                    finalCoords.BottomRight = new Vector2f(actualPixelLeft + tile.TextureRect.Width,
-                        actualPixelTop + tile.TextureRect.Height);
-                    finalCoords.BottomLeft = new Vector2f(actualPixelLeft, actualPixelTop + tile.TextureRect.Height);
-                    break;
-                case 1:
-                    finalCoords.TopLeft = new Vector2f(actualPixelLeft + tile.TextureRect.Width, actualPixelTop);
-                    finalCoords.TopRight = new Vector2f(actualPixelLeft + tile.TextureRect.Width,
-                        actualPixelTop + tile.TextureRect.Height);
-                    finalCoords.BottomRight = new Vector2f(actualPixelLeft, actualPixelTop + tile.TextureRect.Height);
-                    finalCoords.BottomLeft = new Vector2f(actualPixelLeft, actualPixelTop);
-                    break;
-                case 2:
-                    finalCoords.TopLeft = new Vector2f(actualPixelLeft + tile.TextureRect.Width,
-                        actualPixelTop + tile.TextureRect.Height);
-                    finalCoords.TopRight = new Vector2f(actualPixelLeft, actualPixelTop + tile.TextureRect.Height);
-                    finalCoords.BottomRight = new Vector2f(actualPixelLeft, actualPixelTop);
-                    finalCoords.BottomLeft = new Vector2f(actualPixelLeft + tile.TextureRect.Width, actualPixelTop);
-                    break;
-                case 3:
-                    finalCoords.TopLeft = new Vector2f(actualPixelLeft, actualPixelTop + tile.TextureRect.Height);
-                    finalCoords.TopRight = new Vector2f(actualPixelLeft, actualPixelTop);
-                    finalCoords.BottomRight = new Vector2f(actualPixelLeft + tile.TextureRect.Width, actualPixelTop);
-                    finalCoords.BottomLeft = new Vector2f(actualPixelLeft + tile.TextureRect.Width,
-                        actualPixelTop + tile.TextureRect.Height);
-                    break;
-            }
-
-            tile.TextureCoords = finalCoords;
-
-            return tile;
-        }
-
-        private Tile RandomizeTile(IEnumerable<Tile> usedTiles, Tile subjectTile)
-        {
-            return !subjectTile.IsRandomizable
-                ? subjectTile
-                : GetRandom(usedTiles.Where(tile => tile.Group.Equals(subjectTile.Group)).ToArray());
-        }
-
-
-        private Tile GetRandom(IReadOnlyList<Tile> candidates)
-        {
-            // optimizations to avoid useless iterating
-
-            if (candidates.Count < 1) return default;
-
-            // if only one sprite in list
-            if (candidates.Count == 1) return candidates[0];
-
-            // in case all have equal weights
-            if (candidates.Select(tile => tile.Probability)
-                .All(weight => Math.Abs(weight - candidates[0].Probability) < 0.01))
-                return candidates[Rand.Next(0, candidates.Count)];
-
-            // end optimizations
-
-            int totalWeight = candidates.Select(sprite => (int) (sprite.Probability * 100)).Sum();
-
-            Tile[] weightArray = new Tile[totalWeight];
-
-            int iterations = 0;
-            foreach (Tile tilePackage in candidates)
-                for (int j = 0; j < tilePackage.Probability * 100; j++)
-                {
-                    weightArray[iterations] = tilePackage;
-                    iterations += 1;
-                }
-
-            int randSelection = Rand.Next(0, weightArray.Length);
-            return weightArray[randSelection];
         }
 
         #endregion

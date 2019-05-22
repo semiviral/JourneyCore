@@ -23,21 +23,19 @@ namespace JourneyCore.Server.Net.SignalR.Services
             GameClientContext = gameClientContext;
 
             WorldInstances = new List<Instance>();
-            TileMaps = new Dictionary<string, TileMap>();
-            TileSets = new Dictionary<string, TileSet>();
+            TileMaps = new Dictionary<string, Map>();
             GameTextures = new Dictionary<string, byte[]>();
             Players = new List<Entity>();
         }
 
         private bool ServerStatus { get; set; }
-        public Dictionary<string, TileSet> TileSets { get; }
         public Dictionary<string, byte[]> GameTextures { get; }
         public List<Entity> Players { get; }
 
         private IGameClientContext GameClientContext { get; }
 
         public List<Instance> WorldInstances { get; }
-        public Dictionary<string, TileMap> TileMaps { get; }
+        public Dictionary<string, Map> TileMaps { get; }
 
 
         public Instance GetInstanceById(string id)
@@ -51,7 +49,6 @@ namespace JourneyCore.Server.Net.SignalR.Services
         public Task StartAsync(CancellationToken cancellationToken)
         {
             InitialiseGameTextures();
-            InitialiseTileSets();
             InitialiseTileMaps();
 
             // start instances
@@ -86,18 +83,10 @@ namespace JourneyCore.Server.Net.SignalR.Services
             foreach (string filePath in Directory.EnumerateFiles($@"{AssetRoot}\Maps", "*.xml",
                 SearchOption.TopDirectoryOnly))
             {
-                TileMap map = TileMapLoader.LoadMap(filePath, scale);
-                TileMapLoader.BuildChunkMap(map);
+                Map map = MapLoader.LoadMap(filePath, scale);
 
                 TileMaps.Add(Path.GetFileNameWithoutExtension(filePath), map);
             }
-        }
-
-        private void InitialiseTileSets()
-        {
-            foreach (string filePath in Directory.EnumerateFiles($@"{AssetRoot}\Maps\TileSets", "*.xml",
-                SearchOption.TopDirectoryOnly))
-                TileSets.Add(Path.GetFileNameWithoutExtension(filePath), TileSetLoader.LoadTileSet(filePath));
         }
 
         #endregion
@@ -118,14 +107,8 @@ namespace JourneyCore.Server.Net.SignalR.Services
 
         public async Task SendMap(string connectionId, string mapName)
         {
-            short[] usedTileIds = TileMaps[mapName].Layers.SelectMany(layer => layer.ChunkMap)
-                .SelectMany(chunk => chunk).SelectMany(chunkData => chunkData.ChunkData).SelectMany(tileId => tileId)
-                .Distinct().ToArray();
-            Tile[] usedTiles = TileSets.SelectMany(tileSet => tileSet.Value.Tiles)
-                .Where(tile => usedTileIds.Contains(tile.Id)).ToArray();
-
             await GameClientContext.SendMap(connectionId, TileMaps[mapName].TileSetSources.First().Source,
-                TileMaps[mapName], usedTiles);
+                TileMaps[mapName]);
         }
 
         public Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages)

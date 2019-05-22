@@ -9,7 +9,7 @@ namespace JourneyCore.Server.Net.SignalR.Services
     public interface IGameService : IHostedService
     {
         List<Instance> WorldInstances { get; }
-        Dictionary<string, TileMap> TileMaps { get; }
+        Dictionary<string, Map> TileMaps { get; }
 
         Instance GetInstanceById(string id);
         Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages);

@@ -5,22 +5,35 @@ using SFML.Graphics;
 
 namespace JourneyCore.Lib.Graphics.Rendering.Environment.Tiling
 {
-    public struct Tile
+    public class Tile
     {
-        [XmlAttribute("id")] public short Id { get; set; }
-        [XmlAttribute("type")] public string Group { get; set; }
-        [XmlAttribute("probability")] public float Probability { get; set; }
+        [XmlAttribute("id")]
+        public short Id { get; set; }
+
+        [XmlAttribute("type")]
+        public string Group { get; set; }
+
+        [XmlAttribute("probability")]
+        public float Probability { get; set; }
 
         [XmlArray("properties")]
         [XmlArrayItem("property")]
         public CustomProperty[] Properties { get; set; }
 
-        [XmlIgnore] public short SizeX { get; set; }
-        [XmlIgnore] public short SizeY { get; set; }
-        [XmlIgnore] public IntRect TextureRect { get; set; }
-        [XmlIgnore] public QuadCoords TextureCoords { get; set; }
-        [XmlIgnore] public bool IsRandomizable { get; set; }
-        [XmlIgnore] public bool IsRandomlyRotatable { get; set; }
+        [XmlIgnore]
+        public short Gid { get; set; }
+
+        [XmlIgnore]
+        public IntRect TextureRect { get; set; }
+
+        [XmlIgnore]
+        public short Rotation { get; set; }
+
+        [XmlIgnore]
+        public bool IsRandomizable { get; set; }
+
+        [XmlIgnore]
+        public bool IsRandomlyRotatable { get; set; }
 
         public void ApplyProperties()
         {
@@ -28,10 +41,10 @@ namespace JourneyCore.Lib.Graphics.Rendering.Environment.Tiling
             CustomProperty isRandomlyRotatable = GetProperty("IsRandomlyRotatable");
 
             if (isRandomizable != null)
-                IsRandomizable = (bool) Convert.ChangeType(isRandomizable.Value, typeof(bool));
+                IsRandomizable = (bool)Convert.ChangeType(isRandomizable.Value, typeof(bool));
 
             if (isRandomlyRotatable != null)
-                IsRandomlyRotatable = (bool) Convert.ChangeType(isRandomlyRotatable.Value, typeof(bool));
+                IsRandomlyRotatable = (bool)Convert.ChangeType(isRandomlyRotatable.Value, typeof(bool));
         }
 
         public CustomProperty GetProperty(string propertyName)
@@ -39,6 +52,11 @@ namespace JourneyCore.Lib.Graphics.Rendering.Environment.Tiling
             return !Properties.Any(property => property.Name.Equals(propertyName))
                 ? null
                 : Properties.Single(property => property.Name.Equals(propertyName));
+        }
+
+        public PrimitiveTile ToPrimitive()
+        {
+            return new PrimitiveTile(Gid, Rotation, TextureRect);
         }
     }
 }

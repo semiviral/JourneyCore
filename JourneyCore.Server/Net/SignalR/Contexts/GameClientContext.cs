@@ -25,9 +25,9 @@ namespace JourneyCore.Server.Net.SignalR.Contexts
             await HubContext.Clients.Client(connectionId).SendAsync("ReceiveTexture", key, texture);
         }
 
-        public async Task SendMap(string connectionId, string textureName, TileMap map, Tile[] usedTiles)
+        public async Task SendMap(string connectionId, string textureName, Tile[][][] map)
         {
-            await HubContext.Clients.Client(connectionId).SendAsync("ReceiveMap", textureName, map, usedTiles);
+            await HubContext.Clients.Client(connectionId).SendAsync("ReceiveMap", textureName, map);
         }
 
         public async Task MovePlayer(string connectionId, Vector2f movement)
