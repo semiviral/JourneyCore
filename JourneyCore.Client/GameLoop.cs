@@ -35,7 +35,7 @@ namespace JourneyCore.Client
 
             Log.Information("Game loop started.");
 
-            KeyWatcher = new KeyWatcher();
+            InputWatcher = new InputWatcher();
             IsServerReady = false;
             CurrentVArray = new VertexArray(PrimitiveType.Quads);
         }
@@ -45,8 +45,7 @@ namespace JourneyCore.Client
         private ConsoleManager CManager { get; }
         private WindowManager WManager { get; set; }
         private Entity Player { get; set; }
-        private KeyWatcher KeyWatcher { get; }
-        private ButtonWatcher ButtonWatcher { get; set; }
+        private InputWatcher InputWatcher { get; }
         private bool IsServerReady { get; set; }
         private ServerSynchroniser ServerStateSynchroniser { get; set; }
 
@@ -90,8 +89,7 @@ namespace JourneyCore.Client
                 {
                     WManager.SetActive(true);
 
-                    KeyWatcher.CheckWatchedKeys();
-                    ButtonWatcher.CheckWatchedButtons();
+                    await InputWatcher.CheckWatchedInputs();
 
                     WManager.UpdateWindow();
 
@@ -119,14 +117,12 @@ namespace JourneyCore.Client
 
             InitialiseWindowManager();
             await InitialisePlayer();
-            InitialiseKeyWatcher();
-            InitialiseButtonWatcher();
+            WatchedKeysSetup();
+            await WatchedButtonsSetup();
             InitialiseView();
 
-            WManager.GainedFocus += (sender, args) => { KeyWatcher.WindowFocused = true; };
-            WManager.LostFocus += (sender, args) => { KeyWatcher.WindowFocused = false; };
-            WManager.GainedFocus += (sender, args) => { ButtonWatcher.WindowFocused = true; };
-            WManager.LostFocus += (sender, args) => { ButtonWatcher.WindowFocused = false; };
+            WManager.GainedFocus += (sender, args) => { InputWatcher.WindowFocused = true; };
+            WManager.LostFocus += (sender, args) => { InputWatcher.WindowFocused = false; };
 
             await Runtime();
         }
@@ -216,13 +212,13 @@ namespace JourneyCore.Client
             });
         }
 
-        private void InitialiseKeyWatcher()
+        private void WatchedKeysSetup()
         {
             Log.Information("Creating key watch events...");
 
             Vector2f movement = new Vector2f(0, 0);
 
-            KeyWatcher.AddWatchedKeyAction(Keyboard.Key.W, key =>
+            InputWatcher.AddWatchedInput(Keyboard.Key.W, key =>
             {
                 movement = new Vector2f((float)GraphMath.SinFromDegrees(Player.Graphic.Rotation),
                     (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation) * -1f);
@@ -237,7 +233,7 @@ namespace JourneyCore.Client
                 return Task.CompletedTask;
             });
 
-            KeyWatcher.AddWatchedKeyAction(Keyboard.Key.A, key =>
+            InputWatcher.AddWatchedInput(Keyboard.Key.A, key =>
             {
                 movement = new Vector2f((float)GraphMath.CosFromDegrees(Player.Graphic.Rotation) * -1f,
                     (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation) * -1f);
@@ -252,7 +248,7 @@ namespace JourneyCore.Client
                 return Task.CompletedTask;
             });
 
-            KeyWatcher.AddWatchedKeyAction(Keyboard.Key.S, key =>
+            InputWatcher.AddWatchedInput(Keyboard.Key.S, key =>
             {
                 movement = new Vector2f((float)GraphMath.SinFromDegrees(Player.Graphic.Rotation) * -1f,
                     (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation));
@@ -267,7 +263,7 @@ namespace JourneyCore.Client
                 return Task.CompletedTask;
             });
 
-            KeyWatcher.AddWatchedKeyAction(Keyboard.Key.D, key =>
+            InputWatcher.AddWatchedInput(Keyboard.Key.D, key =>
             {
                 movement = new Vector2f((float)GraphMath.CosFromDegrees(Player.Graphic.Rotation),
                     (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation));
@@ -282,25 +278,23 @@ namespace JourneyCore.Client
                 return Task.CompletedTask;
             });
 
-            KeyWatcher.AddWatchedKeyAction(Keyboard.Key.Q,
+            InputWatcher.AddWatchedInput(Keyboard.Key.Q,
                 async key => { await Player.RotateEntity(WManager.ElapsedTime, 180f, false); });
 
-            KeyWatcher.AddWatchedKeyAction(Keyboard.Key.E,
+            InputWatcher.AddWatchedInput(Keyboard.Key.E,
                 async key => { await Player.RotateEntity(WManager.ElapsedTime, 180f, true); });
         }
 
-        private async Task InitialiseButtonWatcher()
+        private async Task WatchedButtonsSetup()
         {
-            ButtonWatcher = new ButtonWatcher();
-
             string retVal = await RESTClient.Request(RequestMethod.GET, $"{ServerUrl}/gameservice/textures/projectiles");
             Texture texture = new Texture(JsonConvert.DeserializeObject<byte[]>(retVal));
 
-            ButtonWatcher.AddWatchedButtonAction(Mouse.Button.Left, async button =>
+            InputWatcher.AddWatchedInput(Mouse.Button.Left, button =>
             {
                 if (WManager.IsInMenu)
                 {
-                    return;
+                    return Task.CompletedTask;
                 }
 
                 Vector2i mousePosition = WManager.GetRelativeMousePosition();
@@ -317,7 +311,7 @@ namespace JourneyCore.Client
 
                 if (DateTime.Now < Player.ProjectileCooldown)
                 {
-                    return;
+                    return Task.CompletedTask;
                 }
 
                 Player.ProjectileCooldown = DateTime.Now.AddMilliseconds(100);
@@ -339,6 +333,8 @@ namespace JourneyCore.Client
                 });
 
                 WManager.DrawItem(2, projectileDrawItem);
+
+                return Task.CompletedTask;
             });
         }
 

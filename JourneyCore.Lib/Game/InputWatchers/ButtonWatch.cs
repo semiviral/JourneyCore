@@ -1,42 +1,44 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using JourneyCore.Lib.System.Event;
 using SFML.Window;
 
 namespace JourneyCore.Lib.Game.InputWatchers
 {
     public class ButtonWatch
     {
-        private readonly List<Action<Mouse.Button>> _buttonActions;
+        private List<Func<Mouse.Button, Task>>  ButtonActions { get; }
 
-        public ButtonWatch(Mouse.Button button, params Action<Mouse.Button>[] buttonActions)
+        public ButtonWatch(Mouse.Button button, params Func<Mouse.Button, Task>[] buttonActions)
         {
             Button = button;
-            _buttonActions = new List<Action<Mouse.Button>>();
+            ButtonActions = new List<Func<Mouse.Button, Task>>();
 
-            foreach (Action<Mouse.Button> buttonAction in buttonActions)
-            {
-                _buttonActions.Add(buttonAction);
+            foreach (Func<Mouse.Button, Task> buttonAction in buttonActions)
+            {   
+                ButtonActions.Add(buttonAction);
             }
         }
 
         public Mouse.Button Button { get; }
 
-        public void Invoke()
+        public async Task InvokeAsync()
         {
-            foreach (Action<Mouse.Button> buttonAction in _buttonActions)
+            foreach (Func<Mouse.Button, Task> buttonAction in ButtonActions)
             {
-                buttonAction(Button);
+                await buttonAction.Invoke(Button);
             }
         }
 
-        public void AddButtonAction(Action<Mouse.Button> buttonAction)
+        public void AddButtonAction(Func<Mouse.Button, Task> buttonAction)
         {
-            _buttonActions.Add(buttonAction);
+            ButtonActions.Add(buttonAction);
         }
 
-        public void RemoveButtonAction(Action<Mouse.Button> buttonAction)
+        public void RemoveButtonAction(Func<Mouse.Button, Task> buttonAction)
         {
-            _buttonActions.Remove(buttonAction);
+            ButtonActions.Remove(buttonAction);
         }
     }
 }

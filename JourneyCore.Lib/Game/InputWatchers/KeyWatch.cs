@@ -7,37 +7,37 @@ namespace JourneyCore.Lib.Game.InputWatchers
 {
     public class KeyWatch
     {
-        private readonly List<Func<Keyboard.Key, Task>> _keyActions;
+        private List<Func<Keyboard.Key, Task>> KeyActions { get; }
 
         public KeyWatch(Keyboard.Key key, params Func<Keyboard.Key, Task>[] keyActions)
         {
             Key = key;
-            _keyActions = new List<Func<Keyboard.Key, Task>>();
+            KeyActions = new List<Func<Keyboard.Key, Task>>();
 
             foreach (Func<Keyboard.Key, Task> keyAction in keyActions)
             {
-                _keyActions.Add(keyAction);
+                KeyActions.Add(keyAction);
             }
         }
 
         public Keyboard.Key Key { get; }
 
-        public void Invoke()
+        public async Task InvokeAsync()
         {
-            foreach (Func<Keyboard.Key, Task> keyAction in _keyActions)
+            foreach (Func<Keyboard.Key, Task> keyAction in KeyActions)
             {
-                keyAction(Key);
+                await keyAction(Key);
             }
         }
 
         public void AddKeyAction(Func<Keyboard.Key, Task> keyAction)
         {
-            _keyActions.Add(keyAction);
+            KeyActions.Add(keyAction);
         }
 
         public void RemoveKeyAction(Func<Keyboard.Key, Task> keyAction)
         {
-            _keyActions.Remove(keyAction);
+            KeyActions.Remove(keyAction);
         }
     }
 }
