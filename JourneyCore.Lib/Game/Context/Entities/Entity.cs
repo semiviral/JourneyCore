@@ -8,14 +8,14 @@ using SFML.System;
 
 namespace JourneyCore.Lib.Game.Context.Entities
 {
-    public class Entity : Context, IDisposable
+    public class Entity : IDisposable
     {
-        public Entity(Context owner, string name, string primaryTag, DateTime lifetime, Sprite sprite) : base(owner,
-            name, primaryTag)
+        public Entity(string name, string primaryTag, int lifetime, Sprite sprite)
         {
             Guid = new Guid().ToString();
 
             Lifetime = lifetime;
+            ProjectileCooldown = DateTime.MinValue;
 
             InitialiseSprite(sprite);
             InitialiseDefaultAttributes();
@@ -26,7 +26,7 @@ namespace JourneyCore.Lib.Game.Context.Entities
         public string Guid { get; }
 
         public Sprite Graphic { get; private set; }
-        public DateTime Lifetime { get; }
+        public int Lifetime { get; }
         public DateTime ProjectileCooldown { get; set; }
 
 
@@ -43,26 +43,6 @@ namespace JourneyCore.Lib.Game.Context.Entities
         public event AsyncEventHandler<float> RotationChanged;
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public Entity GetProjectile()
-        {
-            //{
-            //    if (DateTime.Now < ProjectileCooldown)
-            //    {
-            //        return null;
-            //    }
-
-            //    ProjectileCooldown = DateTime.Now.AddSeconds(1);
-
-            //    Entity projectile = new Entity(this, "playerProjectile", "projectile", DateTime.Now.AddSeconds(2), GameLoop.Projectiles.GetSprite(0, 0));
-            //    projectile.Graphic.Rotation = Graphic.Rotation;
-            //    projectile.Graphic.Position = Graphic.Position;
-            //    projectile.SetNativeAttribute(EntityAttributeType.Speed, 50);
-
-            //    return projectile;
-
-            return null;
-        }
-
 
         #region EVENT
 
@@ -73,16 +53,17 @@ namespace JourneyCore.Lib.Game.Context.Entities
 
         #endregion
 
+
         #region ATTRIBUTES
 
-        public int Strength { get; private set; }
-        public int Intelligence { get; private set; }
-        public int Defense { get; private set; }
-        public int Attack { get; private set; }
-        public int Speed { get; private set; }
-        public int Dexterity { get; private set; }
-        public int Fortitude { get; private set; }
-        public int Insight { get; private set; }
+        public int Strength { get; set; }
+        public int Intelligence { get; set; }
+        public int Defense { get; set; }
+        public int Attack { get; set; }
+        public int Speed { get; set; }
+        public int Dexterity { get; set; }
+        public int Fortitude { get; set; }
+        public int Insight { get; set; }
 
         #endregion
 
@@ -111,7 +92,7 @@ namespace JourneyCore.Lib.Game.Context.Entities
 
         private Vector2f GetSpeedModifiedVector(Vector2f vector)
         {
-            return vector * (Speed / 5f);
+            return vector * (Speed / 10f);
         }
 
         public void Move(Vector2f direction, int mapTileSize, float elapsedFrameTime)
@@ -124,19 +105,44 @@ namespace JourneyCore.Lib.Game.Context.Entities
         {
             rotation *= elapsedTime;
 
-            if (!isClockwise) rotation *= -1;
+            if (!isClockwise)
+            {
+                rotation *= -1;
+            }
 
             if (Graphic.Rotation + rotation > 360)
+            {
                 rotation -= 360;
-            else if (Graphic.Rotation + rotation < 0) rotation += 360;
+            }
+            else if (Graphic.Rotation + rotation < 0)
+            {
+                rotation += 360;
+            }
 
             Graphic.Rotation += rotation;
 
-            if (RotationChanged == null) return;
+            if (RotationChanged == null)
+            {
+                return;
+            }
 
             await RotationChanged?.Invoke(this, Graphic.Rotation);
         }
 
         #endregion
+
+        public Vertex[] GetVertices()
+        {
+            Vertex[] vertices = new Vertex[4];
+            int pixelRadiusX = Graphic.TextureRect.Width / 2;
+            int pixelRadiusY = Graphic.TextureRect.Height / 2;
+
+            vertices[0] = new Vertex(new Vector2f(Graphic.Position.X - pixelRadiusX, Graphic.Position.Y + pixelRadiusY), new Vector2f(Graphic.TextureRect.Left, Graphic.TextureRect.Top));
+            vertices[1] = new Vertex(new Vector2f(Graphic.Position.X + pixelRadiusX, Graphic.Position.Y + pixelRadiusY), new Vector2f(Graphic.TextureRect.Left + Graphic.TextureRect.Width, Graphic.TextureRect.Top));
+            vertices[2] = new Vertex(new Vector2f(Graphic.Position.X + pixelRadiusX, Graphic.Position.Y - pixelRadiusY), new Vector2f(Graphic.TextureRect.Left + Graphic.TextureRect.Width, Graphic.TextureRect.Top + Graphic.TextureRect.Height));
+            vertices[3] = new Vertex(new Vector2f(Graphic.Position.X - pixelRadiusX, Graphic.Position.Y - pixelRadiusY), new Vector2f(Graphic.TextureRect.Left, Graphic.TextureRect.Top + Graphic.TextureRect.Height));
+
+            return vertices;
+        }
     }
 }

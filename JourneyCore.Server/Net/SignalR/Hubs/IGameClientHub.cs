@@ -6,9 +6,6 @@ namespace JourneyCore.Server.Net.SignalR.Hubs
 {
     public interface IGameClientHub
     {
-        Task RequestServerStatus();
-        Task RequestTextureList();
-        Task RequestMap(string tileMapName);
         Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages);
     }
 }

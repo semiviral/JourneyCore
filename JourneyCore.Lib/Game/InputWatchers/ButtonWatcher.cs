@@ -9,6 +9,8 @@ namespace JourneyCore.Lib.Game.InputWatchers
     {
         private readonly List<ButtonWatch> _watchedButtons;
 
+        public bool WindowFocused { get; set; }
+
         public ButtonWatcher()
         {
             _watchedButtons = new List<ButtonWatch>();
@@ -18,7 +20,10 @@ namespace JourneyCore.Lib.Game.InputWatchers
 
         public void AddWatchedButtonAction(Mouse.Button button, Action<Mouse.Button> buttonAction)
         {
-            if (!GetWatchedButtons().Contains(button)) _watchedButtons.Add(new ButtonWatch(button));
+            if (!GetWatchedButtons().Contains(button))
+            {
+                _watchedButtons.Add(new ButtonWatch(button));
+            }
 
             GetButtonWatch(button).AddButtonAction(buttonAction);
         }
@@ -26,7 +31,9 @@ namespace JourneyCore.Lib.Game.InputWatchers
         public void RemoveWatchedButtonAction(Mouse.Button button, Action<Mouse.Button> buttonAction)
         {
             if (!GetWatchedButtons().Contains(button))
+            {
                 throw new ArgumentException($"Keyboard.Key {button} does not exist in watched keys list.");
+            }
 
             GetButtonWatch(button).RemoveButtonAction(buttonAction);
         }
@@ -43,9 +50,18 @@ namespace JourneyCore.Lib.Game.InputWatchers
 
         public void CheckWatchedButtons()
         {
+            if (!WindowFocused)
+            {
+                return;
+            }
+
             foreach (Mouse.Button watchedButton in GetWatchedButtons())
+            {
                 if (Mouse.IsButtonPressed(watchedButton))
+                {
                     GetButtonWatch(watchedButton).Invoke();
+                }
+            }
         }
 
         #endregion

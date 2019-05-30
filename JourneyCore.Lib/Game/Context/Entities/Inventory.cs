@@ -23,7 +23,10 @@ namespace JourneyCore.Lib.Game.Context.Entities
 
         public void MoveInventorySlot(int slot, int newSlot)
         {
-            if (Items[slot] == null) return;
+            if (Items[slot] == null)
+            {
+                return;
+            }
 
             bool emptyTempIndex = false;
 
@@ -40,7 +43,10 @@ namespace JourneyCore.Lib.Game.Context.Entities
             DelInventoryItem(slot);
 
             // Empties temporary item slot
-            if (!emptyTempIndex) return;
+            if (!emptyTempIndex)
+            {
+                return;
+            }
 
             Items[slot] = Items[10];
             DelInventoryItem(10);
@@ -49,8 +55,12 @@ namespace JourneyCore.Lib.Game.Context.Entities
         public int FindFirstOpenItemSlot()
         {
             for (int i = 0; i < Items.Length; i++)
+            {
                 if (Items[i] == null)
+                {
                     return i;
+                }
+            }
 
             return -1;
         }

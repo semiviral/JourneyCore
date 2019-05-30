@@ -1,26 +1,49 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using SFML.System;
 
 namespace JourneyCore.Lib.System
 {
+    public enum Angle
+    {
+        Alpha,
+        Beta,
+        Gamma,
+    }
+
     public static class GraphMath
     {
-        public static double DistanceBetweenPoints(float x1, float y1, float x2, float y2)
+        public static int SquareLength(double x0, double y0, double x1, double y1)
         {
-            float x0 = x1 - x2;
-            float y0 = y1 - y2;
-
-            return Math.Sqrt(x0 * x0 + y0 * y0);
+            return SquareLength((int)x0, (int)y0, (int)x1, (int)y1);
         }
 
-        public static float CosFromDegrees(float degrees)
+        public static int SquareLength(float x0, float y0, float x1, float y1)
         {
-            return (float) Math.Cos(degrees * (Math.PI / 180));
+            return SquareLength((int)x0, (int)y0, (int)x1, (int)y1);
         }
 
-        public static float SinFromDegrees(float degrees)
+        public static int SquareLength(int x0, int y0, int x1, int y1)
         {
-            return (float) Math.Sin(degrees * (Math.PI / 180));
+            int x2 = x0 - x1;
+            int y2 = y0 - y1;
+
+            return x2 * x2 + y2 * y2;
+        }
+
+        public static double CosFromDegrees(float degrees)
+        {
+            return Math.Cos(ToRadians(degrees));
+        }
+
+        public static double SinFromDegrees(float degrees)
+        {
+            return Math.Sin(ToRadians(degrees));
+        }
+
+        public static double ToRadians(double degrees)
+        {
+            return Math.PI * degrees / 180d;
         }
 
         public static Vector2f CalculateVertexPosition(VertexCorner corner, int x, int y, int sizeX, int sizeY)
@@ -49,6 +72,8 @@ namespace JourneyCore.Lib.System
                     vector.Y = (y + 1) * sizeY;
 
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(corner), corner, null);
             }
 
             return vector;

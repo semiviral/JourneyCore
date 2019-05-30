@@ -9,13 +9,9 @@ namespace JourneyCore.Lib.Game.Context.Entities
         private readonly View _internalView;
 
         public EntityView(float centerLeft, float centerTop, float width, float height) : this(
-            new Vector2f(centerLeft, centerTop), new Vector2f(width, height))
-        {
-        }
+            new Vector2f(centerLeft, centerTop), new Vector2f(width, height)) { }
 
-        public EntityView(Vector2f center, Vector2f size) : this(new View(center, size))
-        {
-        }
+        public EntityView(Vector2f center, Vector2f size) : this(new View(center, size)) { }
 
         public EntityView(View view)
         {

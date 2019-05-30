@@ -29,21 +29,6 @@ namespace JourneyCore.Server.Net.SignalR.Hubs
 
         #region CLIENT-TO-SERVER RELAY METHODS
 
-        public async Task RequestServerStatus()
-        {
-            await GameService.SendServerStatus(Context.ConnectionId);
-        }
-
-        public async Task RequestTextureList()
-        {
-            await GameService.SendTextureList(Context.ConnectionId);
-        }
-
-        public async Task RequestMap(string tileMapName)
-        {
-            await GameService.SendMap(Context.ConnectionId, tileMapName);
-        }
-
         public async Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages)
         {
             await GameService.ReceiveUpdatePackages(updatePackages);

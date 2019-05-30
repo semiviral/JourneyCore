@@ -60,7 +60,7 @@ namespace JourneyCore.Server
             }
 
             app.UseMvc();
-            app.UseSignalR(routes => routes.MapHub<GameClientHub>("/GameClient"));
+            app.UseSignalR(routes => routes.MapHub<GameClientHub>("/GameService"));
         }
     }
 }

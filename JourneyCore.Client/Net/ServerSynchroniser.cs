@@ -35,11 +35,14 @@ namespace JourneyCore.Client.Net
         {
             Watch.Restart();
 
-            if (UpdatePackages.Any()) SendStatePackage();
+            if (UpdatePackages.Any())
+            {
+                SendStatePackage();
+            }
 
             Watch.Stop();
 
-            ((AutoResetEvent) state).Set();
+            ((AutoResetEvent)state).Set();
 
             long nextTickDue = Watch.ElapsedMilliseconds == 0 ? TickInterval : Watch.ElapsedMilliseconds % TickInterval;
 
@@ -57,7 +60,7 @@ namespace JourneyCore.Client.Net
 
         public void AllocateStateUpdate(StateUpdateType packageType, params object[] args)
         {
-            UpdatePackages.Add(new UpdatePackage {UpdateType = packageType, Args = args});
+            UpdatePackages.Add(new UpdatePackage { UpdateType = packageType, Args = args });
         }
     }
 }

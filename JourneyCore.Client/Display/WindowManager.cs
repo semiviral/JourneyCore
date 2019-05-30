@@ -11,77 +11,20 @@ namespace JourneyCore.Client.Display
 {
     public class WindowManager
     {
-        public WindowManager(string windowTitle, VideoMode vMode, int targetFps, Vector2f contentScale,
-            float positionScale)
-        {
-            ContentScale = contentScale;
-            PositionScale = ContentScale * positionScale;
-
-            _window = new RenderWindow(vMode, windowTitle);
-            _window.Closed += OnClose;
-            _window.KeyPressed += OnKeyPresed;
-            _window.KeyReleased += OnKeyReleased;
-            _window.SetFramerateLimit((uint) targetFps);
-
-            _drawQueue = new List<DrawQueueItem>();
-            _deltaClock = new Delta();
-        }
-
-        public void UpdateWindow()
-        {
-            DateTime abosluteNow = DateTime.Now;
-
-            ElapsedTime = _deltaClock.GetDelta();
-
-            _window.DispatchEvents();
-            _window.Clear();
-            _window.PushGLStates();
-
-            if (_drawQueue.Count > 0)
-                foreach (DrawQueueItem drawItem in _drawQueue.OrderByDescending(item => item.PriorityLevel))
-                {
-                    if (drawItem.Lifetime.Ticks < abosluteNow.Ticks &&
-                        drawItem.Lifetime.Ticks != DateTime.MinValue.Ticks)
-                    {
-                        _drawQueue.Remove(drawItem);
-                        continue;
-                    }
-
-                    drawItem.Draw(ElapsedTime, _window);
-                }
-
-            _window.PopGLStates();
-            _window.Display();
-        }
-
-        public void DrawItem(DrawQueueItem item)
-        {
-            _drawQueue.Add(item);
-        }
-
-
-        public Vector2i GetRelativeMousePosition()
-        {
-            return Mouse.GetPosition(_window);
-        }
-
         #region VARIABLES
 
-        private readonly RenderWindow _window;
-        private readonly List<DrawQueueItem> _drawQueue;
+        private RenderWindow Window { get; }
+        private SortedList<int, List<DrawItem>> DrawQueue { get; }
 
-        public Vector2u Size => _window.Size;
-
+        public Vector2u Size => Window.Size;
         public bool IsInMenu { get; private set; }
-        public bool IsActive => _window.IsOpen;
+        public bool IsActive => Window.IsOpen;
         public Vector2f ContentScale { get; set; }
         public Vector2f PositionScale { get; set; }
 
-        public int TargetFps
-        {
+        public int TargetFps {
             get => _targetFps;
-            set
-            {
+            set {
                 // fps changed stuff
 
                 _targetFps = value;
@@ -95,43 +38,116 @@ namespace JourneyCore.Client.Display
         public float ElapsedTime { get; private set; }
         public float IndividualFrameTime { get; private set; }
 
-        public event EventHandler<KeyEventArgs> KeyPressed;
-        public event EventHandler<KeyEventArgs> KeyReleased;
-
         #endregion
+
+        public WindowManager(string windowTitle, VideoMode vMode, int targetFps, Vector2f contentScale,
+            float positionScale)
+        {
+            ContentScale = contentScale;
+            PositionScale = ContentScale * positionScale;
+
+            Window = new RenderWindow(vMode, windowTitle);
+            Window.Closed += OnClose;
+            Window.GainedFocus += OnGainedFocus;
+            Window.LostFocus += OnLostFocus;
+            Window.SetFramerateLimit((uint)targetFps);
+
+            DrawQueue = new SortedList<int, List<DrawItem>>();
+            _deltaClock = new Delta();
+        }
+
+        public void UpdateWindow()
+        {
+            DateTime abosluteNow = DateTime.Now;
+
+            ElapsedTime = _deltaClock.GetDelta();
+
+            Window.DispatchEvents();
+            Window.Clear();
+
+
+            if (DrawQueue.Count > 0)
+            {
+                foreach (List<DrawItem> drawItems in DrawQueue.Values)
+                {
+                    foreach (DrawItem drawItem in drawItems)
+                    {
+                        if (drawItem.Lifetime.Ticks != DateTime.MinValue.Ticks &&
+                            drawItem.Lifetime.Ticks < abosluteNow.Ticks)
+                        {
+                            drawItems.Remove(drawItem);
+                            continue;
+                        }
+
+                        drawItem.Draw(Window, ElapsedTime);
+                    }
+                }
+            }
+
+            Window.Display();
+        }
+
+        public void DrawItem(int priority, DrawItem item)
+        {
+            if (!DrawQueue.Keys.Contains(priority))
+            {
+                DrawQueue.Add(priority, new List<DrawItem>());
+            }
+
+            DrawQueue[priority].Add(item);
+        }
+
+        public Vector2i GetRelativeMousePosition()
+        {
+            return Mouse.GetPosition(Window);
+        }
+
 
         #region EVENTS
 
-        private void OnKeyPresed(object sender, KeyEventArgs args)
-        {
-            KeyPressed?.Invoke(sender, args);
-        }
-
-        private void OnKeyReleased(object sender, KeyEventArgs args)
-        {
-            KeyReleased?.Invoke(sender, args);
-        }
+        public event EventHandler Closed;
+        public event EventHandler GainedFocus;
+        public event EventHandler LostFocus;
 
         private void OnClose(object sender, EventArgs args)
         {
-            RenderWindow window = (RenderWindow) sender;
+            Closed?.Invoke(sender, args);
+
+            RenderWindow window = (RenderWindow)sender;
             window.Close();
+        }
+
+        public void OnGainedFocus(object sender, EventArgs args)
+        {
+            GainedFocus?.Invoke(sender, args);
+        }
+
+        public void OnLostFocus(object sender, EventArgs args)
+        {
+            LostFocus?.Invoke(sender, args);
         }
 
         #endregion
 
         #region VIEW
 
+        public RenderWindow SetActive(bool activeState)
+        {
+            Window.SetActive(activeState);
+
+            return Window;
+        }
+
         public View SetView(View view)
         {
-            _window.SetView(view);
+            Window.SetView(view);
 
             return GetView();
         }
 
         public View GetView()
         {
-            return _window.GetView();
+            return Window.GetView();
         }
 
         public View SetViewport(FloatRect viewport)
@@ -145,7 +161,7 @@ namespace JourneyCore.Client.Display
 
         public View MoveView(Vector2f position)
         {
-            _window.GetView().Center = position;
+            Window.GetView().Center = position;
 
             SetView(GetView());
 
