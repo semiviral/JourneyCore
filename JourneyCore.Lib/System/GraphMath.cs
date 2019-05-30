@@ -1,16 +1,8 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using SFML.System;
 
 namespace JourneyCore.Lib.System
 {
-    public enum Angle
-    {
-        Alpha,
-        Beta,
-        Gamma,
-    }
-
     public static class GraphMath
     {
         public static int SquareLength(double x0, double y0, double x1, double y1)

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using JourneyCore.Lib.System.Event;
 using SFML.Window;
 
 namespace JourneyCore.Lib.Game.InputWatchers

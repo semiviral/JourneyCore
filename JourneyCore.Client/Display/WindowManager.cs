@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using JourneyCore.Lib.Graphics.Drawing;
 using JourneyCore.Lib.System.Time;
 using SFML.Graphics;
@@ -40,21 +39,37 @@ namespace JourneyCore.Client.Display
 
         #endregion
 
-        public WindowManager(string windowTitle, VideoMode vMode, int targetFps, Vector2f contentScale,
+        public WindowManager(string windowTitle, VideoMode videoMode, int targetFps, Vector2f contentScale,
             float positionScale)
         {
             ContentScale = contentScale;
             PositionScale = ContentScale * positionScale;
+            TargetFps = targetFps;
 
-            Window = new RenderWindow(vMode, windowTitle);
+            Window = new RenderWindow(videoMode, windowTitle);
             Window.Closed += OnClose;
             Window.GainedFocus += OnGainedFocus;
             Window.LostFocus += OnLostFocus;
-            Window.SetFramerateLimit((uint)targetFps);
+            Window.SetFramerateLimit((uint)TargetFps);
 
             DrawQueue = new SortedList<int, List<DrawItem>>();
             _deltaClock = new Delta();
         }
+
+        public RenderWindow SetActive(bool activeState)
+        {
+            Window.SetActive(activeState);
+
+            return Window;
+        }
+
+        public Vector2i GetRelativeMousePosition()
+        {
+            return Mouse.GetPosition(Window);
+        }
+
+
+        #region RENDERING
 
         public void UpdateWindow()
         {
@@ -66,22 +81,29 @@ namespace JourneyCore.Client.Display
             Window.Clear();
 
 
+            List<Tuple<int, DrawItem>> toRemove = new List<Tuple<int, DrawItem>>();
+
             if (DrawQueue.Count > 0)
             {
-                foreach (List<DrawItem> drawItems in DrawQueue.Values)
+                foreach ((int key, List<DrawItem> drawItems) in DrawQueue)
                 {
                     foreach (DrawItem drawItem in drawItems)
                     {
                         if (drawItem.Lifetime.Ticks != DateTime.MinValue.Ticks &&
                             drawItem.Lifetime.Ticks < abosluteNow.Ticks)
                         {
-                            drawItems.Remove(drawItem);
+                            toRemove.Add(new Tuple<int, DrawItem>(key, drawItem));
                             continue;
                         }
 
                         drawItem.Draw(Window, ElapsedTime);
                     }
                 }
+            }
+
+            foreach ((int key, DrawItem drawItem) in toRemove)
+            {
+                DrawQueue[key].Remove(drawItem);
             }
 
             Window.Display();
@@ -97,10 +119,7 @@ namespace JourneyCore.Client.Display
             DrawQueue[priority].Add(item);
         }
 
-        public Vector2i GetRelativeMousePosition()
-        {
-            return Mouse.GetPosition(Window);
-        }
+        #endregion
 
 
         #region EVENTS
@@ -129,14 +148,8 @@ namespace JourneyCore.Client.Display
 
         #endregion
 
+
         #region VIEW
-
-        public RenderWindow SetActive(bool activeState)
-        {
-            Window.SetActive(activeState);
-
-            return Window;
-        }
 
         public View SetView(View view)
         {

@@ -28,6 +28,8 @@ namespace JourneyCore.Client
 
         public GameLoop()
         {
+            IsRunning = true;
+
             CManager = new ConsoleManager();
             CManager.Hide(false);
 
@@ -48,7 +50,7 @@ namespace JourneyCore.Client
         private InputWatcher InputWatcher { get; }
         private bool IsServerReady { get; set; }
         private ServerSynchroniser ServerStateSynchroniser { get; set; }
-
+        private bool IsRunning { get; set; }
         private byte[] CurrentMapImage { get; set; }
         private RenderStates MapRenderStates { get; set; }
 
@@ -85,7 +87,7 @@ namespace JourneyCore.Client
 
             try
             {
-                while (WManager.IsActive)
+                while (IsRunning)
                 {
                     WManager.SetActive(true);
 
@@ -184,6 +186,7 @@ namespace JourneyCore.Client
 
             WManager = new WindowManager("Journey to the Core", new VideoMode(1000, 600, 8), 60, new Vector2f(2f, 2f),
                 15f);
+            WManager.Closed += (sender, args) => { IsRunning = false; };
 
             Log.Information("Game window initialised.");
         }
@@ -314,7 +317,7 @@ namespace JourneyCore.Client
                     return Task.CompletedTask;
                 }
 
-                Player.ProjectileCooldown = DateTime.Now.AddMilliseconds(100);
+                Player.ProjectileCooldown = DateTime.Now.AddMilliseconds(10);
 
                 Entity projectile = new Entity("playerProjectile", "projectile", 2000,
                     new Sprite(texture, new IntRect(0, 0, 8, 8)))
