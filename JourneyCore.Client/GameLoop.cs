@@ -81,7 +81,7 @@ namespace JourneyCore.Client
                 }
             }
 
-            WManager.DrawItem(1,
+            WManager.DrawItem("game", 1,
                 new DrawItem(Guid.NewGuid().ToString(), 0,
                     (window, frameTime) => { window.Draw(CurrentVArray, MapRenderStates); }));
 
@@ -121,7 +121,7 @@ namespace JourneyCore.Client
             await InitialisePlayer();
             WatchedKeysSetup();
             await WatchedButtonsSetup();
-            InitialiseView();
+            CreateViews();
 
             WManager.GainedFocus += (sender, args) => { InputWatcher.WindowFocused = true; };
             WManager.LostFocus += (sender, args) => { InputWatcher.WindowFocused = false; };
@@ -202,16 +202,21 @@ namespace JourneyCore.Client
             Player.PositionChanged += PlayerPositionChanged;
             Player.RotationChanged += PlayerRotationChanged;
 
-            WManager.DrawItem(2, new DrawItem(Player.Guid, 0, (window, frameTime) => { window.Draw(Player.Graphic); }));
+            WManager.DrawItem("game", 2, new DrawItem(Player.Guid, 0, (window, frameTime) => { window.Draw(Player.Graphic); }));
 
             Log.Information("Player intiailised.");
         }
 
-        private void InitialiseView()
+        private void CreateViews()
         {
-            WManager.SetView(new View(Player.Graphic.Position, new Vector2f(200f, 200f))
+            WManager.CreateView("game", new View(Player.Graphic.Position, new Vector2f(200f, 200f))
             {
                 Viewport = new FloatRect(0f, 0f, 0.8f, 1f)
+            });
+
+            WManager.CreateView("ui", new View(new Vector2f(WManager.Size.X * 0.9f, Player.Graphic.Position.Y), new Vector2f(200f, 600f))
+            {
+                Viewport =  new FloatRect(0.8f, 0f, 0.2f, 1f)
             });
         }
 
@@ -335,7 +340,7 @@ namespace JourneyCore.Client
                     window.Draw(projectile.Graphic);
                 });
 
-                WManager.DrawItem(2, projectileDrawItem);
+                WManager.DrawItem("game", 2, projectileDrawItem);
 
                 return Task.CompletedTask;
             });

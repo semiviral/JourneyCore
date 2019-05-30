@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JourneyCore.Lib.Graphics.Drawing;
 using JourneyCore.Lib.System.Time;
 using SFML.Graphics;
@@ -13,14 +14,14 @@ namespace JourneyCore.Client.Display
         #region VARIABLES
 
         private RenderWindow Window { get; }
-        private SortedList<int, List<DrawItem>> DrawQueue { get; }
-
+        private static Delta DeltaClock { get; set; }
+        private static int _targetFps;
+        
         public Vector2u Size => Window.Size;
         public bool IsInMenu { get; private set; }
         public bool IsActive => Window.IsOpen;
         public Vector2f ContentScale { get; set; }
         public Vector2f PositionScale { get; set; }
-
         public int TargetFps {
             get => _targetFps;
             set {
@@ -31,8 +32,7 @@ namespace JourneyCore.Client.Display
             }
         }
 
-        private static int _targetFps;
-        private static Delta _deltaClock;
+        private List<DrawView> DrawViews { get; }
 
         public float ElapsedTime { get; private set; }
         public float IndividualFrameTime { get; private set; }
@@ -52,8 +52,8 @@ namespace JourneyCore.Client.Display
             Window.LostFocus += OnLostFocus;
             Window.SetFramerateLimit((uint)TargetFps);
 
-            DrawQueue = new SortedList<int, List<DrawItem>>();
-            _deltaClock = new Delta();
+            DrawViews = new List<DrawView>();
+            DeltaClock = new Delta();
         }
 
         public RenderWindow SetActive(bool activeState)
@@ -68,6 +68,22 @@ namespace JourneyCore.Client.Display
             return Mouse.GetPosition(Window);
         }
 
+        public DrawView CreateView(string viewName, View defaultView)
+        {
+            return CreateView(new DrawView(viewName, defaultView));
+        }
+
+        public DrawView CreateView(DrawView drawView)
+        {
+            if (DrawViews.Any(dView => dView.Name.Equals(drawView.Name)))
+            {
+                return null;
+            }
+
+            DrawViews.Add(drawView);
+
+            return drawView;
+        }
 
         #region RENDERING
 
@@ -75,48 +91,27 @@ namespace JourneyCore.Client.Display
         {
             DateTime abosluteNow = DateTime.Now;
 
-            ElapsedTime = _deltaClock.GetDelta();
+            ElapsedTime = DeltaClock.GetDelta();
 
             Window.DispatchEvents();
             Window.Clear();
 
 
-            List<Tuple<int, DrawItem>> toRemove = new List<Tuple<int, DrawItem>>();
-
-            if (DrawQueue.Count > 0)
+            foreach (DrawView drawView in DrawViews)
             {
-                foreach ((int key, List<DrawItem> drawItems) in DrawQueue)
-                {
-                    foreach (DrawItem drawItem in drawItems)
-                    {
-                        if (drawItem.Lifetime.Ticks != DateTime.MinValue.Ticks &&
-                            drawItem.Lifetime.Ticks < abosluteNow.Ticks)
-                        {
-                            toRemove.Add(new Tuple<int, DrawItem>(key, drawItem));
-                            continue;
-                        }
+                SetView(drawView.View);
 
-                        drawItem.Draw(Window, ElapsedTime);
-                    }
-                }
-            }
-
-            foreach ((int key, DrawItem drawItem) in toRemove)
-            {
-                DrawQueue[key].Remove(drawItem);
+                drawView.Draw(Window, ElapsedTime);
             }
 
             Window.Display();
         }
 
-        public void DrawItem(int priority, DrawItem item)
+        public void DrawItem(string viewName, int priority, DrawItem drawItem)
         {
-            if (!DrawQueue.Keys.Contains(priority))
-            {
-                DrawQueue.Add(priority, new List<DrawItem>());
-            }
+            DrawView drawView = DrawViews.SingleOrDefault(view => view.Name.Equals(viewName));
 
-            DrawQueue[priority].Add(item);
+            drawView?.AddDrawItem(priority, drawItem);
         }
 
         #endregion
@@ -174,7 +169,7 @@ namespace JourneyCore.Client.Display
 
         public View MoveView(Vector2f position)
         {
-            Window.GetView().Center = position;
+            Window.GetView().Center = position; 
 
             SetView(GetView());
 
