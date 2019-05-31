@@ -8,17 +8,17 @@ namespace JourneyCore.Lib.Game.InputWatchers
 {
     public class InputWatcher
     {
-        private List<KeyWatch> WatchedKeys { get; }
-        private List<ButtonWatch> WatchedButtons { get; }
-
-        public bool WindowFocused { get; set; }
-
         public InputWatcher()
         {
             WindowFocused = true;
             WatchedKeys = new List<KeyWatch>();
             WatchedButtons = new List<ButtonWatch>();
         }
+
+        private List<KeyWatch> WatchedKeys { get; }
+        private List<ButtonWatch> WatchedButtons { get; }
+
+        public bool WindowFocused { get; set; }
 
         #region METHODS
 
@@ -81,7 +81,7 @@ namespace JourneyCore.Lib.Game.InputWatchers
         {
             return WatchedButtons.SingleOrDefault(buttonWatch => buttonWatch.Button.Equals(button));
         }
-    
+
 
         public async Task CheckWatchedInputs()
         {

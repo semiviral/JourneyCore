@@ -7,18 +7,18 @@ namespace JourneyCore.Lib.Game.InputWatchers
 {
     public class ButtonWatch
     {
-        private List<Func<Mouse.Button, Task>>  ButtonActions { get; }
-
         public ButtonWatch(Mouse.Button button, params Func<Mouse.Button, Task>[] buttonActions)
         {
             Button = button;
             ButtonActions = new List<Func<Mouse.Button, Task>>();
 
             foreach (Func<Mouse.Button, Task> buttonAction in buttonActions)
-            {   
+            {
                 ButtonActions.Add(buttonAction);
             }
         }
+
+        private List<Func<Mouse.Button, Task>> ButtonActions { get; }
 
         public Mouse.Button Button { get; }
 

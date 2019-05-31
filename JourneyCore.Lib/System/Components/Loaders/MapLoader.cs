@@ -23,7 +23,7 @@ namespace JourneyCore.Lib.System.Components.Loaders
             {
                 Map map = JsonConvert.DeserializeObject<Map>(reader.ReadToEnd());
                 map.Name = Path.GetFileNameWithoutExtension(mapPath);
-                
+
                 map.LoadTileSets();
                 map.BuildMap();
                 map.ProcessTileEffects();

@@ -53,6 +53,25 @@ namespace JourneyCore.Lib.Game.Context.Entities
 
         #endregion
 
+        public Vertex[] GetVertices()
+        {
+            Vertex[] vertices = new Vertex[4];
+            int pixelRadiusX = Graphic.TextureRect.Width / 2;
+            int pixelRadiusY = Graphic.TextureRect.Height / 2;
+
+            vertices[0] = new Vertex(new Vector2f(Graphic.Position.X - pixelRadiusX, Graphic.Position.Y + pixelRadiusY),
+                new Vector2f(Graphic.TextureRect.Left, Graphic.TextureRect.Top));
+            vertices[1] = new Vertex(new Vector2f(Graphic.Position.X + pixelRadiusX, Graphic.Position.Y + pixelRadiusY),
+                new Vector2f(Graphic.TextureRect.Left + Graphic.TextureRect.Width, Graphic.TextureRect.Top));
+            vertices[2] = new Vertex(new Vector2f(Graphic.Position.X + pixelRadiusX, Graphic.Position.Y - pixelRadiusY),
+                new Vector2f(Graphic.TextureRect.Left + Graphic.TextureRect.Width,
+                    Graphic.TextureRect.Top + Graphic.TextureRect.Height));
+            vertices[3] = new Vertex(new Vector2f(Graphic.Position.X - pixelRadiusX, Graphic.Position.Y - pixelRadiusY),
+                new Vector2f(Graphic.TextureRect.Left, Graphic.TextureRect.Top + Graphic.TextureRect.Height));
+
+            return vertices;
+        }
+
 
         #region ATTRIBUTES
 
@@ -130,19 +149,5 @@ namespace JourneyCore.Lib.Game.Context.Entities
         }
 
         #endregion
-
-        public Vertex[] GetVertices()
-        {
-            Vertex[] vertices = new Vertex[4];
-            int pixelRadiusX = Graphic.TextureRect.Width / 2;
-            int pixelRadiusY = Graphic.TextureRect.Height / 2;
-
-            vertices[0] = new Vertex(new Vector2f(Graphic.Position.X - pixelRadiusX, Graphic.Position.Y + pixelRadiusY), new Vector2f(Graphic.TextureRect.Left, Graphic.TextureRect.Top));
-            vertices[1] = new Vertex(new Vector2f(Graphic.Position.X + pixelRadiusX, Graphic.Position.Y + pixelRadiusY), new Vector2f(Graphic.TextureRect.Left + Graphic.TextureRect.Width, Graphic.TextureRect.Top));
-            vertices[2] = new Vertex(new Vector2f(Graphic.Position.X + pixelRadiusX, Graphic.Position.Y - pixelRadiusY), new Vector2f(Graphic.TextureRect.Left + Graphic.TextureRect.Width, Graphic.TextureRect.Top + Graphic.TextureRect.Height));
-            vertices[3] = new Vertex(new Vector2f(Graphic.Position.X - pixelRadiusX, Graphic.Position.Y - pixelRadiusY), new Vector2f(Graphic.TextureRect.Left, Graphic.TextureRect.Top + Graphic.TextureRect.Height));
-
-            return vertices;
-        }
     }
 }

@@ -7,8 +7,6 @@ namespace JourneyCore.Lib.Game.InputWatchers
 {
     public class KeyWatch
     {
-        private List<Func<Keyboard.Key, Task>> KeyActions { get; }
-
         public KeyWatch(Keyboard.Key key, params Func<Keyboard.Key, Task>[] keyActions)
         {
             Key = key;
@@ -19,6 +17,8 @@ namespace JourneyCore.Lib.Game.InputWatchers
                 KeyActions.Add(keyAction);
             }
         }
+
+        private List<Func<Keyboard.Key, Task>> KeyActions { get; }
 
         public Keyboard.Key Key { get; }
 

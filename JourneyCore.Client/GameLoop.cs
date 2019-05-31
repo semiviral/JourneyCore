@@ -12,8 +12,6 @@ using JourneyCore.Lib.Graphics;
 using JourneyCore.Lib.Graphics.Drawing;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
-using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using RESTModule;
 using Serilog;
@@ -97,6 +95,23 @@ namespace JourneyCore.Client
             }
         }
 
+
+        #region SERVER-TO-CLIENT RECEPTION METHODS
+
+        private async Task UpdateCurrentMap(MapMetadata mapMetadata)
+        {
+            CurrentVArray.Clear();
+            CurrentVArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount + 1));
+
+            string retVal =
+                await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/textures/maps");
+            CurrentMapImage = JsonConvert.DeserializeObject<byte[]>(retVal);
+
+            MapRenderStates = new RenderStates(new Texture(CurrentMapImage));
+        }
+
+        #endregion
+
         #region INITIALISATION
 
         private void InitialiseStaticLogger()
@@ -104,7 +119,8 @@ namespace JourneyCore.Client
             Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
         }
 
-        public async Task Initialise(string serverUrl, string servicePath, int minimumServerUpdateFrameTime, int maximumFrameRate)
+        public async Task Initialise(string serverUrl, string servicePath, int minimumServerUpdateFrameTime,
+            int maximumFrameRate)
         {
             await InitialiseConnection(serverUrl, servicePath, minimumServerUpdateFrameTime);
             InitialiseWindowManager(maximumFrameRate);
@@ -132,7 +148,8 @@ namespace JourneyCore.Client
         {
             Log.Information("Initialising game window...");
 
-            WinManager = new WindowManager("Journey to the Core", new VideoMode(1000, 600, 8), maximumFrameRate, new Vector2f(2f, 2f),
+            WinManager = new WindowManager("Journey to the Core", new VideoMode(1000, 600, 8), maximumFrameRate,
+                new Vector2f(2f, 2f),
                 15f);
             WinManager.Closed += (sender, args) => { IsRunning = false; };
 
@@ -153,7 +170,8 @@ namespace JourneyCore.Client
         {
             Log.Information("Initialising player...");
 
-            string retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/textures/human");
+            string retVal =
+                await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/textures/human");
 
             Player = new Entity("player", "player", 0,
                 new Sprite(new Texture(JsonConvert.DeserializeObject<byte[]>(retVal))));
@@ -163,7 +181,8 @@ namespace JourneyCore.Client
             WinManager.MoveView("game", Player.Graphic.Position);
             WinManager.MoveView("ui", new Vector2f(WinManager.Size.X * 0.9f, Player.Graphic.Position.Y));
 
-            WinManager.DrawItem("game", 2, new DrawItem(Player.Guid, 0, (window, frameTime) => { window.Draw(Player.Graphic); }));
+            WinManager.DrawItem("game", 2,
+                new DrawItem(Player.Guid, 0, (window, frameTime) => { window.Draw(Player.Graphic); }));
 
             Log.Information("Player intiailised.");
         }
@@ -243,7 +262,8 @@ namespace JourneyCore.Client
 
         private async Task WatchedButtonsSetup()
         {
-            string retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/textures/projectiles");
+            string retVal = await RESTClient.Request(RequestMethod.GET,
+                $"{NetManager.ServerUrl}/gameservice/textures/projectiles");
             Texture texture = new Texture(JsonConvert.DeserializeObject<byte[]>(retVal));
 
             InputWatcher.AddWatchedInput(Mouse.Button.Left, button =>
@@ -256,10 +276,12 @@ namespace JourneyCore.Client
                 Vector2i mousePosition = WinManager.GetRelativeMousePosition();
 
                 double relativeMouseX = WinManager.GetView("game").Size.X *
-                                        (mousePosition.X / (WinManager.Size.X * WinManager.GetView("game").Viewport.Width)) -
+                                        (mousePosition.X /
+                                         (WinManager.Size.X * WinManager.GetView("game").Viewport.Width)) -
                                         100d;
                 double relativeMouseY = WinManager.GetView("game").Size.Y *
-                                        (mousePosition.Y / (WinManager.Size.Y * WinManager.GetView("game").Viewport.Height)) -
+                                        (mousePosition.Y /
+                                         (WinManager.Size.Y * WinManager.GetView("game").Viewport.Height)) -
                                         100d;
 
                 double angle = 180 / Math.PI * Math.Atan2(relativeMouseY, relativeMouseX) + Player.Graphic.Rotation +
@@ -301,7 +323,8 @@ namespace JourneyCore.Client
 
         private async Task<MapMetadata> RequestMapMetadata(string mapName)
         {
-            string retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/maps/metadata/{mapName}");
+            string retVal =
+                await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/maps/metadata/{mapName}");
 
             return JsonConvert.DeserializeObject<MapMetadata>(retVal);
         }
@@ -336,22 +359,6 @@ namespace JourneyCore.Client
             NetManager.ServerStateSynchroniser.AllocateStateUpdate(StateUpdateType.Rotation, (int)rotation);
 
             return Task.CompletedTask;
-        }
-
-        #endregion
-
-
-        #region SERVER-TO-CLIENT RECEPTION METHODS
-
-        private async Task UpdateCurrentMap(MapMetadata mapMetadata)
-        {
-            CurrentVArray.Clear();
-            CurrentVArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount + 1));
-
-            string retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/textures/maps");
-            CurrentMapImage = JsonConvert.DeserializeObject<byte[]>(retVal);
-
-            MapRenderStates = new RenderStates(new Texture(CurrentMapImage));
         }
 
         #endregion

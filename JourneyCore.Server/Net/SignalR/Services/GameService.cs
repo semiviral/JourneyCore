@@ -27,19 +27,49 @@ namespace JourneyCore.Server.Net.SignalR.Services
             Players = new List<Entity>();
         }
 
-        public bool Status { get; private set; }
         private IGameClientContext GameClientContext { get; }
+        public Dictionary<string, byte[]> TextureImages { get; }
+
+        public bool Status { get; private set; }
 
         public List<Entity> Players { get; }
-        public Dictionary<string, byte[]> TextureImages { get; }
         public Dictionary<string, Map> TileMaps { get; }
+
+
+        #region CLIENT-TO-SERVER REQUESTS
+
+        public Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages)
+        {
+            return Task.CompletedTask;
+        }
+
+        #endregion
+
+        public byte[] GetTexture(string textureName)
+        {
+            return TextureImages[textureName];
+        }
+
+        public MapMetadata GetMapMetadata(string mapName)
+        {
+            return TileMaps[mapName].GetMetadata();
+        }
+
+        public IEnumerable<Chunk> GetChunk(string mapName, Vector2i chunkCoords)
+        {
+            foreach (MapLayer layer in TileMaps[mapName].Layers)
+            {
+                yield return layer.Map[chunkCoords.X][chunkCoords.Y];
+            }
+        }
 
 
         #region INITIALISE
 
         private void InitialiseTextures()
         {
-            foreach (string filePath in Directory.EnumerateFiles($@"{MapLoader.AssetRoot}\Images", "*.png", SearchOption.AllDirectories))
+            foreach (string filePath in Directory.EnumerateFiles($@"{MapLoader.AssetRoot}\Images", "*.png",
+                SearchOption.AllDirectories))
             {
                 TextureImages.Add(Path.GetFileNameWithoutExtension(filePath).ToLower(), File.ReadAllBytes(filePath));
             }
@@ -79,33 +109,5 @@ namespace JourneyCore.Server.Net.SignalR.Services
         }
 
         #endregion
-
-
-        #region CLIENT-TO-SERVER REQUESTS
-
-        public Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages)
-        {
-            return Task.CompletedTask;
-        }
-
-        #endregion
-
-        public byte[] GetTexture(string textureName)
-        {
-            return TextureImages[textureName];
-        }
-
-        public MapMetadata GetMapMetadata(string mapName)
-        {
-            return TileMaps[mapName].GetMetadata();
-        }
-
-        public IEnumerable<Chunk> GetChunk(string mapName, Vector2i chunkCoords)
-        {
-            foreach (MapLayer layer in TileMaps[mapName].Layers)
-            {
-                yield return layer.Map[chunkCoords.X][chunkCoords.Y];
-            }
-        }
     }
 }

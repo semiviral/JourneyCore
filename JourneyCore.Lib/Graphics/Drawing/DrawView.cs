@@ -1,17 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using SFML.Graphics;
-using SFML.Window;
 
 namespace JourneyCore.Lib.Graphics.Drawing
 {
     public class DrawView
     {
-        public string Name { get; }
-        public View View { get; }
-        private SortedList<int, List<DrawItem>> DrawQueue { get; }
-        
         public DrawView(string name, View view)
         {
             Name = name;
@@ -19,6 +13,10 @@ namespace JourneyCore.Lib.Graphics.Drawing
 
             DrawQueue = new SortedList<int, List<DrawItem>>();
         }
+
+        public string Name { get; }
+        public View View { get; }
+        private SortedList<int, List<DrawItem>> DrawQueue { get; }
 
         public void AddDrawItem(int priority, DrawItem drawItem)
         {

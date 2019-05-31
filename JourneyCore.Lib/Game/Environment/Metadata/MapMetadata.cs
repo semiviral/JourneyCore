@@ -12,7 +12,8 @@ namespace JourneyCore.Lib.Game.Environment.Metadata
         public int TileWidth { get; }
         public int TileHeight { get; }
 
-        public MapMetadata(string name, int width, int height, int layerCount, List<TileSetMetadata> tileSets, int tileWidth, int tileHeight)
+        public MapMetadata(string name, int width, int height, int layerCount, List<TileSetMetadata> tileSets,
+            int tileWidth, int tileHeight)
         {
             Name = name;
             Width = width;

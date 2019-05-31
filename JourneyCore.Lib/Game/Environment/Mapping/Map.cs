@@ -39,7 +39,8 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
 
         public MapMetadata GetMetadata()
         {
-            return new MapMetadata(Name, Width, Height, Layers.Count, UsedTileSets.Select(tileSet => tileSet.GetMetadata()).ToList(), PixelTileWidth, PixelTileHeight);
+            return new MapMetadata(Name, Width, Height, Layers.Count,
+                UsedTileSets.Select(tileSet => tileSet.GetMetadata()).ToList(), PixelTileWidth, PixelTileHeight);
         }
 
 
@@ -76,23 +77,23 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
             foreach (Chunk chunk in Layers.SelectMany(layer => layer.Map).SelectMany(map => map))
             {
                 for (int x = 0; x < chunk.Length; x++)
-                    for (int y = 0; y < chunk[x].Length; y++)
+                for (int y = 0; y < chunk[x].Length; y++)
+                {
+                    if (GetTile(chunk[x][y].Gid) == null)
                     {
-                        if (GetTile(chunk[x][y].Gid) == null)
-                        {
-                            continue;
-                        }
-
-                        if (GetTile(chunk[x][y].Gid).IsRandomizable)
-                        {
-                            chunk[x][y] = RandomizeTile(GetTile(chunk[x][y].Gid)).ToPrimitive();
-                        }
-
-                        if (GetTile(chunk[x][y].Gid).IsRandomlyRotatable)
-                        {
-                            chunk[x][y].Rotation = Rand.Next(0, 3);
-                        }
+                        continue;
                     }
+
+                    if (GetTile(chunk[x][y].Gid).IsRandomizable)
+                    {
+                        chunk[x][y] = RandomizeTile(GetTile(chunk[x][y].Gid)).ToPrimitive();
+                    }
+
+                    if (GetTile(chunk[x][y].Gid).IsRandomlyRotatable)
+                    {
+                        chunk[x][y].Rotation = Rand.Next(0, 3);
+                    }
+                }
             }
 
             return Layers;

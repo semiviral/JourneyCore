@@ -10,16 +10,16 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
 {
     public class TileDrawItem
     {
-        private TilePrimitive TilePrimitive { get; }
-        private TileMetadata TileMetadata { get; }
-        public Vector2i TileCoords { get; }
-
         public TileDrawItem(TilePrimitive tilePrimitive, TileMetadata tileMetadata, Vector2i tileCoords)
         {
             TilePrimitive = tilePrimitive;
             TileMetadata = tileMetadata;
             TileCoords = tileCoords;
         }
+
+        private TilePrimitive TilePrimitive { get; }
+        private TileMetadata TileMetadata { get; }
+        public Vector2i TileCoords { get; }
 
         public Vertex[] GetVertices()
         {
@@ -42,7 +42,7 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
                 new Vertex(topLeft, textureCoords.TopLeft),
                 new Vertex(topRight, textureCoords.TopRight),
                 new Vertex(bottomRight, textureCoords.BottomRight),
-                new Vertex(bottomLeft, textureCoords.BottomLeft),
+                new Vertex(bottomLeft, textureCoords.BottomLeft)
             };
         }
 
@@ -54,7 +54,8 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
 
             QuadCoords finalCoords = new QuadCoords();
 
-            switch (TilePrimitive.Rotation) {
+            switch (TilePrimitive.Rotation)
+            {
                 case 0:
                     finalCoords.TopLeft = new Vector2f(actualPixelLeft, actualPixelTop);
                     finalCoords.TopRight =

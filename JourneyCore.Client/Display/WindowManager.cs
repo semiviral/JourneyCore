@@ -11,33 +11,6 @@ namespace JourneyCore.Client.Display
 {
     public class WindowManager
     {
-        #region VARIABLES
-
-        private RenderWindow Window { get; }
-        private static Delta DeltaClock { get; set; }
-        private List<DrawView> DrawViews { get; }
-        private static int _targetFps;
-        
-        public Vector2u Size => Window.Size;
-        public bool IsInMenu { get; private set; }
-        public bool IsActive => Window.IsOpen;
-        public Vector2f ContentScale { get; set; }
-        public Vector2f PositionScale { get; set; }
-        public int TargetFps {
-            get => _targetFps;
-            set {
-                // fps changed stuff
-
-                _targetFps = value;
-                IndividualFrameTime = 1f / _targetFps;
-            }
-        }
-        
-        public float ElapsedTime { get; private set; }
-        public float IndividualFrameTime { get; private set; }
-
-        #endregion
-
         public WindowManager(string windowTitle, VideoMode videoMode, int targetFps, Vector2f contentScale,
             float positionScale)
         {
@@ -67,6 +40,36 @@ namespace JourneyCore.Client.Display
             return Mouse.GetPosition(Window);
         }
 
+        #region VARIABLES
+
+        private RenderWindow Window { get; }
+        private static Delta DeltaClock { get; set; }
+        private List<DrawView> DrawViews { get; }
+        private static int _targetFps;
+
+        public Vector2u Size => Window.Size;
+        public bool IsInMenu { get; private set; }
+        public bool IsActive => Window.IsOpen;
+        public Vector2f ContentScale { get; set; }
+        public Vector2f PositionScale { get; set; }
+
+        public int TargetFps
+        {
+            get => _targetFps;
+            set
+            {
+                // fps changed stuff
+
+                _targetFps = value;
+                IndividualFrameTime = 1f / _targetFps;
+            }
+        }
+
+        public float ElapsedTime { get; private set; }
+        public float IndividualFrameTime { get; private set; }
+
+        #endregion
+
 
         #region RENDERING
 
@@ -76,7 +79,7 @@ namespace JourneyCore.Client.Display
 
             Window.DispatchEvents();
             Window.Clear();
-            
+
             foreach (DrawView drawView in DrawViews)
             {
                 SetWindowView("game", drawView.View);
@@ -170,7 +173,7 @@ namespace JourneyCore.Client.Display
         {
             View view = GetView(name);
 
-            view.Center = position; 
+            view.Center = position;
 
             SetWindowView(name, view);
 
