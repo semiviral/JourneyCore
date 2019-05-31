@@ -111,13 +111,13 @@ namespace JourneyCore.Client
             Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
         }
 
-        public async Task Initialise(string serverUrl, string servicePath, int minimumServerUpdateFrameTime)
+        public async Task Initialise(string serverUrl, string servicePath, int minimumServerUpdateFrameTime, int maximumFrameRate)
         {
             await InitialiseConnection(serverUrl, servicePath);
 
             ServerStateSynchroniser = new ServerSynchroniser(Connection, minimumServerUpdateFrameTime);
 
-            InitialiseWindowManager();
+            InitialiseWindowManager(maximumFrameRate);
             await InitialisePlayer();
             WatchedKeysSetup();
             await WatchedButtonsSetup();
@@ -180,13 +180,23 @@ namespace JourneyCore.Client
             CurrentMap = await RequestMapMetadata("AdventurersGuild");
         }
 
-        private void InitialiseWindowManager()
+        private void InitialiseWindowManager(int maximumFrameRate)
         {
             Log.Information("Initialising game window...");
 
-            WManager = new WindowManager("Journey to the Core", new VideoMode(1000, 600, 8), 60, new Vector2f(2f, 2f),
+            WManager = new WindowManager("Journey to the Core", new VideoMode(1000, 600, 8), maximumFrameRate, new Vector2f(2f, 2f),
                 15f);
             WManager.Closed += (sender, args) => { IsRunning = false; };
+
+            WManager.CreateView("game", new View(new Vector2f(0f, 0f), new Vector2f(200f, 200f))
+            {
+                Viewport = new FloatRect(0f, 0f, 0.8f, 1f)
+            });
+
+            WManager.CreateView("ui", new View(new Vector2f(0f, 0f), new Vector2f(200f, 600f))
+            {
+                Viewport = new FloatRect(0.8f, 0f, 0.2f, 1f)
+            });
 
             Log.Information("Game window initialised.");
         }
@@ -202,6 +212,9 @@ namespace JourneyCore.Client
             Player.PositionChanged += PlayerPositionChanged;
             Player.RotationChanged += PlayerRotationChanged;
 
+            WManager.MoveView("game", Player.Graphic.Position);
+            WManager.MoveView("ui", new Vector2f(WManager.Size.X * 0.9f, Player.Graphic.Position.Y));
+
             WManager.DrawItem("game", 2, new DrawItem(Player.Guid, 0, (window, frameTime) => { window.Draw(Player.Graphic); }));
 
             Log.Information("Player intiailised.");
@@ -209,15 +222,7 @@ namespace JourneyCore.Client
 
         private void CreateViews()
         {
-            WManager.CreateView("game", new View(Player.Graphic.Position, new Vector2f(200f, 200f))
-            {
-                Viewport = new FloatRect(0f, 0f, 0.8f, 1f)
-            });
 
-            WManager.CreateView("ui", new View(new Vector2f(WManager.Size.X * 0.9f, Player.Graphic.Position.Y), new Vector2f(200f, 600f))
-            {
-                Viewport =  new FloatRect(0.8f, 0f, 0.2f, 1f)
-            });
         }
 
         private void WatchedKeysSetup()
@@ -307,11 +312,11 @@ namespace JourneyCore.Client
 
                 Vector2i mousePosition = WManager.GetRelativeMousePosition();
 
-                double relativeMouseX = WManager.GetView().Size.X *
-                                        (mousePosition.X / (WManager.Size.X * WManager.GetView().Viewport.Width)) -
+                double relativeMouseX = WManager.GetView("game").Size.X *
+                                        (mousePosition.X / (WManager.Size.X * WManager.GetView("game").Viewport.Width)) -
                                         100d;
-                double relativeMouseY = WManager.GetView().Size.Y *
-                                        (mousePosition.Y / (WManager.Size.Y * WManager.GetView().Viewport.Height)) -
+                double relativeMouseY = WManager.GetView("game").Size.Y *
+                                        (mousePosition.Y / (WManager.Size.Y * WManager.GetView("game").Viewport.Height)) -
                                         100d;
 
                 double angle = 180 / Math.PI * Math.Atan2(relativeMouseY, relativeMouseX) + Player.Graphic.Rotation +
@@ -373,7 +378,7 @@ namespace JourneyCore.Client
 
         private Task PlayerPositionChanged(object sender, Vector2f position)
         {
-            WManager.MoveView(position);
+            WManager.MoveView("game", position);
 
             ServerStateSynchroniser.AllocateStateUpdate(StateUpdateType.Position,
                 new Vector2i((int)position.X, (int)position.Y));
@@ -383,7 +388,7 @@ namespace JourneyCore.Client
 
         private Task PlayerRotationChanged(object sender, float rotation)
         {
-            WManager.RotateView(rotation);
+            WManager.RotateView("game", rotation);
 
             ServerStateSynchroniser.AllocateStateUpdate(StateUpdateType.Rotation, (int)rotation);
 

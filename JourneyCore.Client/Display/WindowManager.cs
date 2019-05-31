@@ -89,17 +89,14 @@ namespace JourneyCore.Client.Display
 
         public void UpdateWindow()
         {
-            DateTime abosluteNow = DateTime.Now;
-
             ElapsedTime = DeltaClock.GetDelta();
 
             Window.DispatchEvents();
             Window.Clear();
-
-
+            
             foreach (DrawView drawView in DrawViews)
             {
-                SetView(drawView.View);
+                SetWindowView("game", drawView.View);
 
                 drawView.Draw(Window, ElapsedTime);
             }
@@ -146,43 +143,49 @@ namespace JourneyCore.Client.Display
 
         #region VIEW
 
-        public View SetView(View view)
+        public View SetWindowView(string name, View view)
         {
             Window.SetView(view);
 
-            return GetView();
+            return GetView(name);
         }
 
-        public View GetView()
+        public View GetView(string name)
         {
-            return Window.GetView();
+            return DrawViews.SingleOrDefault(view => view.Name.Equals(name))?.View;
         }
 
-        public View SetViewport(FloatRect viewport)
+        public View SetViewport(string name, FloatRect viewport)
         {
-            GetView().Viewport = viewport;
+            View view = GetView(name);
 
-            SetView(GetView());
+            view.Viewport = viewport;
 
-            return GetView();
+            SetWindowView(name, view);
+
+            return view;
         }
 
-        public View MoveView(Vector2f position)
+        public View MoveView(string name, Vector2f position)
         {
-            Window.GetView().Center = position; 
+            View view = GetView(name);
 
-            SetView(GetView());
+            view.Center = position; 
 
-            return GetView();
+            SetWindowView(name, view);
+
+            return view;
         }
 
-        public View RotateView(float rotation)
+        public View RotateView(string name, float rotation)
         {
-            GetView().Rotation = rotation;
+            View view = GetView(name);
 
-            SetView(GetView());
+            view.Rotation = rotation;
 
-            return GetView();
+            SetWindowView(name, view);
+
+            return view;
         }
 
         #endregion
