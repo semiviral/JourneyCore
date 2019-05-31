@@ -13,6 +13,7 @@ using JourneyCore.Lib.Graphics.Drawing;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using RESTModule;
 using Serilog;
@@ -30,26 +31,22 @@ namespace JourneyCore.Client
         {
             IsRunning = true;
 
-            CManager = new ConsoleManager();
-            CManager.Hide(false);
+            ConManager = new ConsoleManager();
+            ConManager.Hide(false);
 
             InitialiseStaticLogger();
 
             Log.Information("Game loop started.");
 
             InputWatcher = new InputWatcher();
-            IsServerReady = false;
             CurrentVArray = new VertexArray(PrimitiveType.Quads);
         }
 
-        private string ServerUrl { get; set; }
-        private HubConnection Connection { get; set; }
-        private ConsoleManager CManager { get; }
-        private WindowManager WManager { get; set; }
+        private ConnectionManager NetManager { get; set; }
+        private ConsoleManager ConManager { get; }
+        private WindowManager WinManager { get; set; }
         private Entity Player { get; set; }
         private InputWatcher InputWatcher { get; }
-        private bool IsServerReady { get; set; }
-        private ServerSynchroniser ServerStateSynchroniser { get; set; }
         private bool IsRunning { get; set; }
         private byte[] CurrentMapImage { get; set; }
         private RenderStates MapRenderStates { get; set; }
@@ -81,7 +78,7 @@ namespace JourneyCore.Client
                 }
             }
 
-            WManager.DrawItem("game", 1,
+            WinManager.DrawItem("game", 1,
                 new DrawItem(Guid.NewGuid().ToString(), 0,
                     (window, frameTime) => { window.Draw(CurrentVArray, MapRenderStates); }));
 
@@ -89,13 +86,9 @@ namespace JourneyCore.Client
             {
                 while (IsRunning)
                 {
-                    WManager.SetActive(true);
-
                     await InputWatcher.CheckWatchedInputs();
 
-                    WManager.UpdateWindow();
-
-                    WManager.SetActive(false);
+                    WinManager.UpdateWindow();
                 }
             }
             catch (Exception ex)
@@ -113,68 +106,23 @@ namespace JourneyCore.Client
 
         public async Task Initialise(string serverUrl, string servicePath, int minimumServerUpdateFrameTime, int maximumFrameRate)
         {
-            await InitialiseConnection(serverUrl, servicePath);
-
-            ServerStateSynchroniser = new ServerSynchroniser(Connection, minimumServerUpdateFrameTime);
-
+            await InitialiseConnection(serverUrl, servicePath, minimumServerUpdateFrameTime);
             InitialiseWindowManager(maximumFrameRate);
             await InitialisePlayer();
             WatchedKeysSetup();
             await WatchedButtonsSetup();
-            CreateViews();
 
-            WManager.GainedFocus += (sender, args) => { InputWatcher.WindowFocused = true; };
-            WManager.LostFocus += (sender, args) => { InputWatcher.WindowFocused = false; };
+            WinManager.GainedFocus += (sender, args) => { InputWatcher.WindowFocused = true; };
+            WinManager.LostFocus += (sender, args) => { InputWatcher.WindowFocused = false; };
 
             await Runtime();
         }
 
-        private async Task InitialiseConnection(string serverUrl, string servicePath)
+        private async Task InitialiseConnection(string serverUrl, string servicePath, int minimumServerUpdateFrameTime)
         {
-            ServerUrl = serverUrl;
+            NetManager = new ConnectionManager(serverUrl);
+            await NetManager.Initialise(servicePath, minimumServerUpdateFrameTime);
 
-            Log.Information("Initialising connection to game server...");
-
-            Connection = new HubConnectionBuilder().WithUrl($"{serverUrl}/{servicePath}").Build();
-
-            Connection.Closed += async error =>
-            {
-                await Task.Delay(1000);
-                await Connection.StartAsync();
-            };
-
-            int tries = 0;
-
-            while (!IsServerReady)
-            {
-                try
-                {
-                    if (tries > 0)
-                    {
-                        await Task.Delay(5000);
-                    }
-
-                    if (tries > 4)
-                    {
-                        Log.Error("Could not connect to server. Ending process, press any key.");
-
-                        Console.ReadLine();
-
-                        Environment.Exit(1);
-                    }
-
-                    await Connection.StartAsync();
-
-                    IsServerReady = await GetServerStatus();
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning("Connection to server failed, retrying in 5 seconds...");
-                    tries += 1;
-                }
-            }
-
-            Log.Information("Connection to game server completed successfully.");
             Log.Information("Requesting map: AdventurersGuild");
 
             CurrentMap = await RequestMapMetadata("AdventurersGuild");
@@ -184,16 +132,16 @@ namespace JourneyCore.Client
         {
             Log.Information("Initialising game window...");
 
-            WManager = new WindowManager("Journey to the Core", new VideoMode(1000, 600, 8), maximumFrameRate, new Vector2f(2f, 2f),
+            WinManager = new WindowManager("Journey to the Core", new VideoMode(1000, 600, 8), maximumFrameRate, new Vector2f(2f, 2f),
                 15f);
-            WManager.Closed += (sender, args) => { IsRunning = false; };
+            WinManager.Closed += (sender, args) => { IsRunning = false; };
 
-            WManager.CreateView("game", new View(new Vector2f(0f, 0f), new Vector2f(200f, 200f))
+            WinManager.CreateView("game", new View(new Vector2f(0f, 0f), new Vector2f(200f, 200f))
             {
                 Viewport = new FloatRect(0f, 0f, 0.8f, 1f)
             });
 
-            WManager.CreateView("ui", new View(new Vector2f(0f, 0f), new Vector2f(200f, 600f))
+            WinManager.CreateView("ui", new View(new Vector2f(0f, 0f), new Vector2f(200f, 600f))
             {
                 Viewport = new FloatRect(0.8f, 0f, 0.2f, 1f)
             });
@@ -205,24 +153,19 @@ namespace JourneyCore.Client
         {
             Log.Information("Initialising player...");
 
-            string retVal = await RESTClient.Request(RequestMethod.GET, $"{ServerUrl}/gameservice/textures/human");
+            string retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/textures/human");
 
             Player = new Entity("player", "player", 0,
                 new Sprite(new Texture(JsonConvert.DeserializeObject<byte[]>(retVal))));
             Player.PositionChanged += PlayerPositionChanged;
             Player.RotationChanged += PlayerRotationChanged;
 
-            WManager.MoveView("game", Player.Graphic.Position);
-            WManager.MoveView("ui", new Vector2f(WManager.Size.X * 0.9f, Player.Graphic.Position.Y));
+            WinManager.MoveView("game", Player.Graphic.Position);
+            WinManager.MoveView("ui", new Vector2f(WinManager.Size.X * 0.9f, Player.Graphic.Position.Y));
 
-            WManager.DrawItem("game", 2, new DrawItem(Player.Guid, 0, (window, frameTime) => { window.Draw(Player.Graphic); }));
+            WinManager.DrawItem("game", 2, new DrawItem(Player.Guid, 0, (window, frameTime) => { window.Draw(Player.Graphic); }));
 
             Log.Information("Player intiailised.");
-        }
-
-        private void CreateViews()
-        {
-
         }
 
         private void WatchedKeysSetup()
@@ -241,7 +184,7 @@ namespace JourneyCore.Client
                     movement *= 0.5f;
                 }
 
-                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, WManager.ElapsedTime);
+                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, WinManager.ElapsedTime);
 
                 return Task.CompletedTask;
             });
@@ -256,7 +199,7 @@ namespace JourneyCore.Client
                     movement *= 0.5f;
                 }
 
-                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, WManager.ElapsedTime);
+                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, WinManager.ElapsedTime);
 
                 return Task.CompletedTask;
             });
@@ -271,7 +214,7 @@ namespace JourneyCore.Client
                     movement *= 0.5f;
                 }
 
-                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, WManager.ElapsedTime);
+                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, WinManager.ElapsedTime);
 
                 return Task.CompletedTask;
             });
@@ -286,37 +229,37 @@ namespace JourneyCore.Client
                     movement *= 0.5f;
                 }
 
-                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, WManager.ElapsedTime);
+                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, WinManager.ElapsedTime);
 
                 return Task.CompletedTask;
             });
 
             InputWatcher.AddWatchedInput(Keyboard.Key.Q,
-                async key => { await Player.RotateEntity(WManager.ElapsedTime, 180f, false); });
+                async key => { await Player.RotateEntity(WinManager.ElapsedTime, 180f, false); });
 
             InputWatcher.AddWatchedInput(Keyboard.Key.E,
-                async key => { await Player.RotateEntity(WManager.ElapsedTime, 180f, true); });
+                async key => { await Player.RotateEntity(WinManager.ElapsedTime, 180f, true); });
         }
 
         private async Task WatchedButtonsSetup()
         {
-            string retVal = await RESTClient.Request(RequestMethod.GET, $"{ServerUrl}/gameservice/textures/projectiles");
+            string retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/textures/projectiles");
             Texture texture = new Texture(JsonConvert.DeserializeObject<byte[]>(retVal));
 
             InputWatcher.AddWatchedInput(Mouse.Button.Left, button =>
             {
-                if (WManager.IsInMenu)
+                if (WinManager.IsInMenu)
                 {
                     return Task.CompletedTask;
                 }
 
-                Vector2i mousePosition = WManager.GetRelativeMousePosition();
+                Vector2i mousePosition = WinManager.GetRelativeMousePosition();
 
-                double relativeMouseX = WManager.GetView("game").Size.X *
-                                        (mousePosition.X / (WManager.Size.X * WManager.GetView("game").Viewport.Width)) -
+                double relativeMouseX = WinManager.GetView("game").Size.X *
+                                        (mousePosition.X / (WinManager.Size.X * WinManager.GetView("game").Viewport.Width)) -
                                         100d;
-                double relativeMouseY = WManager.GetView("game").Size.Y *
-                                        (mousePosition.Y / (WManager.Size.Y * WManager.GetView("game").Viewport.Height)) -
+                double relativeMouseY = WinManager.GetView("game").Size.Y *
+                                        (mousePosition.Y / (WinManager.Size.Y * WinManager.GetView("game").Viewport.Height)) -
                                         100d;
 
                 double angle = 180 / Math.PI * Math.Atan2(relativeMouseY, relativeMouseX) + Player.Graphic.Rotation +
@@ -345,7 +288,7 @@ namespace JourneyCore.Client
                     window.Draw(projectile.Graphic);
                 });
 
-                WManager.DrawItem("game", 2, projectileDrawItem);
+                WinManager.DrawItem("game", 2, projectileDrawItem);
 
                 return Task.CompletedTask;
             });
@@ -358,7 +301,7 @@ namespace JourneyCore.Client
 
         private async Task<MapMetadata> RequestMapMetadata(string mapName)
         {
-            string retVal = await RESTClient.Request(RequestMethod.GET, $"{ServerUrl}/maps/metadata/{mapName}");
+            string retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/maps/metadata/{mapName}");
 
             return JsonConvert.DeserializeObject<MapMetadata>(retVal);
         }
@@ -366,7 +309,7 @@ namespace JourneyCore.Client
         private async Task<Chunk[]> RequestChunk(Vector2i coords)
         {
             string retVal = await RESTClient.Request(RequestMethod.GET,
-                $"{ServerUrl}/maps/{CurrentMap.Name}/{coords.X}/{coords.Y}");
+                $"{NetManager.ServerUrl}/maps/{CurrentMap.Name}/{coords.X}/{coords.Y}");
 
             return JsonConvert.DeserializeObject<Chunk[]>(retVal);
         }
@@ -378,9 +321,9 @@ namespace JourneyCore.Client
 
         private Task PlayerPositionChanged(object sender, Vector2f position)
         {
-            WManager.MoveView("game", position);
+            WinManager.MoveView("game", position);
 
-            ServerStateSynchroniser.AllocateStateUpdate(StateUpdateType.Position,
+            NetManager.ServerStateSynchroniser.AllocateStateUpdate(StateUpdateType.Position,
                 new Vector2i((int)position.X, (int)position.Y));
 
             return Task.CompletedTask;
@@ -388,9 +331,9 @@ namespace JourneyCore.Client
 
         private Task PlayerRotationChanged(object sender, float rotation)
         {
-            WManager.RotateView("game", rotation);
+            WinManager.RotateView("game", rotation);
 
-            ServerStateSynchroniser.AllocateStateUpdate(StateUpdateType.Rotation, (int)rotation);
+            NetManager.ServerStateSynchroniser.AllocateStateUpdate(StateUpdateType.Rotation, (int)rotation);
 
             return Task.CompletedTask;
         }
@@ -400,19 +343,12 @@ namespace JourneyCore.Client
 
         #region SERVER-TO-CLIENT RECEPTION METHODS
 
-        private async Task<bool> GetServerStatus()
-        {
-            string retVal = await RESTClient.Request(RequestMethod.GET, $"{ServerUrl}/gameservice/status");
-
-            return JsonConvert.DeserializeObject<bool>(retVal);
-        }
-
         private async Task UpdateCurrentMap(MapMetadata mapMetadata)
         {
             CurrentVArray.Clear();
             CurrentVArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount + 1));
 
-            string retVal = await RESTClient.Request(RequestMethod.GET, $"{ServerUrl}/gameservice/textures/maps");
+            string retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/textures/maps");
             CurrentMapImage = JsonConvert.DeserializeObject<byte[]>(retVal);
 
             MapRenderStates = new RenderStates(new Texture(CurrentMapImage));

@@ -15,6 +15,7 @@ namespace JourneyCore.Client.Display
 
         private RenderWindow Window { get; }
         private static Delta DeltaClock { get; set; }
+        private List<DrawView> DrawViews { get; }
         private static int _targetFps;
         
         public Vector2u Size => Window.Size;
@@ -31,9 +32,7 @@ namespace JourneyCore.Client.Display
                 IndividualFrameTime = 1f / _targetFps;
             }
         }
-
-        private List<DrawView> DrawViews { get; }
-
+        
         public float ElapsedTime { get; private set; }
         public float IndividualFrameTime { get; private set; }
 
@@ -68,22 +67,6 @@ namespace JourneyCore.Client.Display
             return Mouse.GetPosition(Window);
         }
 
-        public DrawView CreateView(string viewName, View defaultView)
-        {
-            return CreateView(new DrawView(viewName, defaultView));
-        }
-
-        public DrawView CreateView(DrawView drawView)
-        {
-            if (DrawViews.Any(dView => dView.Name.Equals(drawView.Name)))
-            {
-                return null;
-            }
-
-            DrawViews.Add(drawView);
-
-            return drawView;
-        }
 
         #region RENDERING
 
@@ -142,6 +125,23 @@ namespace JourneyCore.Client.Display
 
 
         #region VIEW
+
+        public DrawView CreateView(string viewName, View defaultView)
+        {
+            return CreateView(new DrawView(viewName, defaultView));
+        }
+
+        public DrawView CreateView(DrawView drawView)
+        {
+            if (DrawViews.Any(dView => dView.Name.Equals(drawView.Name)))
+            {
+                return null;
+            }
+
+            DrawViews.Add(drawView);
+
+            return drawView;
+        }
 
         public View SetWindowView(string name, View view)
         {
