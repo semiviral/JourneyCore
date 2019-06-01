@@ -11,6 +11,7 @@ namespace JourneyCore.Server.Net.SignalR.Services
 {
     public interface IGameService : IHostedService
     {
+        int TickRate { get; }
         bool Status { get; }
         List<Entity> Players { get; }
         Dictionary<string, Map> TileMaps { get; }

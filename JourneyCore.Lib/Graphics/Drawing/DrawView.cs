@@ -32,29 +32,21 @@ namespace JourneyCore.Lib.Graphics.Drawing
         {
             DateTime absoluteNow = DateTime.Now;
 
-            List<Tuple<int, DrawItem>> toRemove = new List<Tuple<int, DrawItem>>();
-
-            if (DrawQueue.Count > 0)
+            if (DrawQueue.Count <= 0)
             {
-                foreach ((int key, List<DrawItem> drawItems) in DrawQueue)
-                {
-                    foreach (DrawItem drawItem in drawItems)
-                    {
-                        if (drawItem.Lifetime.Ticks != DateTime.MinValue.Ticks &&
-                            drawItem.Lifetime.Ticks < absoluteNow.Ticks)
-                        {
-                            toRemove.Add(new Tuple<int, DrawItem>(key, drawItem));
-                            continue;
-                        }
-
-                        drawItem.Draw(window, frameTime);
-                    }
-                }
+                return;
             }
 
-            foreach ((int key, DrawItem drawItem) in toRemove)
+            foreach ((int key, List<DrawItem> drawItems) in DrawQueue)
             {
-                DrawQueue[key].Remove(drawItem);
+                drawItems.RemoveAll(drawItem =>
+                    drawItem.Lifetime.Ticks != DateTime.MinValue.Ticks &&
+                    drawItem.Lifetime.Ticks < absoluteNow.Ticks);
+
+                foreach (DrawItem drawItem in drawItems)
+                {
+                    drawItem.Draw(window, frameTime);
+                }
             }
         }
     }

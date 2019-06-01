@@ -112,6 +112,7 @@ namespace JourneyCore.Client
 
         #endregion
 
+
         #region INITIALISATION
 
         private void InitialiseStaticLogger()
@@ -119,10 +120,9 @@ namespace JourneyCore.Client
             Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
         }
 
-        public async Task Initialise(string serverUrl, string servicePath, int minimumServerUpdateFrameTime,
-            int maximumFrameRate)
+        public async Task Initialise(string serverUrl, string servicePath, int maximumFrameRate)
         {
-            await InitialiseConnection(serverUrl, servicePath, minimumServerUpdateFrameTime);
+            await InitialiseConnection(serverUrl, servicePath);
             InitialiseWindowManager(maximumFrameRate);
             await InitialisePlayer();
             WatchedKeysSetup();
@@ -134,10 +134,10 @@ namespace JourneyCore.Client
             await Runtime();
         }
 
-        private async Task InitialiseConnection(string serverUrl, string servicePath, int minimumServerUpdateFrameTime)
+        private async Task InitialiseConnection(string serverUrl, string servicePath)
         {
             NetManager = new ConnectionManager(serverUrl);
-            await NetManager.Initialise(servicePath, minimumServerUpdateFrameTime);
+            await NetManager.Initialise(servicePath);
 
             Log.Information("Requesting map: AdventurersGuild");
 
@@ -346,7 +346,7 @@ namespace JourneyCore.Client
         {
             WinManager.MoveView("game", position);
 
-            NetManager.ServerStateSynchroniser.AllocateStateUpdate(StateUpdateType.Position,
+            NetManager.ServerStateSynchronizer.AllocateStateUpdate(StateUpdateType.Position,
                 new Vector2i((int)position.X, (int)position.Y));
 
             return Task.CompletedTask;
@@ -356,7 +356,7 @@ namespace JourneyCore.Client
         {
             WinManager.RotateView("game", rotation);
 
-            NetManager.ServerStateSynchroniser.AllocateStateUpdate(StateUpdateType.Rotation, (int)rotation);
+            NetManager.ServerStateSynchronizer.AllocateStateUpdate(StateUpdateType.Rotation, (int)rotation);
 
             return Task.CompletedTask;
         }
@@ -468,5 +468,15 @@ namespace JourneyCore.Client
         }
 
         #endregion
+
+        public static void ExitWithFatality(string error, int exitCode = -1)
+        {
+            Log.Fatal(error);
+            Log.Fatal("Press any key to continue.");
+
+            Console.ReadLine();
+
+            Environment.Exit(exitCode);
+        }
     }
 }

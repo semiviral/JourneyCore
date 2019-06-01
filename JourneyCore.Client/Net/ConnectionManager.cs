@@ -20,12 +20,12 @@ namespace JourneyCore.Client.Net
 
         public string ServerUrl { get; }
         public HubConnection Connection { get; private set; }
-        public ServerSynchroniser ServerStateSynchroniser { get; private set; }
+        public ServerSynchronizer ServerStateSynchronizer { get; private set; }
         public bool IsServerReady { get; private set; }
 
         public event AsyncEventHandler<Exception> Closed;
 
-        public async Task Initialise(string servicePath, int minimumServerUpdateFrameTime)
+        public async Task Initialise(string servicePath)
         {
             Log.Information("Initialising connection to game server...");
 
@@ -50,11 +50,7 @@ namespace JourneyCore.Client.Net
 
                     if (tries > 4)
                     {
-                        Log.Error("Could not connect to server. Ending process, press any key.");
-
-                        Console.ReadLine();
-
-                        Environment.Exit(1);
+                        GameLoop.ExitWithFatality("Could not connect to server. Ending process, press any key.");
                     }
 
                     await Connection.StartAsync();
@@ -69,8 +65,15 @@ namespace JourneyCore.Client.Net
             }
 
             Log.Information("Connection to game server completed successfully.");
+            Log.Information("Requesting server tick interval...");
 
-            ServerStateSynchroniser = new ServerSynchroniser(Connection, minimumServerUpdateFrameTime);
+            int tickRate = await GetServerTickInterval();
+
+            ServerStateSynchronizer = new ServerSynchronizer(tickRate);
+            ServerStateSynchronizer.SyncCallback += async (sender, args) =>
+            {
+                await Connection.InvokeAsync("ReceiveUpdatePackages", args);
+            };
         }
 
         #region  RECEPTION METHODS
@@ -80,6 +83,20 @@ namespace JourneyCore.Client.Net
             string retVal = await RESTClient.Request(RequestMethod.GET, $"{ServerUrl}/gameservice/status");
 
             return JsonConvert.DeserializeObject<bool>(retVal);
+        }
+
+        private async Task<int> GetServerTickInterval()
+        {
+            string retVal = await RESTClient.Request(RequestMethod.GET, $"{ServerUrl}/gameservice/tickrate");
+            int tickRate = JsonConvert.DeserializeObject<int>(retVal);
+
+            if (tickRate != 0)
+            {
+                return tickRate;
+            }
+
+            GameLoop.ExitWithFatality("Request for server tick interval returned an illegal value. Aborting game launch.");
+            return -1;
         }
 
         #endregion

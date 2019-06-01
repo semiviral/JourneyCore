@@ -15,8 +15,21 @@ namespace JourneyCore.Server.Net.SignalR.Services
 {
     public class GameService : IGameService
     {
-        public const ushort ChunkLoadRadius = 3;
+        #region VARIABLES
 
+        private IGameClientContext GameClientContext { get; }
+        public Dictionary<string, byte[]> TextureImages { get; }
+
+        /// <summary>
+        ///     Time in milliseconds between the server's actions
+        /// </summary>
+        public int TickRate { get; }
+        public bool Status { get; private set; }
+
+        public List<Entity> Players { get; }
+        public Dictionary<string, Map> TileMaps { get; }
+
+        #endregion
 
         public GameService(IGameClientContext gameClientContext)
         {
@@ -25,42 +38,8 @@ namespace JourneyCore.Server.Net.SignalR.Services
             TextureImages = new Dictionary<string, byte[]>();
             TileMaps = new Dictionary<string, Map>();
             Players = new List<Entity>();
-        }
 
-        private IGameClientContext GameClientContext { get; }
-        public Dictionary<string, byte[]> TextureImages { get; }
-
-        public bool Status { get; private set; }
-
-        public List<Entity> Players { get; }
-        public Dictionary<string, Map> TileMaps { get; }
-
-
-        #region CLIENT-TO-SERVER REQUESTS
-
-        public Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages)
-        {
-            return Task.CompletedTask;
-        }
-
-        #endregion
-
-        public byte[] GetTexture(string textureName)
-        {
-            return TextureImages[textureName];
-        }
-
-        public MapMetadata GetMapMetadata(string mapName)
-        {
-            return TileMaps[mapName].GetMetadata();
-        }
-
-        public IEnumerable<Chunk> GetChunk(string mapName, Vector2i chunkCoords)
-        {
-            foreach (MapLayer layer in TileMaps[mapName].Layers)
-            {
-                yield return layer.Map[chunkCoords.X][chunkCoords.Y];
-            }
+            TickRate = (int)(1f / 30f * 1000f);
         }
 
 
@@ -91,7 +70,40 @@ namespace JourneyCore.Server.Net.SignalR.Services
         #endregion
 
 
-        #region INTERFACES IMPLEMENTATIONS
+        #region CLIENT-TO-SERVER REQUESTS
+
+        public Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages)
+        {
+            return Task.CompletedTask;
+        }
+
+        #endregion
+
+
+        #region IGameService
+
+        public byte[] GetTexture(string textureName)
+        {
+            return TextureImages[textureName];
+        }
+
+        public MapMetadata GetMapMetadata(string mapName)
+        {
+            return TileMaps[mapName].GetMetadata();
+        }
+
+        public IEnumerable<Chunk> GetChunk(string mapName, Vector2i chunkCoords)
+        {
+            foreach (MapLayer layer in TileMaps[mapName].Layers)
+            {
+                yield return layer.Map[chunkCoords.X][chunkCoords.Y];
+            }
+        }
+
+        #endregion
+
+
+        #region IHostedService
 
         public Task StartAsync(CancellationToken cancellationToken)
         {

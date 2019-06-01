@@ -16,7 +16,7 @@ namespace JourneyCore.Client
             CManager.Hide(false);
 
             GLoop = new GameLoop();
-            await GLoop.Initialise("http://localhost:5000", "GameService", (int)(1f / 30f * 1000f), 60);
+            await GLoop.Initialise("http://localhost:5000", "GameService", 60);
         }
     }
 }

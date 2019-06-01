@@ -23,5 +23,11 @@ namespace JourneyCore.Server.Net.Controllers
         {
             return new JsonResult(GameService.GetTexture(textureName));
         }
+
+        [HttpGet("gameservice/tickrate")]
+        public IActionResult GetTickInterval()
+        {
+            return new JsonResult(GameService.TickRate);
+        }
     }
 }
