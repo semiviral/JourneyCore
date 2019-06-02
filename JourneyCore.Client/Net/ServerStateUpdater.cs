@@ -8,13 +8,21 @@ using Serilog;
 
 namespace JourneyCore.Client.Net
 {
-    public class ServerSynchronizer
+    public class ServerStateUpdater
     {
         /// <summary>
         /// </summary>
         /// <param name="tickRate">Time interval in milliseconds to dequeue all state updates</param>
-        public ServerSynchronizer(int tickRate)
+        public ServerStateUpdater(int tickRate)
         {
+            // todo move to a design whereby the server tells the client
+            //      it is ready to receieve updates
+            //      this will allow for automatic synchronisation.
+            //      
+            //      when the client receieves the update callback,
+            //      wait until the next frame update to begin sending them
+            //                      maybe?????
+
             TickRate = tickRate;
             AutoReset = new AutoResetEvent(false);
             TickTimer = new Timer(OnTickTimerElapsed, AutoReset, TickRate, 0);

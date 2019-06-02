@@ -5,18 +5,13 @@ namespace JourneyCore.Client
 {
     public class Program
     {
-        private static ConsoleManager CManager { get; set; }
-
         public static GameLoop GLoop { get; private set; }
-
 
         private static async Task Main(string[] args)
         {
-            CManager = new ConsoleManager();
-            CManager.Hide(false);
-
             GLoop = new GameLoop();
             await GLoop.Initialise("http://localhost:5000", "GameService", 60);
+            await GLoop.StartAsync();
         }
     }
 }

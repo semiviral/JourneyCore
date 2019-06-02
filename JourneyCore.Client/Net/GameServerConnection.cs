@@ -8,9 +8,9 @@ using Serilog;
 
 namespace JourneyCore.Client.Net
 {
-    public class ConnectionManager
+    public class GameServerConnection
     {
-        public ConnectionManager(string serverUrl)
+        public GameServerConnection(string serverUrl)
         {
             ServerUrl = serverUrl;
             IsServerReady = false;
@@ -20,12 +20,22 @@ namespace JourneyCore.Client.Net
 
         public string ServerUrl { get; }
         public HubConnection Connection { get; private set; }
-        public ServerSynchronizer ServerStateSynchronizer { get; private set; }
+        public ServerStateUpdater StateUpdater { get; private set; }
         public bool IsServerReady { get; private set; }
 
         public event AsyncEventHandler<Exception> Closed;
 
-        public async Task Initialise(string servicePath)
+        #region INIT
+
+        public async Task InitialiseAsync(string servicePath)
+        {
+            BuildConnection(servicePath);
+            await WaitForServerReady();
+            await BuildSynchroniser();
+
+        }
+
+        private void BuildConnection(string servicePath)
         {
             Log.Information("Initialising connection to game server...");
 
@@ -36,7 +46,10 @@ namespace JourneyCore.Client.Net
                 await Task.Delay(1000);
                 await Connection.StartAsync();
             };
+        }
 
+        private async Task WaitForServerReady()
+        {
             int tries = 0;
 
             while (!IsServerReady)
@@ -50,12 +63,12 @@ namespace JourneyCore.Client.Net
 
                     if (tries > 4)
                     {
-                        GameLoop.ExitWithFatality("Could not connect to server. Ending process, press any key.");
+                        GameLoop.ExitWithFatality("Could not connect to server. Aborting game launch.");
                     }
 
                     await Connection.StartAsync();
 
-                    IsServerReady = await GetServerStatus();
+                    IsServerReady = await GetServerReadyState();
                 }
                 catch (Exception ex)
                 {
@@ -65,20 +78,27 @@ namespace JourneyCore.Client.Net
             }
 
             Log.Information("Connection to game server completed successfully.");
+        }
+
+        private async Task BuildSynchroniser()
+        {
             Log.Information("Requesting server tick interval...");
 
             int tickRate = await GetServerTickInterval();
 
-            ServerStateSynchronizer = new ServerSynchronizer(tickRate);
-            ServerStateSynchronizer.SyncCallback += async (sender, args) =>
+            StateUpdater = new ServerStateUpdater(tickRate);
+            StateUpdater.SyncCallback += async (sender, args) =>
             {
                 await Connection.InvokeAsync("ReceiveUpdatePackages", args);
             };
         }
 
+        #endregion
+
+
         #region  RECEPTION METHODS
 
-        private async Task<bool> GetServerStatus()
+        private async Task<bool> GetServerReadyState()
         {
             string retVal = await RESTClient.Request(RequestMethod.GET, $"{ServerUrl}/gameservice/status");
 
@@ -90,7 +110,7 @@ namespace JourneyCore.Client.Net
             string retVal = await RESTClient.Request(RequestMethod.GET, $"{ServerUrl}/gameservice/tickrate");
             int tickRate = JsonConvert.DeserializeObject<int>(retVal);
 
-            if (tickRate != 0)
+            if (tickRate > 0)
             {
                 return tickRate;
             }

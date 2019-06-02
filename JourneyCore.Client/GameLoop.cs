@@ -23,7 +23,6 @@ namespace JourneyCore.Client
 {
     public class GameLoop : Context
     {
-        private MapMetadata _currentMap;
 
         public GameLoop()
         {
@@ -37,48 +36,33 @@ namespace JourneyCore.Client
             Log.Information("Game loop started.");
 
             InputWatcher = new InputWatcher();
-            CurrentVArray = new VertexArray(PrimitiveType.Quads);
         }
 
-        private ConnectionManager NetManager { get; set; }
+        private GameServerConnection NetManager { get; set; }
         private ConsoleManager ConManager { get; }
         private WindowManager WinManager { get; set; }
+        private LocalMap CurrentMap { get; set; }
         private Entity Player { get; set; }
         private InputWatcher InputWatcher { get; }
         private bool IsRunning { get; set; }
-        private byte[] CurrentMapImage { get; set; }
-        private RenderStates MapRenderStates { get; set; }
 
-        private MapMetadata CurrentMap
+
+        public async Task StartAsync()
         {
-            get => _currentMap;
-            set
+            for (int x = 0; x < CurrentMap.Metadata.Width / MapLoader.ChunkSize; x++)
             {
-                Task.Run(() => UpdateCurrentMap(value));
-
-                _currentMap = value;
-            }
-        }
-
-        private VertexArray CurrentVArray { get; }
-
-
-        public async Task Runtime()
-        {
-            for (int x = 0; x < CurrentMap.Width / MapLoader.ChunkSize; x++)
-            {
-                for (int y = 0; y < CurrentMap.Height / MapLoader.ChunkSize; y++)
+                for (int y = 0; y < CurrentMap.Metadata.Height / MapLoader.ChunkSize; y++)
                 {
                     foreach (Chunk chunk in await RequestChunk(new Vector2i(x, y)))
                     {
-                        LoadChunk(chunk);
+                        CurrentMap.LoadChunk(chunk);
                     }
                 }
             }
 
             WinManager.DrawItem("game", 1,
                 new DrawItem(Guid.NewGuid().ToString(), 0,
-                    (window, frameTime) => { window.Draw(CurrentVArray, MapRenderStates); }));
+                    (window, frameTime) => { window.Draw(CurrentMap.VArray, CurrentMap.RenderStates); }));
 
             try
             {
@@ -96,23 +80,6 @@ namespace JourneyCore.Client
         }
 
 
-        #region SERVER-TO-CLIENT RECEPTION METHODS
-
-        private async Task UpdateCurrentMap(MapMetadata mapMetadata)
-        {
-            CurrentVArray.Clear();
-            CurrentVArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount + 1));
-
-            string retVal =
-                await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/textures/maps");
-            CurrentMapImage = JsonConvert.DeserializeObject<byte[]>(retVal);
-
-            MapRenderStates = new RenderStates(new Texture(CurrentMapImage));
-        }
-
-        #endregion
-
-
         #region INITIALISATION
 
         private void InitialiseStaticLogger()
@@ -122,36 +89,31 @@ namespace JourneyCore.Client
 
         public async Task Initialise(string serverUrl, string servicePath, int maximumFrameRate)
         {
-            await InitialiseConnection(serverUrl, servicePath);
-            InitialiseWindowManager(maximumFrameRate);
+            await InitialiseGameServerConnection(serverUrl, servicePath);
+            InitialiseGameWindow(maximumFrameRate);
+            await InitialiseLocalMap();
             await InitialisePlayer();
-            WatchedKeysSetup();
-            await WatchedButtonsSetup();
+            SetupWatchedKeys();
+            await SetupWatchedButtons();
 
             WinManager.GainedFocus += (sender, args) => { InputWatcher.WindowFocused = true; };
             WinManager.LostFocus += (sender, args) => { InputWatcher.WindowFocused = false; };
-
-            await Runtime();
         }
 
-        private async Task InitialiseConnection(string serverUrl, string servicePath)
+        private async Task InitialiseGameServerConnection(string serverUrl, string servicePath)
         {
-            NetManager = new ConnectionManager(serverUrl);
-            await NetManager.Initialise(servicePath);
-
-            Log.Information("Requesting map: AdventurersGuild");
-
-            CurrentMap = await RequestMapMetadata("AdventurersGuild");
+            NetManager = new GameServerConnection(serverUrl);
+            await NetManager.InitialiseAsync(servicePath);
         }
 
-        private void InitialiseWindowManager(int maximumFrameRate)
+        private void InitialiseGameWindow(int maximumFrameRate)
         {
             Log.Information("Initialising game window...");
 
             WinManager = new WindowManager("Journey to the Core", new VideoMode(1000, 600, 8), maximumFrameRate,
                 new Vector2f(2f, 2f),
                 15f);
-            WinManager.Closed += (sender, args) => { IsRunning = false; };
+            WinManager.Closed += (sender, args) => { IsRunning = false; ExitWithFatality("Game window closed."); };
 
             WinManager.CreateView("game", new View(new Vector2f(0f, 0f), new Vector2f(200f, 200f))
             {
@@ -164,6 +126,16 @@ namespace JourneyCore.Client
             });
 
             Log.Information("Game window initialised.");
+        }
+
+        private async Task InitialiseLocalMap()
+        {
+            string retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/textures/maps");
+            CurrentMap = new LocalMap(JsonConvert.DeserializeObject<byte[]>(retVal));
+
+            Log.Information("Requesting map: AdventurersGuild");
+
+            CurrentMap.Update(await RequestMapMetadata("AdventurersGuild"));
         }
 
         private async Task InitialisePlayer()
@@ -187,7 +159,7 @@ namespace JourneyCore.Client
             Log.Information("Player intiailised.");
         }
 
-        private void WatchedKeysSetup()
+        private void SetupWatchedKeys()
         {
             Log.Information("Creating key watch events...");
 
@@ -260,7 +232,7 @@ namespace JourneyCore.Client
                 async key => { await Player.RotateEntity(WinManager.ElapsedTime, 180f, true); });
         }
 
-        private async Task WatchedButtonsSetup()
+        private async Task SetupWatchedButtons()
         {
             string retVal = await RESTClient.Request(RequestMethod.GET,
                 $"{NetManager.ServerUrl}/gameservice/textures/projectiles");
@@ -305,7 +277,7 @@ namespace JourneyCore.Client
                 {
                     Vector2f movement = new Vector2f((float)GraphMath.SinFromDegrees(projectile.Graphic.Rotation),
                         (float)GraphMath.CosFromDegrees(projectile.Graphic.Rotation) * -1f);
-                    projectile.Move(movement, CurrentMap.TileWidth, frameTime);
+                    projectile.Move(movement, CurrentMap.Metadata.TileWidth, frameTime);
 
                     window.Draw(projectile.Graphic);
                 });
@@ -332,7 +304,7 @@ namespace JourneyCore.Client
         private async Task<Chunk[]> RequestChunk(Vector2i coords)
         {
             string retVal = await RESTClient.Request(RequestMethod.GET,
-                $"{NetManager.ServerUrl}/maps/{CurrentMap.Name}/{coords.X}/{coords.Y}");
+                $"{NetManager.ServerUrl}/maps/{CurrentMap.Metadata.Name}/{coords.X}/{coords.Y}");
 
             return JsonConvert.DeserializeObject<Chunk[]>(retVal);
         }
@@ -346,7 +318,7 @@ namespace JourneyCore.Client
         {
             WinManager.MoveView("game", position);
 
-            NetManager.ServerStateSynchronizer.AllocateStateUpdate(StateUpdateType.Position,
+            NetManager.StateUpdater.AllocateStateUpdate(StateUpdateType.Position,
                 new Vector2i((int)position.X, (int)position.Y));
 
             return Task.CompletedTask;
@@ -356,7 +328,7 @@ namespace JourneyCore.Client
         {
             WinManager.RotateView("game", rotation);
 
-            NetManager.ServerStateSynchronizer.AllocateStateUpdate(StateUpdateType.Rotation, (int)rotation);
+            NetManager.StateUpdater.AllocateStateUpdate(StateUpdateType.Rotation, (int)rotation);
 
             return Task.CompletedTask;
         }
@@ -366,111 +338,14 @@ namespace JourneyCore.Client
 
         #region MAP BUILDING
 
-        private void LoadChunk(Chunk chunk)
-        {
-            for (int x = 0; x < chunk.Length; x++)
-            for (int y = 0; y < chunk[0].Length; y++)
-            {
-                AllocateTileToVArray(chunk[x][y],
-                    new Vector2i(chunk.Left * MapLoader.ChunkSize + x, chunk.Top * MapLoader.ChunkSize + y),
-                    chunk.Layer);
-            }
-        }
 
-        private void AllocateTileToVArray(TilePrimitive tilePrimitive, Vector2i tileCoords, int layerId)
-        {
-            if (tilePrimitive.Gid == 0)
-            {
-                return;
-            }
-
-            TileMetadata tileMetadata = GetTileMetadata(tilePrimitive.Gid);
-
-            int scaledSizeX = tileMetadata.TextureRect.Width * MapLoader.Scale;
-            int scaledSizeY = tileMetadata.TextureRect.Height * MapLoader.Scale;
-
-            Vector2f topLeft = GraphMath.CalculateVertexPosition(VertexCorner.TopLeft, tileCoords.X, tileCoords.Y,
-                scaledSizeX, scaledSizeY);
-            Vector2f topRight = GraphMath.CalculateVertexPosition(VertexCorner.TopRight, tileCoords.X, tileCoords.Y,
-                scaledSizeX, scaledSizeY);
-            Vector2f bottomRight = GraphMath.CalculateVertexPosition(VertexCorner.BottomRight, tileCoords.X,
-                tileCoords.Y, scaledSizeX, scaledSizeY);
-            Vector2f bottomLeft = GraphMath.CalculateVertexPosition(VertexCorner.BottomLeft, tileCoords.X, tileCoords.Y,
-                scaledSizeX, scaledSizeY);
-
-            QuadCoords textureCoords = GetTileTextureCoords(tilePrimitive);
-
-            uint index = (uint)((tileCoords.Y * CurrentMap.Width + tileCoords.X) * 4 +
-                                (layerId - 1) * (CurrentVArray.VertexCount / CurrentMap.LayerCount));
-
-            CurrentVArray[index + 0] = new Vertex(topLeft, textureCoords.TopLeft);
-            CurrentVArray[index + 1] = new Vertex(topRight, textureCoords.TopRight);
-            CurrentVArray[index + 2] = new Vertex(bottomRight, textureCoords.BottomRight);
-            CurrentVArray[index + 3] = new Vertex(bottomLeft, textureCoords.BottomLeft);
-        }
-
-        private TileMetadata GetTileMetadata(int gid)
-        {
-            return CurrentMap.TileSets.SelectMany(tileSet => tileSet.Tiles).Single(tile => tile.Gid == gid);
-        }
-
-        private QuadCoords GetTileTextureCoords(TilePrimitive tilePrimitive)
-        {
-            TileMetadata tileMetadata = GetTileMetadata(tilePrimitive.Gid);
-
-            // width and height of all textures in a map will be the same
-            int actualPixelLeft = tileMetadata.TextureRect.Left * tileMetadata.TextureRect.Width;
-            int actualPixelTop = tileMetadata.TextureRect.Top * tileMetadata.TextureRect.Height;
-
-            QuadCoords finalCoords = new QuadCoords();
-
-            switch (tilePrimitive.Rotation)
-            {
-                case 0:
-                    finalCoords.TopLeft = new Vector2f(actualPixelLeft, actualPixelTop);
-                    finalCoords.TopRight =
-                        new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width, actualPixelTop);
-                    finalCoords.BottomRight = new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width,
-                        actualPixelTop + tileMetadata.TextureRect.Height);
-                    finalCoords.BottomLeft =
-                        new Vector2f(actualPixelLeft, actualPixelTop + tileMetadata.TextureRect.Height);
-                    break;
-                case 1:
-                    finalCoords.TopLeft =
-                        new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width, actualPixelTop);
-                    finalCoords.TopRight = new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width,
-                        actualPixelTop + tileMetadata.TextureRect.Height);
-                    finalCoords.BottomRight =
-                        new Vector2f(actualPixelLeft, actualPixelTop + tileMetadata.TextureRect.Height);
-                    finalCoords.BottomLeft = new Vector2f(actualPixelLeft, actualPixelTop);
-                    break;
-                case 2:
-                    finalCoords.TopLeft = new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width,
-                        actualPixelTop + tileMetadata.TextureRect.Height);
-                    finalCoords.TopRight =
-                        new Vector2f(actualPixelLeft, actualPixelTop + tileMetadata.TextureRect.Height);
-                    finalCoords.BottomRight = new Vector2f(actualPixelLeft, actualPixelTop);
-                    finalCoords.BottomLeft =
-                        new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width, actualPixelTop);
-                    break;
-                case 3:
-                    finalCoords.TopLeft =
-                        new Vector2f(actualPixelLeft, actualPixelTop + tileMetadata.TextureRect.Height);
-                    finalCoords.TopRight = new Vector2f(actualPixelLeft, actualPixelTop);
-                    finalCoords.BottomRight =
-                        new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width, actualPixelTop);
-                    finalCoords.BottomLeft = new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width,
-                        actualPixelTop + tileMetadata.TextureRect.Height);
-                    break;
-            }
-
-            return finalCoords;
-        }
 
         #endregion
 
         public static void ExitWithFatality(string error, int exitCode = -1)
         {
+            // allow game window to close before fataling
+
             Log.Fatal(error);
             Log.Fatal("Press any key to continue.");
 
