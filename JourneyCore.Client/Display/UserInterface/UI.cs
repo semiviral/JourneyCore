@@ -10,6 +10,8 @@ namespace JourneyCore.Client.Display.UserInterface
 {
     public class UI
     {
+        public static int HpRowWidth { get; } = 6;
+
         public UI(TileSetMetadata uiTileSet, byte[] uiSpriteSheetImage)
         {
             UISpriteSheetImage = uiSpriteSheetImage;
@@ -52,14 +54,12 @@ namespace JourneyCore.Client.Display.UserInterface
 
         private void CalculateHearts()
         {
-            int totalHeartUnits = (int)Math.Ceiling(CurrentHp / 5);
-
-            // each half heart is 5 hp
-            // so therefore 10hp = 2 half hearts,
+            // each half heart is 1 hp
+            // so therefore 2hp = 2 half hearts,
             // and 2 / 2 = 1, so 1 full heart
             // and 2 % 2 = 0, so 0 half hearts
-            int fullHearts = totalHeartUnits / 2;
-            int halfHearts = totalHeartUnits % 2;
+            int fullHearts = (int)CurrentHp / 2;
+            int halfHearts = (int)CurrentHp % 2;
 
             Sprite[] newHearts = new Sprite[fullHearts + halfHearts];
 
@@ -75,10 +75,10 @@ namespace JourneyCore.Client.Display.UserInterface
 
             for (int i = 0; i < newHearts.Length; i++)
             {
-                newHearts[i].Scale = new Vector2f(3f, 3f);
+                newHearts[i].Scale = new Vector2f(4f, 4f);
 
-                float posX = i > 4 ? (i - 5) * newHearts[i].TextureRect.Width * newHearts[i].Scale.X : i * newHearts[i].TextureRect.Width * newHearts[i].Scale.X;
-                float posY = i > 4 ? newHearts[i].TextureRect.Height * newHearts[i].Scale.Y : 0f;
+                float posX = i % HpRowWidth * newHearts[i].TextureRect.Width * newHearts[i].Scale.X;
+                float posY = i / HpRowWidth * newHearts[i].TextureRect.Height * newHearts[i].Scale.Y;
 
                 newHearts[i].Position = new Vector2f(posX, posY);
             }

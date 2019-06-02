@@ -137,7 +137,7 @@ namespace JourneyCore.Lib.Game.Context.Entities
             Strength = Intelligence = Defense = Attack = Speed = Dexterity = Fortitude = Insight = 1;
 
 
-            Strength = 85;
+            Strength = 20;
 
             CurrentHP = Strength;
             
