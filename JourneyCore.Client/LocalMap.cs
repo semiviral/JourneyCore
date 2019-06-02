@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
 using JourneyCore.Lib.Graphics;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
-using Newtonsoft.Json;
-using RESTModule;
 using SFML.Graphics;
 using SFML.System;
 
@@ -21,7 +15,7 @@ namespace JourneyCore.Client
         public byte[] Image { get; }
         public RenderStates RenderStates { get; }
         public MapMetadata Metadata { get; private set; }
-        public VertexArray VArray { get; private set; }
+        public VertexArray VArray { get; }
 
         public LocalMap(byte[] mapImage)
         {
@@ -35,6 +29,8 @@ namespace JourneyCore.Client
         {
             VArray.Clear();
             VArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount + 1));
+
+            Metadata = mapMetadata;
         }
 
         public void LoadChunk(Chunk chunk)

@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using JourneyCore.Client.Display;
 
 namespace JourneyCore.Client
 {

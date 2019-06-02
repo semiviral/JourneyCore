@@ -8,7 +8,7 @@ using SFML.System;
 
 namespace JourneyCore.Lib.Game.Context.Entities
 {
-    public class Entity : IDisposable
+    public class Entity : IDisposable, INotifyPropertyChanged
     {
         public Entity(string name, string primaryTag, int lifetime, Sprite sprite)
         {
@@ -39,9 +39,10 @@ namespace JourneyCore.Lib.Game.Context.Entities
 
         #endregion
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public event AsyncEventHandler<Vector2f> PositionChanged;
         public event AsyncEventHandler<float> RotationChanged;
-        public event PropertyChangedEventHandler PropertyChanged;
 
 
         #region EVENT
@@ -75,7 +76,23 @@ namespace JourneyCore.Lib.Game.Context.Entities
 
         #region ATTRIBUTES
 
-        public int Strength { get; set; }
+        public int Strength
+        {
+            get => strength;
+            set
+            {
+                if (strength == value)
+                {
+                    return;
+                }
+
+                strength = value;
+
+                NotifyPropertyChanged();
+            }
+        }
+
+        private int strength;
         public int Intelligence { get; set; }
         public int Defense { get; set; }
         public int Attack { get; set; }
@@ -83,6 +100,24 @@ namespace JourneyCore.Lib.Game.Context.Entities
         public int Dexterity { get; set; }
         public int Fortitude { get; set; }
         public int Insight { get; set; }
+
+        public float CurrentHP
+        {
+            get => currentHp;
+            set
+            {
+                if (Math.Abs(currentHp - value) < 0.01)
+                {
+                    return;
+                }
+
+                currentHp = value;
+
+                NotifyPropertyChanged();
+            }
+        }
+
+        private float currentHp;
 
         #endregion
 
@@ -92,7 +127,7 @@ namespace JourneyCore.Lib.Game.Context.Entities
         private void InitialiseSprite(Sprite sprite)
         {
             Graphic = sprite;
-            Graphic.Origin = new Vector2f(Graphic.TextureRect.Width / 2, Graphic.TextureRect.Height / 2);
+            Graphic.Origin = new Vector2f(Graphic.TextureRect.Width / 2f, Graphic.TextureRect.Height / 2f);
             Graphic.Position = new Vector2f(0f, 0f);
         }
 
@@ -101,6 +136,11 @@ namespace JourneyCore.Lib.Game.Context.Entities
         {
             Strength = Intelligence = Defense = Attack = Speed = Dexterity = Fortitude = Insight = 1;
 
+
+            Strength = 85;
+
+            CurrentHP = Strength;
+            
             Speed = 100;
         }
 

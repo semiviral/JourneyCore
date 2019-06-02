@@ -47,7 +47,7 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
 
         public TileMetadata GetMetadata()
         {
-            return new TileMetadata(Gid, TextureRect);
+            return new TileMetadata(Gid, Type, TextureRect);
         }
 
         public TilePrimitive ToPrimitive()

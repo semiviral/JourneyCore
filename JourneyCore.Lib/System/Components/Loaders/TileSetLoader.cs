@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using JourneyCore.Lib.Game.Environment.Tiling;
 using Newtonsoft.Json;
@@ -14,6 +15,11 @@ namespace JourneyCore.Lib.System.Components.Loaders
             {
                 TileSet tileSet = JsonConvert.DeserializeObject<TileSet>(reader.ReadToEnd());
                 tileSet.TextureName = Path.GetFileNameWithoutExtension(tileSet.Image);
+
+                if (tileSet.Tiles == null)
+                {
+                    return tileSet;
+                }
 
                 foreach (Tile tile in tileSet.Tiles)
                 {

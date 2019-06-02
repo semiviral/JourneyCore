@@ -18,7 +18,8 @@ namespace JourneyCore.Server.Net.SignalR.Services
 
         Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages);
 
-        byte[] GetTexture(string textureName);
+        byte[] GetImage(string textureName);
+        TileSetMetadata GetTileSetMetadata(string tileSetName);
         MapMetadata GetMapMetadata(string mapName);
         IEnumerable<Chunk> GetChunk(string mapName, Vector2i chunkCoords);
     }

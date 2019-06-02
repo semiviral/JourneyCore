@@ -1,17 +1,17 @@
 ﻿using System;
-using System.Linq;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using JourneyCore.Client.Display;
+using JourneyCore.Client.Display.UserInterface;
 using JourneyCore.Client.Net;
 using JourneyCore.Lib.Game.Context.Entities;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
-using JourneyCore.Lib.Game.Environment.Tiling;
 using JourneyCore.Lib.Game.InputWatchers;
-using JourneyCore.Lib.Graphics;
 using JourneyCore.Lib.Graphics.Drawing;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Newtonsoft.Json;
 using RESTModule;
 using Serilog;
@@ -41,6 +41,7 @@ namespace JourneyCore.Client
         private GameServerConnection NetManager { get; set; }
         private ConsoleManager ConManager { get; }
         private WindowManager WinManager { get; set; }
+        private UI UserInterface { get; set; }
         private LocalMap CurrentMap { get; set; }
         private Entity Player { get; set; }
         private InputWatcher InputWatcher { get; }
@@ -49,6 +50,21 @@ namespace JourneyCore.Client
 
         public async Task StartAsync()
         {
+            Shape uiSquare = new RectangleShape(new Vector2f(200f, 600f))
+            {
+                FillColor = Color.Cyan,
+                Position = new Vector2f(0f, 0f),
+                Origin = new Vector2f(0f, 0f)
+            };
+
+            WinManager.DrawItem("ui", 1, new DrawItem(Guid.NewGuid().ToString(), 0, (window, frameTime) =>
+            {
+                window.Draw(uiSquare);
+            }));
+
+
+
+            // todo this doesn't belong, loading whole map for dev purposes
             for (int x = 0; x < CurrentMap.Metadata.Width / MapLoader.ChunkSize; x++)
             {
                 for (int y = 0; y < CurrentMap.Metadata.Height / MapLoader.ChunkSize; y++)
@@ -95,6 +111,7 @@ namespace JourneyCore.Client
             await InitialisePlayer();
             SetupWatchedKeys();
             await SetupWatchedButtons();
+            await InitialiseUserInterface();
 
             WinManager.GainedFocus += (sender, args) => { InputWatcher.WindowFocused = true; };
             WinManager.LostFocus += (sender, args) => { InputWatcher.WindowFocused = false; };
@@ -115,12 +132,12 @@ namespace JourneyCore.Client
                 15f);
             WinManager.Closed += (sender, args) => { IsRunning = false; ExitWithFatality("Game window closed."); };
 
-            WinManager.CreateView("game", new View(new Vector2f(0f, 0f), new Vector2f(200f, 200f))
+            WinManager.CreateView("game", new View(new FloatRect(0f, 0f, 200f, 200f))
             {
                 Viewport = new FloatRect(0f, 0f, 0.8f, 1f)
             });
 
-            WinManager.CreateView("ui", new View(new Vector2f(0f, 0f), new Vector2f(200f, 600f))
+            WinManager.CreateView("ui", new View(new FloatRect(0f, 0f, 200f, 600f))
             {
                 Viewport = new FloatRect(0.8f, 0f, 0.2f, 1f)
             });
@@ -130,7 +147,7 @@ namespace JourneyCore.Client
 
         private async Task InitialiseLocalMap()
         {
-            string retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/textures/maps");
+            string retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/images/maps");
             CurrentMap = new LocalMap(JsonConvert.DeserializeObject<byte[]>(retVal));
 
             Log.Information("Requesting map: AdventurersGuild");
@@ -143,15 +160,15 @@ namespace JourneyCore.Client
             Log.Information("Initialising player...");
 
             string retVal =
-                await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/textures/human");
+                await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/images/human");
 
             Player = new Entity("player", "player", 0,
                 new Sprite(new Texture(JsonConvert.DeserializeObject<byte[]>(retVal))));
+            Player.PropertyChanged += PlayerPropertyChanged;
             Player.PositionChanged += PlayerPositionChanged;
             Player.RotationChanged += PlayerRotationChanged;
 
             WinManager.MoveView("game", Player.Graphic.Position);
-            WinManager.MoveView("ui", new Vector2f(WinManager.Size.X * 0.9f, Player.Graphic.Position.Y));
 
             WinManager.DrawItem("game", 2,
                 new DrawItem(Player.Guid, 0, (window, frameTime) => { window.Draw(Player.Graphic); }));
@@ -235,7 +252,7 @@ namespace JourneyCore.Client
         private async Task SetupWatchedButtons()
         {
             string retVal = await RESTClient.Request(RequestMethod.GET,
-                $"{NetManager.ServerUrl}/gameservice/textures/projectiles");
+                $"{NetManager.ServerUrl}/gameservice/images/projectiles");
             Texture texture = new Texture(JsonConvert.DeserializeObject<byte[]>(retVal));
 
             InputWatcher.AddWatchedInput(Mouse.Button.Left, button =>
@@ -288,6 +305,26 @@ namespace JourneyCore.Client
             });
         }
 
+        private async Task InitialiseUserInterface()
+        {
+            string retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/tilesets/ui");
+            TileSetMetadata tileSetMetadata = JsonConvert.DeserializeObject<TileSetMetadata>(retVal);
+
+            retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/images/ui");
+            byte[] uiImage = JsonConvert.DeserializeObject<byte[]>(retVal);
+
+            UserInterface = new UI(tileSetMetadata, uiImage);
+            UserInterface.UpdateHealth(Player.CurrentHP);
+
+            WinManager.DrawItem("ui", 2, new DrawItem(Guid.NewGuid().ToString(), 0, (window, frameTime) =>
+            {
+                foreach (Sprite sprite in UserInterface.Hearts)
+                {
+                    window.Draw(sprite);
+                }
+            }));
+        }
+
         #endregion
 
 
@@ -333,14 +370,18 @@ namespace JourneyCore.Client
             return Task.CompletedTask;
         }
 
+        private void PlayerPropertyChanged(object sender, PropertyChangedEventArgs args)
+        {
+            switch (args.PropertyName)
+            {
+                case "CurrentHP":
+
+                    break;
+            }
+        }
+
         #endregion
 
-
-        #region MAP BUILDING
-
-
-
-        #endregion
 
         public static void ExitWithFatality(string error, int exitCode = -1)
         {

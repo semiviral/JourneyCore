@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Event;
@@ -16,10 +15,10 @@ namespace JourneyCore.Client.Net
         public ServerStateUpdater(int tickRate)
         {
             // todo move to a design whereby the server tells the client
-            //      it is ready to receieve updates
+            //      it is ready to receive updates
             //      this will allow for automatic synchronisation.
             //      
-            //      when the client receieves the update callback,
+            //      when the client receives the update callback,
             //      wait until the next frame update to begin sending them
             //                      maybe?????
 
@@ -60,8 +59,6 @@ namespace JourneyCore.Client.Net
 
         private void SendStatePackage()
         {
-            Log.Information($"Sending state package with {UpdatePackages.Count} items.");
-
             SyncCallback?.Invoke(this, UpdatePackages.ToArray());
 
             UpdatePackages.Clear();

@@ -18,10 +18,16 @@ namespace JourneyCore.Server.Net.Controllers
             return new JsonResult(GameService.Status);
         }
 
-        [HttpGet("gameservice/textures/{textureName}")]
-        public IActionResult GetTexture(string textureName)
+        [HttpGet("gameservice/tilesets/{tileSetName}")]
+        public IActionResult GetTileSet(string tileSetName)
         {
-            return new JsonResult(GameService.GetTexture(textureName));
+            return new JsonResult(GameService.GetTileSetMetadata(tileSetName));
+        }
+
+        [HttpGet("gameservice/images/{imageName}")]
+        public IActionResult GetImage(string imageName)
+        {
+            return new JsonResult(GameService.GetImage(imageName));
         }
 
         [HttpGet("gameservice/tickrate")]

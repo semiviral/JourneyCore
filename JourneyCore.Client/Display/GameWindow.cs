@@ -82,7 +82,7 @@ namespace JourneyCore.Client.Display
 
             foreach (DrawView drawView in DrawViews)
             {
-                SetWindowView("game", drawView.View);
+                SetWindowView(drawView.Name, drawView.View);
 
                 drawView.Draw(Window, ElapsedTime);
             }

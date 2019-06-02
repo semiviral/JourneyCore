@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using JourneyCore.Lib.Game.Context.Entities;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
+using JourneyCore.Lib.Game.Environment.Tiling;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
 using JourneyCore.Server.Net.SignalR.Contexts;
@@ -28,6 +29,7 @@ namespace JourneyCore.Server.Net.SignalR.Services
 
         public List<Entity> Players { get; }
         public Dictionary<string, Map> TileMaps { get; }
+        public Dictionary<string, TileSet> TileSets { get; }
 
         #endregion
 
@@ -36,6 +38,7 @@ namespace JourneyCore.Server.Net.SignalR.Services
             GameClientContext = gameClientContext;
 
             TextureImages = new Dictionary<string, byte[]>();
+            TileSets = new Dictionary<string, TileSet>();
             TileMaps = new Dictionary<string, Map>();
             Players = new List<Entity>();
 
@@ -47,10 +50,19 @@ namespace JourneyCore.Server.Net.SignalR.Services
 
         private void InitialiseTextures()
         {
-            foreach (string filePath in Directory.EnumerateFiles($@"{MapLoader.AssetRoot}\Images", "*.png",
+            foreach (string filePath in Directory.EnumerateFiles($@"{MapLoader.AssetRoot}/Images", "*.png",
                 SearchOption.AllDirectories))
             {
                 TextureImages.Add(Path.GetFileNameWithoutExtension(filePath).ToLower(), File.ReadAllBytes(filePath));
+            }
+        }
+
+        private void InitialiseNonMapTileSets()
+        {
+            foreach (string filePath in Directory.EnumerateFiles($@"{MapLoader.AssetRoot}/TileSets", "*.json",
+                SearchOption.AllDirectories))
+            {
+                TileSets.Add(Path.GetFileNameWithoutExtension(filePath).ToLower(), TileSetLoader.LoadTileSet(filePath, 0));
             }
         }
 
@@ -58,7 +70,7 @@ namespace JourneyCore.Server.Net.SignalR.Services
         {
             short scale = 2;
 
-            foreach (string filePath in Directory.EnumerateFiles($@"{MapLoader.AssetRoot}\Maps", "*.json",
+            foreach (string filePath in Directory.EnumerateFiles($@"{MapLoader.AssetRoot}/Maps", "*.json",
                 SearchOption.TopDirectoryOnly))
             {
                 Map map = MapLoader.LoadMap(filePath, scale);
@@ -82,9 +94,14 @@ namespace JourneyCore.Server.Net.SignalR.Services
 
         #region IGameService
 
-        public byte[] GetTexture(string textureName)
+        public byte[] GetImage(string textureName)
         {
             return TextureImages[textureName];
+        }
+
+        public TileSetMetadata GetTileSetMetadata(string tileSetName)
+        {
+            return TileSets[tileSetName].GetMetadata();
         }
 
         public MapMetadata GetMapMetadata(string mapName)
@@ -108,6 +125,7 @@ namespace JourneyCore.Server.Net.SignalR.Services
         public Task StartAsync(CancellationToken cancellationToken)
         {
             InitialiseTextures();
+            InitialiseNonMapTileSets();
             InitialiseTileMaps();
 
             Status = true;
