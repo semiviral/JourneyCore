@@ -135,8 +135,7 @@ namespace JourneyCore.Lib.Game.Context.Entities
         private void InitialiseDefaultAttributes()
         {
             Strength = Intelligence = Defense = Attack = Speed = Dexterity = Fortitude = Insight = 1;
-
-
+            
             Strength = 20;
 
             CurrentHP = Strength;

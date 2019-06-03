@@ -16,19 +16,24 @@ namespace JourneyCore.Client
         public RenderStates RenderStates { get; }
         public MapMetadata Metadata { get; private set; }
         public VertexArray VArray { get; }
+        public VertexArray MiniMapVArray { get; }
 
         public LocalMap(byte[] mapImage)
         {
             Image = mapImage;
             RenderStates = new RenderStates(new Texture(Image));
-            VArray = new VertexArray(PrimitiveType.Quads);
             Metadata = new MapMetadata();
+            VArray = new VertexArray(PrimitiveType.Quads);
+            MiniMapVArray = new VertexArray(PrimitiveType.Quads);
         }
 
         public void Update(MapMetadata mapMetadata)
         {
             VArray.Clear();
             VArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount + 1));
+
+            MiniMapVArray.Clear();
+            MiniMapVArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount + 1));
 
             Metadata = mapMetadata;
         }
@@ -77,6 +82,11 @@ namespace JourneyCore.Client
             VArray[index + 1] = new Vertex(topRight, textureCoords.TopRight);
             VArray[index + 2] = new Vertex(bottomRight, textureCoords.BottomRight);
             VArray[index + 3] = new Vertex(bottomLeft, textureCoords.BottomLeft);
+
+            MiniMapVArray[index + 0] = new Vertex(topLeft, tileMetadata.MiniMapColor);
+            MiniMapVArray[index + 1] = new Vertex(topRight, tileMetadata.MiniMapColor);
+            MiniMapVArray[index + 2] = new Vertex(bottomRight, tileMetadata.MiniMapColor);
+            MiniMapVArray[index + 3] = new Vertex(bottomLeft, tileMetadata.MiniMapColor);
         }
 
         private TileMetadata GetTileMetadata(int gid)

@@ -11,7 +11,14 @@ namespace JourneyCore.Lib.Graphics.Drawing
             Lifetime = lifetimeInMilliseconds == 0
                 ? DateTime.MinValue
                 : DateTime.Now.AddMilliseconds(lifetimeInMilliseconds);
-            Draw = draw;
+            Draw = (window, frameTime) =>
+            {
+                window.SetActive(true);
+
+                draw(window, frameTime);
+
+                window.SetActive(false);
+            };
         }
 
         public string Guid { get; }

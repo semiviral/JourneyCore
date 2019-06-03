@@ -11,7 +11,6 @@ using JourneyCore.Lib.Game.InputWatchers;
 using JourneyCore.Lib.Graphics.Drawing;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
-using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Newtonsoft.Json;
 using RESTModule;
 using Serilog;
@@ -23,7 +22,6 @@ namespace JourneyCore.Client
 {
     public class GameLoop : Context
     {
-
         public GameLoop()
         {
             IsRunning = true;
@@ -57,11 +55,8 @@ namespace JourneyCore.Client
                 Origin = new Vector2f(0f, 0f)
             };
 
-            WinManager.DrawItem("ui", 1, new DrawItem(Guid.NewGuid().ToString(), 0, (window, frameTime) =>
-            {
-                window.Draw(uiSquare);
-            }));
-
+            WinManager.DrawItem("ui", 1,
+                new DrawItem(Guid.NewGuid().ToString(), 0, (window, frameTime) => { window.Draw(uiSquare); }));
 
 
             // todo this doesn't belong, loading whole map for dev purposes
@@ -79,6 +74,9 @@ namespace JourneyCore.Client
             WinManager.DrawItem("game", 1,
                 new DrawItem(Guid.NewGuid().ToString(), 0,
                     (window, frameTime) => { window.Draw(CurrentMap.VArray, CurrentMap.RenderStates); }));
+            WinManager.DrawItem("minimap", 0,
+                new DrawItem(Guid.NewGuid().ToString(), 0,
+                    (window, frameTime) => { window.Draw(CurrentMap.MiniMapVArray); }));
 
             try
             {
@@ -93,6 +91,19 @@ namespace JourneyCore.Client
             {
                 Console.WriteLine(ex.Message);
             }
+        }
+
+
+        public static void ExitWithFatality(string error, int exitCode = -1)
+        {
+            // allow game window to close before fataling
+
+            Log.Fatal(error);
+            Log.Fatal("Press any key to continue.");
+
+            Console.ReadLine();
+
+            Environment.Exit(exitCode);
         }
 
 
@@ -130,7 +141,11 @@ namespace JourneyCore.Client
             WinManager = new WindowManager("Journey to the Core", new VideoMode(1000, 600, 8), maximumFrameRate,
                 new Vector2f(2f, 2f),
                 15f);
-            WinManager.Closed += (sender, args) => { IsRunning = false; ExitWithFatality("Game window closed."); };
+            WinManager.Closed += (sender, args) =>
+            {
+                IsRunning = false;
+                ExitWithFatality("Game window closed.");
+            };
 
             WinManager.CreateView("game", new View(new FloatRect(0f, 0f, 200f, 200f))
             {
@@ -139,7 +154,12 @@ namespace JourneyCore.Client
 
             WinManager.CreateView("ui", new View(new FloatRect(0f, 0f, 200f, 600f))
             {
-                Viewport = new FloatRect(0.8f, 0f, 0.2f, 1f)
+                Viewport = new FloatRect(0.8f, 0.3f, 0.2f, 0.7f)
+            });
+
+            WinManager.CreateView("minimap", new View(new FloatRect(0f, 0f, 200f, 200f))
+            {
+                Viewport = new FloatRect(0.8f, 0f, 0.2f, 0.3f)
             });
 
             Log.Information("Game window initialised.");
@@ -147,7 +167,8 @@ namespace JourneyCore.Client
 
         private async Task InitialiseLocalMap()
         {
-            string retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/images/maps");
+            string retVal =
+                await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/images/maps");
             CurrentMap = new LocalMap(JsonConvert.DeserializeObject<byte[]>(retVal));
 
             Log.Information("Requesting map: AdventurersGuild");
@@ -169,9 +190,32 @@ namespace JourneyCore.Client
             Player.RotationChanged += PlayerRotationChanged;
 
             WinManager.MoveView("game", Player.Graphic.Position);
+            WinManager.MoveView("minimap", Player.Graphic.Position);
+
+            // todo
+            //  implement some sort of position/rotation
+            //  anchoring class or subscription for items
+
+            RectangleShape rect =
+                new RectangleShape(new Vector2f(CurrentMap.Metadata.TileWidth / 2f, CurrentMap.Metadata.TileHeight / 2f))
+                {
+                    Origin = Player.Graphic.Origin,
+                    FillColor = Color.Green,
+                    OutlineColor = new Color(200, 200, 200),
+                    OutlineThickness = 1f,
+                    Position = Player.Graphic.Position
+                };
 
             WinManager.DrawItem("game", 2,
                 new DrawItem(Player.Guid, 0, (window, frameTime) => { window.Draw(Player.Graphic); }));
+            WinManager.DrawItem("minimap", 1,
+                new DrawItem(Player.Guid, 0, (window, frameTime) =>
+                {
+                    rect.Position = Player.Graphic.Position;
+                    rect.Rotation = Player.Graphic.Rotation;
+
+                    window.Draw(rect);
+                }));
 
             Log.Information("Player intiailised.");
         }
@@ -307,7 +351,8 @@ namespace JourneyCore.Client
 
         private async Task InitialiseUserInterface()
         {
-            string retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/tilesets/ui");
+            string retVal =
+                await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/tilesets/ui");
             TileSetMetadata tileSetMetadata = JsonConvert.DeserializeObject<TileSetMetadata>(retVal);
 
             retVal = await RESTClient.Request(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/images/ui");
@@ -354,6 +399,7 @@ namespace JourneyCore.Client
         private Task PlayerPositionChanged(object sender, Vector2f position)
         {
             WinManager.MoveView("game", position);
+            WinManager.MoveView("minimap", position);
 
             NetManager.StateUpdater.AllocateStateUpdate(StateUpdateType.Position,
                 new Vector2i((int)position.X, (int)position.Y));
@@ -381,18 +427,5 @@ namespace JourneyCore.Client
         }
 
         #endregion
-
-
-        public static void ExitWithFatality(string error, int exitCode = -1)
-        {
-            // allow game window to close before fataling
-
-            Log.Fatal(error);
-            Log.Fatal("Press any key to continue.");
-
-            Console.ReadLine();
-
-            Environment.Exit(exitCode);
-        }
     }
 }

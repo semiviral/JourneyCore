@@ -14,13 +14,15 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
         public CustomProperty[] Properties { get; set; }
         public int Gid { get; set; }
         public IntRect TextureRect { get; set; }
-        public bool IsRandomizable { get; set; }
-        public bool IsRandomlyRotatable { get; set; }
+        public bool IsRandomizable { get; private set; }
+        public bool IsRandomlyRotatable { get; private set; }
+        public Color MiniMapColor { get; private set; }
 
         public void ApplyProperties()
         {
             CustomProperty isRandomizable = GetProperty("IsRandomizable");
             CustomProperty isRandomlyRotatable = GetProperty("IsRandomlyRotatable");
+            CustomProperty miniMapColor = GetProperty("MiniMapColor");
 
             if (isRandomizable != null)
             {
@@ -30,6 +32,15 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
             if (isRandomlyRotatable != null)
             {
                 IsRandomlyRotatable = (bool)Convert.ChangeType(isRandomlyRotatable.Value, typeof(bool));
+            }
+
+            if (miniMapColor != null)
+            {
+                string hexString = miniMapColor.Value.Substring(1);
+                string hexStringAlpha = hexString.Substring(0, 2);
+                string hexStringBase = hexString.Substring(2);
+
+                MiniMapColor = new Color(Convert.ToUInt32($"0x{hexStringBase}{hexStringAlpha}", 16));
             }
         }
 
@@ -47,7 +58,7 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
 
         public TileMetadata GetMetadata()
         {
-            return new TileMetadata(Gid, Type, TextureRect);
+            return new TileMetadata(Gid, Type, TextureRect, MiniMapColor);
         }
 
         public TilePrimitive ToPrimitive()

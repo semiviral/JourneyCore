@@ -16,6 +16,11 @@
                  "name":"IsRandomlyRotatable",
                  "type":"bool",
                  "value":true
+                }, 
+                {
+                 "name":"MiniMapColor",
+                 "type":"color",
+                 "value":"#ff28c917"
                 }],
          "type":"Grass"
         }, 
@@ -26,6 +31,11 @@
                  "name":"IsRandomlyRotatable",
                  "type":"bool",
                  "value":true
+                }, 
+                {
+                 "name":"MiniMapColor",
+                 "type":"color",
+                 "value":"#ff8b511a"
                 }],
          "type":"Dirt"
         }, 
@@ -36,11 +46,22 @@
                  "name":"IsRandomlyRotatable",
                  "type":"bool",
                  "value":true
+                }, 
+                {
+                 "name":"MiniMapColor",
+                 "type":"color",
+                 "value":"#ff555555"
                 }],
          "type":"Stone"
         }, 
         {
          "id":3,
+         "properties":[
+                {
+                 "name":"MiniMapColor",
+                 "type":"color",
+                 "value":"#ffaaa9a9"
+                }],
          "type":"Gravel"
         }, 
         {
@@ -50,15 +71,32 @@
                  "name":"IsRandomizable",
                  "type":"bool",
                  "value":true
+                }, 
+                {
+                 "name":"MiniMapColor",
+                 "type":"color",
+                 "value":"#ffcbc09e"
                 }],
          "type":"DamagedSpawnPath"
         }, 
         {
          "id":5,
+         "properties":[
+                {
+                 "name":"MiniMapColor",
+                 "type":"color",
+                 "value":"#ffd7d1bb"
+                }],
          "type":"MarblePath"
         }, 
         {
          "id":6,
+         "properties":[
+                {
+                 "name":"MiniMapColor",
+                 "type":"color",
+                 "value":"#ffddd7c1"
+                }],
          "type":"MarblePath"
         }, 
         {
@@ -108,6 +146,11 @@
                  "name":"IsRandomizable",
                  "type":"bool",
                  "value":true
+                }, 
+                {
+                 "name":"MiniMapColor",
+                 "type":"color",
+                 "value":"#ffcbc09e"
                 }],
          "type":"DamagedSpawnPath"
         }, 
@@ -158,11 +201,22 @@
                  "name":"IsRandomizable",
                  "type":"bool",
                  "value":true
+                }, 
+                {
+                 "name":"MiniMapColor",
+                 "type":"color",
+                 "value":"#ffcbc09e"
                 }],
          "type":"DamagedSpawnPath"
         }, 
         {
          "id":32,
+         "properties":[
+                {
+                 "name":"MiniMapColor",
+                 "type":"color",
+                 "value":"#ff8d673c"
+                }],
          "type":"WoodFloor"
         }, 
         {
@@ -237,10 +291,22 @@
         }, 
         {
          "id":58,
+         "properties":[
+                {
+                 "name":"MiniMapColor",
+                 "type":"color",
+                 "value":"#ff9a9999"
+                }],
          "type":"SmoothStonePath"
         }, 
         {
          "id":754,
+         "properties":[
+                {
+                 "name":"MiniMapColor",
+                 "type":"color",
+                 "value":"#ff1e6ac7"
+                }],
          "type":"Water"
         }, 
         {
@@ -255,6 +321,12 @@
         }, 
         {
          "id":767,
+         "properties":[
+                {
+                 "name":"MiniMapColor",
+                 "type":"color",
+                 "value":"#fff47209"
+                }],
          "type":"Lava"
         }, 
         {

@@ -82,9 +82,13 @@ namespace JourneyCore.Client.Display
 
             foreach (DrawView drawView in DrawViews)
             {
+                Window.SetActive(true);
+                
                 SetWindowView(drawView.Name, drawView.View);
 
                 drawView.Draw(Window, ElapsedTime);
+
+                Window.SetActive(false);
             }
 
             Window.Display();
