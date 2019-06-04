@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using JourneyCore.Lib.Game.Environment.Metadata;
-using JourneyCore.Lib.Game.Environment.Tiling;
 using SFML.Graphics;
 using SFML.System;
 
@@ -10,8 +8,6 @@ namespace JourneyCore.Client.Display.UserInterface
 {
     public class UI
     {
-        public static int HpRowWidth { get; } = 6;
-
         public UI(TileSetMetadata uiTileSet, byte[] uiSpriteSheetImage)
         {
             UISpriteSheetImage = uiSpriteSheetImage;
@@ -21,6 +17,8 @@ namespace JourneyCore.Client.Display.UserInterface
             UITileSet = uiTileSet;
             UISpriteSheetTexture = new Texture(UISpriteSheetImage);
         }
+
+        public static int HpRowWidth { get; } = 6;
 
         private TileSetMetadata UITileSet { get; }
         private byte[] UISpriteSheetImage { get; }

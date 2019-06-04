@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using JourneyCore.Lib.Game.Environment.Tiling;
 using Newtonsoft.Json;

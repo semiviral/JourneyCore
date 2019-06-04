@@ -12,28 +12,28 @@ namespace JourneyCore.Client
 {
     public class LocalMap
     {
-        public byte[] Image { get; }
-        public RenderStates RenderStates { get; }
-        public MapMetadata Metadata { get; private set; }
-        public VertexArray VArray { get; }
-        public VertexArray MiniMapVArray { get; }
-
         public LocalMap(byte[] mapImage)
         {
             Image = mapImage;
             RenderStates = new RenderStates(new Texture(Image));
             Metadata = new MapMetadata();
             VArray = new VertexArray(PrimitiveType.Quads);
-            MiniMapVArray = new VertexArray(PrimitiveType.Quads);
+            Minimap = new Minimap();
         }
+
+        public byte[] Image { get; }
+        public RenderStates RenderStates { get; }
+        public MapMetadata Metadata { get; private set; }
+        public VertexArray VArray { get; }
+        public Minimap Minimap { get; }
 
         public void Update(MapMetadata mapMetadata)
         {
             VArray.Clear();
             VArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount + 1));
 
-            MiniMapVArray.Clear();
-            MiniMapVArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount + 1));
+            Minimap.VArray.Clear();
+            Minimap.VArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount + 1));
 
             Metadata = mapMetadata;
         }
@@ -41,12 +41,12 @@ namespace JourneyCore.Client
         public void LoadChunk(Chunk chunk)
         {
             for (int x = 0; x < chunk.Length; x++)
-                for (int y = 0; y < chunk[0].Length; y++)
-                {
-                    AllocateTileToVArray(chunk[x][y],
-                        new Vector2i(chunk.Left * MapLoader.ChunkSize + x, chunk.Top * MapLoader.ChunkSize + y),
-                        chunk.Layer);
-                }
+            for (int y = 0; y < chunk[0].Length; y++)
+            {
+                AllocateTileToVArray(chunk[x][y],
+                    new Vector2i(chunk.Left * MapLoader.ChunkSize + x, chunk.Top * MapLoader.ChunkSize + y),
+                    chunk.Layer);
+            }
         }
 
 
@@ -83,10 +83,10 @@ namespace JourneyCore.Client
             VArray[index + 2] = new Vertex(bottomRight, textureCoords.BottomRight);
             VArray[index + 3] = new Vertex(bottomLeft, textureCoords.BottomLeft);
 
-            MiniMapVArray[index + 0] = new Vertex(topLeft, tileMetadata.MiniMapColor);
-            MiniMapVArray[index + 1] = new Vertex(topRight, tileMetadata.MiniMapColor);
-            MiniMapVArray[index + 2] = new Vertex(bottomRight, tileMetadata.MiniMapColor);
-            MiniMapVArray[index + 3] = new Vertex(bottomLeft, tileMetadata.MiniMapColor);
+            Minimap.VArray[index + 0] = new Vertex(topLeft, tileMetadata.MiniMapColor);
+            Minimap.VArray[index + 1] = new Vertex(topRight, tileMetadata.MiniMapColor);
+            Minimap.VArray[index + 2] = new Vertex(bottomRight, tileMetadata.MiniMapColor);
+            Minimap.VArray[index + 3] = new Vertex(bottomLeft, tileMetadata.MiniMapColor);
         }
 
         private TileMetadata GetTileMetadata(int gid)

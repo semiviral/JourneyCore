@@ -101,7 +101,6 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
 
         #endregion
 
-
         #region ACCENT
 
         private Tile RandomizeTile(Tile subjectTile)

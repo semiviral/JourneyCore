@@ -6,26 +6,28 @@ namespace JourneyCore.Lib.Graphics.Drawing
 {
     public class DrawView
     {
-        public DrawView(string name, View view)
+        public DrawView(string name, int layer, View view)
         {
             Name = name;
+            Layer = layer;
             View = view;
 
             DrawQueue = new SortedList<int, List<DrawItem>>();
         }
 
         public string Name { get; }
+        public int Layer { get; }
         public View View { get; }
         private SortedList<int, List<DrawItem>> DrawQueue { get; }
 
-        public void AddDrawItem(int priority, DrawItem drawItem)
+        public void AddDrawItem(int layer, DrawItem drawItem)
         {
-            if (!DrawQueue.Keys.Contains(priority))
+            if (!DrawQueue.Keys.Contains(layer))
             {
-                DrawQueue.Add(priority, new List<DrawItem>());
+                DrawQueue.Add(layer, new List<DrawItem>());
             }
 
-            DrawQueue[priority].Add(drawItem);
+            DrawQueue[layer].Add(drawItem);
         }
 
         public void Draw(RenderWindow window, float frameTime)
@@ -39,9 +41,14 @@ namespace JourneyCore.Lib.Graphics.Drawing
 
             foreach ((int key, List<DrawItem> drawItems) in DrawQueue)
             {
-                drawItems.RemoveAll(drawItem =>
-                    drawItem.Lifetime.Ticks != DateTime.MinValue.Ticks &&
-                    drawItem.Lifetime.Ticks < absoluteNow.Ticks);
+                try
+                {
+                    drawItems.RemoveAll(drawItem =>
+                        drawItem == null ||
+                        drawItem.Lifetime.Ticks != DateTime.MinValue.Ticks &&
+                        drawItem.Lifetime.Ticks < absoluteNow.Ticks);
+                }
+                catch (Exception ex) { }
 
                 foreach (DrawItem drawItem in drawItems)
                 {

@@ -9,9 +9,12 @@ using SFML.Window;
 
 namespace JourneyCore.Client.Display
 {
-    public class WindowManager
+    public class GameWindow
     {
-        public WindowManager(string windowTitle, VideoMode videoMode, int targetFps, Vector2f contentScale,
+        public const float WidescreenRatio = 9f / 16f;
+        public const float LetterboxRatio = 3f / 4f;
+
+        public GameWindow(string windowTitle, VideoMode videoMode, int targetFps, Vector2f contentScale,
             float positionScale)
         {
             ContentScale = contentScale;
@@ -24,7 +27,7 @@ namespace JourneyCore.Client.Display
             Window.LostFocus += OnLostFocus;
             Window.SetFramerateLimit((uint)TargetFps);
 
-            DrawViews = new List<DrawView>();
+            DrawViews = new SortedList<int, DrawView>();
             DeltaClock = new Delta();
         }
 
@@ -40,11 +43,12 @@ namespace JourneyCore.Client.Display
             return Mouse.GetPosition(Window);
         }
 
+
         #region VARIABLES
 
         private RenderWindow Window { get; }
         private static Delta DeltaClock { get; set; }
-        private List<DrawView> DrawViews { get; }
+        private SortedList<int, DrawView> DrawViews { get; }
         private static int _targetFps;
 
         public Vector2u Size => Window.Size;
@@ -77,28 +81,28 @@ namespace JourneyCore.Client.Display
         {
             ElapsedTime = DeltaClock.GetDelta();
 
+            Window.SetActive(false);
+
             Window.DispatchEvents();
             Window.Clear();
 
-            foreach (DrawView drawView in DrawViews)
+            foreach ((int key, DrawView drawView) in DrawViews)
             {
-                Window.SetActive(true);
-                
                 SetWindowView(drawView.Name, drawView.View);
 
                 drawView.Draw(Window, ElapsedTime);
-
-                Window.SetActive(false);
             }
+
+            Window.SetActive(true);
 
             Window.Display();
         }
 
-        public void DrawItem(string viewName, int priority, DrawItem drawItem)
+        public void DrawItem(string viewName, int layer, DrawItem drawItem)
         {
-            DrawView drawView = DrawViews.SingleOrDefault(view => view.Name.Equals(viewName));
+            DrawView drawView = DrawViews.SingleOrDefault(view => view.Value.Name.Equals(viewName)).Value;
 
-            drawView?.AddDrawItem(priority, drawItem);
+            drawView?.AddDrawItem(layer, drawItem);
         }
 
         #endregion
@@ -133,19 +137,19 @@ namespace JourneyCore.Client.Display
 
         #region VIEW
 
-        public DrawView CreateView(string viewName, View defaultView)
+        public DrawView CreateView(string viewName, int drawLayer, View defaultView)
         {
-            return CreateView(new DrawView(viewName, defaultView));
+            return CreateView(new DrawView(viewName, drawLayer, defaultView));
         }
 
         public DrawView CreateView(DrawView drawView)
         {
-            if (DrawViews.Any(dView => dView.Name.Equals(drawView.Name)))
+            if (DrawViews.Any(dView => dView.Value.Name.Equals(drawView.Name)))
             {
                 return null;
             }
 
-            DrawViews.Add(drawView);
+            DrawViews.Add(drawView.Layer, drawView);
 
             return drawView;
         }
@@ -159,7 +163,7 @@ namespace JourneyCore.Client.Display
 
         public View GetView(string name)
         {
-            return DrawViews.SingleOrDefault(view => view.Name.Equals(name))?.View;
+            return DrawViews.SingleOrDefault(view => view.Value.Name.Equals(name)).Value?.View;
         }
 
         public View SetViewport(string name, FloatRect viewport)

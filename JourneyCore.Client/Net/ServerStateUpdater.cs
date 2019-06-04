@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Threading;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Event;
-using Serilog;
 
 namespace JourneyCore.Client.Net
 {
@@ -36,7 +35,7 @@ namespace JourneyCore.Client.Net
         private Stopwatch Watch { get; }
 
         public int TickRate { get; }
-        
+
         public event AsyncEventHandler<UpdatePackage[]> SyncCallback;
 
         private void OnTickTimerElapsed(object state)

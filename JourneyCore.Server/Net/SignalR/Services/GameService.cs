@@ -16,23 +16,6 @@ namespace JourneyCore.Server.Net.SignalR.Services
 {
     public class GameService : IGameService
     {
-        #region VARIABLES
-
-        private IGameClientContext GameClientContext { get; }
-        public Dictionary<string, byte[]> TextureImages { get; }
-
-        /// <summary>
-        ///     Time in milliseconds between the server's actions
-        /// </summary>
-        public int TickRate { get; }
-        public bool Status { get; private set; }
-
-        public List<Entity> Players { get; }
-        public Dictionary<string, Map> TileMaps { get; }
-        public Dictionary<string, TileSet> TileSets { get; }
-
-        #endregion
-
         public GameService(IGameClientContext gameClientContext)
         {
             GameClientContext = gameClientContext;
@@ -44,6 +27,34 @@ namespace JourneyCore.Server.Net.SignalR.Services
 
             TickRate = (int)(1f / 30f * 1000f);
         }
+
+
+        #region CLIENT-TO-SERVER REQUESTS
+
+        public Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages)
+        {
+            return Task.CompletedTask;
+        }
+
+        #endregion
+
+        #region VARIABLES
+
+        private IGameClientContext GameClientContext { get; }
+        public Dictionary<string, byte[]> TextureImages { get; }
+
+        /// <summary>
+        ///     Time in milliseconds between the server's actions
+        /// </summary>
+        public int TickRate { get; }
+
+        public bool Status { get; private set; }
+
+        public List<Entity> Players { get; }
+        public Dictionary<string, Map> TileMaps { get; }
+        public Dictionary<string, TileSet> TileSets { get; }
+
+        #endregion
 
 
         #region INITIALISE
@@ -62,7 +73,8 @@ namespace JourneyCore.Server.Net.SignalR.Services
             foreach (string filePath in Directory.EnumerateFiles($@"{MapLoader.AssetRoot}/TileSets", "*.json",
                 SearchOption.AllDirectories))
             {
-                TileSets.Add(Path.GetFileNameWithoutExtension(filePath).ToLower(), TileSetLoader.LoadTileSet(filePath, 0));
+                TileSets.Add(Path.GetFileNameWithoutExtension(filePath).ToLower(),
+                    TileSetLoader.LoadTileSet(filePath, 0));
             }
         }
 
@@ -77,16 +89,6 @@ namespace JourneyCore.Server.Net.SignalR.Services
 
                 TileMaps.Add(Path.GetFileNameWithoutExtension(filePath), map);
             }
-        }
-
-        #endregion
-
-
-        #region CLIENT-TO-SERVER REQUESTS
-
-        public Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages)
-        {
-            return Task.CompletedTask;
         }
 
         #endregion

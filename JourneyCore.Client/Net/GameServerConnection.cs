@@ -25,6 +25,16 @@ namespace JourneyCore.Client.Net
 
         public event AsyncEventHandler<Exception> Closed;
 
+        private async Task OnClosed(object sender, Exception ex)
+        {
+            if (Closed == null)
+            {
+                return;
+            }
+
+            await Closed.Invoke(sender, ex);
+        }
+
         #region INIT
 
         public async Task InitialiseAsync(string servicePath)
@@ -32,7 +42,6 @@ namespace JourneyCore.Client.Net
             BuildConnection(servicePath);
             await WaitForServerReady();
             await BuildSynchroniser();
-
         }
 
         private void BuildConnection(string servicePath)
@@ -100,14 +109,14 @@ namespace JourneyCore.Client.Net
 
         private async Task<bool> GetServerReadyState()
         {
-            string retVal = await RESTClient.Request(RequestMethod.GET, $"{ServerUrl}/gameservice/status");
+            string retVal = await RESTClient.RequestAsync(RequestMethod.GET, $"{ServerUrl}/gameservice/status");
 
             return JsonConvert.DeserializeObject<bool>(retVal);
         }
 
         private async Task<int> GetServerTickInterval()
         {
-            string retVal = await RESTClient.Request(RequestMethod.GET, $"{ServerUrl}/gameservice/tickrate");
+            string retVal = await RESTClient.RequestAsync(RequestMethod.GET, $"{ServerUrl}/gameservice/tickrate");
             int tickRate = JsonConvert.DeserializeObject<int>(retVal);
 
             if (tickRate > 0)
@@ -115,20 +124,11 @@ namespace JourneyCore.Client.Net
                 return tickRate;
             }
 
-            GameLoop.ExitWithFatality("Request for server tick interval returned an illegal value. Aborting game launch.");
+            GameLoop.ExitWithFatality(
+                "Request for server tick interval returned an illegal value. Aborting game launch.");
             return -1;
         }
 
         #endregion
-
-        private async Task OnClosed(object sender, Exception ex)
-        {
-            if (Closed == null)
-            {
-                return;
-            }
-
-            await Closed.Invoke(sender, ex);
-        }
     }
 }
