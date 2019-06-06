@@ -12,6 +12,7 @@ using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.Graphics.Drawing;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Newtonsoft.Json;
 using RESTModule;
 using Serilog;
@@ -160,7 +161,7 @@ namespace JourneyCore.Client
                     Viewport = new FloatRect(1f - (minimapSizeX * GameWindow.LetterboxRatio - 0.005f), 0.005f,
                         minimapSizeX * GameWindow.LetterboxRatio, minimapSizeX)
                 });
-
+            
             Log.Information("Game window initialised.");
         }
 

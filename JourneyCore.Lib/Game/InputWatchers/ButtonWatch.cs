@@ -9,12 +9,7 @@ namespace JourneyCore.Lib.Game.InputWatchers
         public ButtonWatch(Mouse.Button button, params Action<Mouse.Button>[] buttonActions)
         {
             Button = button;
-            ButtonActions = new List<Action<Mouse.Button>>();
-
-            foreach (Action<Mouse.Button> buttonAction in buttonActions)
-            {
-                ButtonActions.Add(buttonAction);
-            }
+            ButtonActions = new List<Action<Mouse.Button>>(buttonActions);
         }
 
         private List<Action<Mouse.Button>> ButtonActions { get; }
@@ -23,10 +18,7 @@ namespace JourneyCore.Lib.Game.InputWatchers
 
         public void Invoke()
         {
-            foreach (Action<Mouse.Button> buttonAction in ButtonActions)
-            {
-                buttonAction.Invoke(Button);
-            }
+            ButtonActions.ForEach(action => action(Button));
         }
 
         public void AddButtonAction(Action<Mouse.Button> buttonAction)

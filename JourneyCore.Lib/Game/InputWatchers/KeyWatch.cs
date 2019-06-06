@@ -9,12 +9,7 @@ namespace JourneyCore.Lib.Game.InputWatchers
         public KeyWatch(Keyboard.Key key, params Action<Keyboard.Key>[] keyActions)
         {
             Key = key;
-            KeyActions = new List<Action<Keyboard.Key>>();
-
-            foreach (Action<Keyboard.Key> keyAction in keyActions)
-            {
-                KeyActions.Add(keyAction);
-            }
+            KeyActions = new List<Action<Keyboard.Key>>(keyActions);
         }
 
         private List<Action<Keyboard.Key>> KeyActions { get; }
@@ -23,10 +18,7 @@ namespace JourneyCore.Lib.Game.InputWatchers
 
         public void Invoke()
         {
-            foreach (Action<Keyboard.Key> keyAction in KeyActions)
-            {
-                keyAction(Key);
-            }
+            KeyActions.ForEach(action => action(Key));
         }
 
         public void AddKeyAction(Action<Keyboard.Key> keyAction)

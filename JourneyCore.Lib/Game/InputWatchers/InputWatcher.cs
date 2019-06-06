@@ -89,21 +89,29 @@ namespace JourneyCore.Lib.Game.InputWatchers
                 return;
             }
 
-            foreach (Keyboard.Key watchedKey in GetWatchedKeys())
+            GetWatchedKeys()?.ForEach(CheckAndExecuteWatchedInput);
+
+            GetWatchedButtons()?.ForEach(CheckAndExecuteWatchedInput);
+        }
+
+        private void CheckAndExecuteWatchedInput(Keyboard.Key key)
+        {
+            if (!Keyboard.IsKeyPressed(key))
             {
-                if (Keyboard.IsKeyPressed(watchedKey))
-                {
-                    GetInputWatch(watchedKey).Invoke();
-                }
+                return;
             }
 
-            foreach (Mouse.Button watchedButton in GetWatchedButtons())
+            GetInputWatch(key)?.Invoke();
+        }
+
+        private void CheckAndExecuteWatchedInput(Mouse.Button button)
+        {
+            if (!Mouse.IsButtonPressed(button))
             {
-                if (Mouse.IsButtonPressed(watchedButton))
-                {
-                    GetInputWatch(watchedButton).Invoke();
-                }
+                return;
             }
+
+            GetInputWatch(button)?.Invoke();
         }
 
         #endregion

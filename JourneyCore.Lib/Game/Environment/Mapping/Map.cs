@@ -64,10 +64,7 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
 
         public List<MapLayer> BuildMap()
         {
-            foreach (MapLayer layer in Layers)
-            {
-                layer.CreateMap((short)MapLoader.ChunkSize, (short)MapLoader.ChunkSize);
-            }
+            Layers.ForEach(layer => layer.CreateMap((short)MapLoader.ChunkSize, (short)MapLoader.ChunkSize));
 
             return Layers;
         }
