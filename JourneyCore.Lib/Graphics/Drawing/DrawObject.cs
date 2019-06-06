@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Numerics;
 using JourneyCore.Lib.Game.Object;
 using SFML.Graphics;
 using SFML.System;

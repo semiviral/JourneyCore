@@ -5,12 +5,12 @@ namespace JourneyCore.Server.Net.Controllers
 {
     public class GameServiceController : Controller
     {
+        private IGameService GameService { get; }
+
         public GameServiceController(IGameService gameService)
         {
             GameService = gameService;
         }
-
-        private IGameService GameService { get; }
 
         [HttpGet("gameservice/status")]
         public IActionResult GetStatus()

@@ -10,12 +10,6 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
 {
     public class Map
     {
-        public Map()
-        {
-            Rand = new Random();
-            UsedTileSets = new List<TileSet>();
-        }
-
         private Random Rand { get; }
         public List<MapLayer> Layers { get; set; }
         public int Width { get; set; }
@@ -25,6 +19,12 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
         public TileSetSource[] TileSets { get; set; }
         public string Name { get; set; }
         public List<TileSet> UsedTileSets { get; }
+
+        public Map()
+        {
+            Rand = new Random();
+            UsedTileSets = new List<TileSet>();
+        }
 
 
         public List<Tile> GetTiles()

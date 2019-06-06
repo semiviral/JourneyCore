@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using JourneyCore.Lib.Game.Object;
 using JourneyCore.Lib.Graphics.Drawing;
 using SFML.Graphics;
 
@@ -51,7 +50,7 @@ namespace JourneyCore.Client
             {
                 return;
             }
-            
+
             Vertex[] vertices = MinimapObjects[startIndex].GetVertices();
 
             VArray[startIndex + 0] = vertices[0];

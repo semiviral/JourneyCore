@@ -8,12 +8,12 @@ namespace JourneyCore.Server.Net.SignalR.Hubs
 {
     public class GameClientHub : Hub<IGameClientHub>
     {
+        private IGameService GameService { get; }
+
         public GameClientHub(IGameService gameService)
         {
             GameService = gameService;
         }
-
-        private IGameService GameService { get; }
 
         /// <summary>
         ///     Method called when hub connection is created

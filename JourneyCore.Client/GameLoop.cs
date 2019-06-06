@@ -7,12 +7,10 @@ using JourneyCore.Client.Net;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.InputWatchers;
-using JourneyCore.Lib.Game.Object;
 using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.Graphics.Drawing;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
-using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Newtonsoft.Json;
 using RESTModule;
 using Serilog;
@@ -25,6 +23,15 @@ namespace JourneyCore.Client
     public class GameLoop : Context
     {
         private static Tuple<int, string> _FatalExit;
+
+        private GameServerConnection NetManager { get; set; }
+        private ConsoleManager ConManager { get; }
+        private GameWindow Window { get; set; }
+        private Ui UserInterface { get; set; }
+        private LocalMap CurrentMap { get; set; }
+        private Player Player { get; set; }
+        private InputWatcher InputWatcher { get; }
+        private bool IsRunning { get; set; }
 
         public GameLoop()
         {
@@ -39,15 +46,6 @@ namespace JourneyCore.Client
 
             InputWatcher = new InputWatcher();
         }
-
-        private GameServerConnection NetManager { get; set; }
-        private ConsoleManager ConManager { get; }
-        private GameWindow Window { get; set; }
-        private Ui UserInterface { get; set; }
-        private LocalMap CurrentMap { get; set; }
-        private Player Player { get; set; }
-        private InputWatcher InputWatcher { get; }
-        private bool IsRunning { get; set; }
 
         public async Task StartAsync()
         {
@@ -64,9 +62,11 @@ namespace JourneyCore.Client
             }
 
             Window.DrawItem("game", 0,
-                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null, new DrawObject(typeof(VertexArray), CurrentMap.VArray), CurrentMap.RenderStates));
+                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
+                    new DrawObject(typeof(VertexArray), CurrentMap.VArray), CurrentMap.RenderStates));
             Window.DrawItem("minimap", 0,
-                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null, new DrawObject(typeof(VertexArray), CurrentMap.Minimap.VArray), RenderStates.Default));
+                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
+                    new DrawObject(typeof(VertexArray), CurrentMap.Minimap.VArray), RenderStates.Default));
 
             Window.SetActive(true);
 
@@ -161,7 +161,7 @@ namespace JourneyCore.Client
                     Viewport = new FloatRect(1f - (minimapSizeX * GameWindow.LetterboxRatio - 0.005f), 0.005f,
                         minimapSizeX * GameWindow.LetterboxRatio, minimapSizeX)
                 });
-            
+
             Log.Information("Game window initialised.");
         }
 
@@ -199,7 +199,9 @@ namespace JourneyCore.Client
             Player.AnchorItem(Window.GetDrawView("minimap"));
 
             Window.DrawItem("game", 10,
-                new DrawItem(Player.Guid, DateTime.MinValue, null, new DrawObject(Player.Graphic.GetType(), Player.Graphic, Player.Graphic.GetVertices), new RenderStates(Player.Graphic.Texture)));
+                new DrawItem(Player.Guid, DateTime.MinValue, null,
+                    new DrawObject(Player.Graphic.GetType(), Player.Graphic, Player.Graphic.GetVertices),
+                    new RenderStates(Player.Graphic.Texture)));
 
             Log.Information("Player intiailised.");
         }
@@ -212,8 +214,10 @@ namespace JourneyCore.Client
 
             InputWatcher.AddWatchedInput(Keyboard.Key.W, key =>
             {
-                movement = new Vector2f((float)GraphMath.SinFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360),
-                    (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360) * -1f);
+                movement = new Vector2f(
+                    (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360),
+                    (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation +
+                                                    DrawView.DefaultPlayerViewRotation % 360) * -1f);
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.A) || Keyboard.IsKeyPressed(Keyboard.Key.D))
                 {
@@ -225,8 +229,11 @@ namespace JourneyCore.Client
 
             InputWatcher.AddWatchedInput(Keyboard.Key.A, key =>
             {
-                movement = new Vector2f((float)GraphMath.CosFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360) * -1f,
-                    (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360) * -1f);
+                movement = new Vector2f(
+                    (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation +
+                                                    DrawView.DefaultPlayerViewRotation % 360) * -1f,
+                    (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation +
+                                                    DrawView.DefaultPlayerViewRotation % 360) * -1f);
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.W) || Keyboard.IsKeyPressed(Keyboard.Key.S))
                 {
@@ -238,8 +245,11 @@ namespace JourneyCore.Client
 
             InputWatcher.AddWatchedInput(Keyboard.Key.S, key =>
             {
-                movement = new Vector2f((float)GraphMath.SinFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360) * -1f,
-                    (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360));
+                movement = new Vector2f(
+                    (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation +
+                                                    DrawView.DefaultPlayerViewRotation % 360) * -1f,
+                    (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation +
+                                                    DrawView.DefaultPlayerViewRotation % 360));
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.A) || Keyboard.IsKeyPressed(Keyboard.Key.D))
                 {
@@ -251,8 +261,10 @@ namespace JourneyCore.Client
 
             InputWatcher.AddWatchedInput(Keyboard.Key.D, key =>
             {
-                movement = new Vector2f((float)GraphMath.CosFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360),
-                    (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360));
+                movement = new Vector2f(
+                    (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360),
+                    (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation +
+                                                    DrawView.DefaultPlayerViewRotation % 360));
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.W) || Keyboard.IsKeyPressed(Keyboard.Key.S))
                 {
@@ -333,7 +345,8 @@ namespace JourneyCore.Client
             DrawObject playerTileObj = new DrawObject(playerTile.GetType(), playerTile, playerTile.GetVertices);
             Player.AnchorItem(playerTileObj);
 
-            Window.DrawItem("minimap", 10, new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null, playerTileObj, RenderStates.Default));
+            Window.DrawItem("minimap", 10,
+                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null, playerTileObj, RenderStates.Default));
         }
 
         #endregion

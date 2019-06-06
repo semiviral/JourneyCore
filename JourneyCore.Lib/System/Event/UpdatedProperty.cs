@@ -2,15 +2,15 @@
 {
     public class UpdatedProperty
     {
+        public string ParentId { get; }
+        public string PropertyName { get; }
+        public object Value { get; }
+
         public UpdatedProperty(string parentId, string propertyName, object value)
         {
             ParentId = parentId;
             PropertyName = propertyName;
             Value = value;
         }
-
-        public string ParentId { get; }
-        public string PropertyName { get; }
-        public object Value { get; }
     }
 }

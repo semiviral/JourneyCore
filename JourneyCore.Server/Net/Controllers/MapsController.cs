@@ -7,12 +7,12 @@ namespace JourneyCore.Server.Net.Controllers
 {
     public class MapsController : Controller
     {
+        private IGameService GameService { get; }
+
         public MapsController(IGameService gameService)
         {
             GameService = gameService;
         }
-
-        private IGameService GameService { get; }
 
         // todo implement handshakes of some sort to verify client authenticity
         // GET: GameService/GetChunks/MapName?coordX=000,coordY=000

@@ -2,12 +2,12 @@
 {
     public class Inventory
     {
+        public Item.Item[] Items { get; }
+
         public Inventory()
         {
             Items = new Item.Item[11];
         }
-
-        public Item.Item[] Items { get; }
 
         public void AddInventoryItem(int slot, Item.Item newItem)
         {

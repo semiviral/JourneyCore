@@ -11,20 +11,6 @@ namespace JourneyCore.Lib.Game.Object.Entity
 {
     public class Player : IEntity, IEntityLiving, IEntityAttacker, IAnchor
     {
-        #region VARIABLES
-
-        private DateTime ProjectileCooldown { get; set; }
-
-        public string Guid { get; }
-        public Sprite Graphic { get; private set; }
-        public long Lifetime { get; }
-        public int AttackCooldownValue { get; }
-        public bool CanAttack => ProjectileCooldown < DateTime.Now;
-        public RenderStates ProjectileRenderStates { get; }
-
-        #endregion
-
-
         public Player(Sprite graphic, Texture projectilesTexture, long lifetime)
         {
             Guid = global::System.Guid.NewGuid().ToString();
@@ -50,31 +36,49 @@ namespace JourneyCore.Lib.Game.Object.Entity
 
             ProjectileCooldown = DateTime.Now.AddMilliseconds(AttackCooldownValue);
 
-            double angle = (180 / Math.PI * Math.Atan2(centerRelativeMouseY, centerRelativeMouseX) + Graphic.Rotation + DrawView.DefaultPlayerViewRotation + 90d) % 360;
+            double angle = (180 / Math.PI * Math.Atan2(centerRelativeMouseY, centerRelativeMouseX) + Graphic.Rotation +
+                            DrawView.DefaultPlayerViewRotation + 90d) % 360;
 
-            Projectile projectile = new Projectile(new Sprite(ProjectileRenderStates.Texture, new IntRect(0, 0, 8, 8)), 25, 1000);
+            Projectile projectile = new Projectile(new Sprite(ProjectileRenderStates.Texture, new IntRect(0, 0, 8, 8)),
+                25, 1000);
             projectile.Graphic.Origin = new Vector2f(projectile.Graphic.TextureRect.Width / 2f,
                 projectile.Graphic.TextureRect.Height / 2f);
             projectile.Graphic.Position = Graphic.Position;
             projectile.Graphic.Rotation = (float)angle + 180f % 360;
 
             DrawItem projectileDrawItem = new DrawItem(projectile.Guid, projectile.TriggerAlive(), frameTime =>
-            {
-                Vector2f movement = new Vector2f((float)GraphMath.SinFromDegrees(angle),
-                    (float)GraphMath.CosFromDegrees(angle) * -1f);
+                {
+                    Vector2f movement = new Vector2f((float)GraphMath.SinFromDegrees(angle),
+                        (float)GraphMath.CosFromDegrees(angle) * -1f);
 
-                projectile.MoveEntity(movement, tileWidth, frameTime);
-            }, new DrawObject(projectile.Graphic.GetType(), projectile.Graphic, projectile.Graphic.GetVertices), ProjectileRenderStates);
+                    projectile.MoveEntity(movement, tileWidth, frameTime);
+                }, new DrawObject(projectile.Graphic.GetType(), projectile.Graphic, projectile.Graphic.GetVertices),
+                ProjectileRenderStates);
 
             return projectileDrawItem;
         }
 
+        #region VARIABLES
+
+        private DateTime ProjectileCooldown { get; set; }
+
+        public string Guid { get; }
+        public Sprite Graphic { get; private set; }
+        public long Lifetime { get; }
+        public int AttackCooldownValue { get; }
+        public bool CanAttack => ProjectileCooldown < DateTime.Now;
+        public RenderStates ProjectileRenderStates { get; }
+
+        #endregion
+
 
         #region ATTRIBUTES
 
-        public int Strength {
+        public int Strength
+        {
             get => _Strength;
-            set {
+            set
+            {
                 if (_Strength == value)
                 {
                     return;
@@ -95,9 +99,11 @@ namespace JourneyCore.Lib.Game.Object.Entity
         public int Fortitude { get; set; }
         public int Insight { get; set; }
 
-        public double CurrentHp {
+        public double CurrentHp
+        {
             get => _CurrentHp;
-            set {
+            set
+            {
                 if (Math.Abs(_CurrentHp - value) < 0.01)
                 {
                     return;

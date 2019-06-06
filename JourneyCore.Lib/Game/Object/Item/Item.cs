@@ -8,11 +8,6 @@ namespace JourneyCore.Lib.Game.Object.Item
 
         public EventHandler<ItemStackSizeChangedEventArgs> ItemStackSizeChanged;
 
-        public Item(string name, string primaryTag, int maxStackSize)
-        {
-            MaxStackSize = maxStackSize;
-        }
-
         public int StackSize
         {
             get => _StackSize;
@@ -28,6 +23,11 @@ namespace JourneyCore.Lib.Game.Object.Item
         }
 
         public int MaxStackSize { get; }
+
+        public Item(string name, string primaryTag, int maxStackSize)
+        {
+            MaxStackSize = maxStackSize;
+        }
 
         private void ModifyStackSize(int newSize)
         {

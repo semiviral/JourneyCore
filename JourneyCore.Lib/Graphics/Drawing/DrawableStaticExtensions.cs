@@ -11,7 +11,7 @@ namespace JourneyCore.Lib.Graphics.Drawing
             Vertex[] vertices = new Vertex[4];
             int pixelRadiusX = graphic.TextureRect.Width / 2;
             int pixelRadiusY = graphic.TextureRect.Height / 2;
-            
+
             Vector2f topLeft = new Vector2f(graphic.Position.X - pixelRadiusX, graphic.Position.Y + pixelRadiusY);
             Vector2f topRight = new Vector2f(graphic.Position.X + pixelRadiusX, graphic.Position.Y + pixelRadiusY);
             Vector2f bottomRight = new Vector2f(graphic.Position.X + pixelRadiusX, graphic.Position.Y - pixelRadiusY);
@@ -38,13 +38,19 @@ namespace JourneyCore.Lib.Graphics.Drawing
 
             Vector2f topLeft = new Vector2f(rectShape.Position.X - pixelRadiusX, rectShape.Position.Y + pixelRadiusY);
             Vector2f topRight = new Vector2f(rectShape.Position.X + pixelRadiusX, rectShape.Position.Y + pixelRadiusY);
-            Vector2f bottomRight = new Vector2f(rectShape.Position.X + pixelRadiusX, rectShape.Position.Y - pixelRadiusY);
-            Vector2f bottomLeft = new Vector2f(rectShape.Position.X - pixelRadiusX, rectShape.Position.Y - pixelRadiusY);
+            Vector2f bottomRight =
+                new Vector2f(rectShape.Position.X + pixelRadiusX, rectShape.Position.Y - pixelRadiusY);
+            Vector2f bottomLeft =
+                new Vector2f(rectShape.Position.X - pixelRadiusX, rectShape.Position.Y - pixelRadiusY);
 
-            vertices[0] = new Vertex(GraphMath.RotatePoint(topLeft, rectShape.Position, rectShape.Rotation), rectShape.FillColor);
-            vertices[1] = new Vertex(GraphMath.RotatePoint(topRight, rectShape.Position, rectShape.Rotation), rectShape.FillColor);
-            vertices[2] = new Vertex(GraphMath.RotatePoint(bottomRight, rectShape.Position, rectShape.Rotation), rectShape.FillColor);
-            vertices[3] = new Vertex(GraphMath.RotatePoint(bottomLeft, rectShape.Position, rectShape.Rotation), rectShape.FillColor);
+            vertices[0] = new Vertex(GraphMath.RotatePoint(topLeft, rectShape.Position, rectShape.Rotation),
+                rectShape.FillColor);
+            vertices[1] = new Vertex(GraphMath.RotatePoint(topRight, rectShape.Position, rectShape.Rotation),
+                rectShape.FillColor);
+            vertices[2] = new Vertex(GraphMath.RotatePoint(bottomRight, rectShape.Position, rectShape.Rotation),
+                rectShape.FillColor);
+            vertices[3] = new Vertex(GraphMath.RotatePoint(bottomLeft, rectShape.Position, rectShape.Rotation),
+                rectShape.FillColor);
 
             return vertices;
         }

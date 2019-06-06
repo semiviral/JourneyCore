@@ -2,13 +2,13 @@
 {
     public class ItemStackSizeChangedEventArgs
     {
+        public int OldStackSize { get; }
+        public int NewStackSize { get; }
+
         public ItemStackSizeChangedEventArgs(int oldSize, int newSize)
         {
             OldStackSize = oldSize;
             NewStackSize = newSize;
         }
-
-        public int OldStackSize { get; }
-        public int NewStackSize { get; }
     }
 }

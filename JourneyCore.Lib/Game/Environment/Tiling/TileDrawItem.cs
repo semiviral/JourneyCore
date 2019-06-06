@@ -10,16 +10,16 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
 {
     public class TileDrawItem
     {
+        private TilePrimitive TilePrimitive { get; }
+        private TileMetadata TileMetadata { get; }
+        public Vector2i TileCoords { get; }
+
         public TileDrawItem(TilePrimitive tilePrimitive, TileMetadata tileMetadata, Vector2i tileCoords)
         {
             TilePrimitive = tilePrimitive;
             TileMetadata = tileMetadata;
             TileCoords = tileCoords;
         }
-
-        private TilePrimitive TilePrimitive { get; }
-        private TileMetadata TileMetadata { get; }
-        public Vector2i TileCoords { get; }
 
         public Vertex[] GetVertices()
         {

@@ -10,6 +10,11 @@ namespace JourneyCore.Client.Net
 {
     public class GameServerConnection
     {
+        public string ServerUrl { get; }
+        public HubConnection Connection { get; private set; }
+        public ServerStateUpdater StateUpdater { get; private set; }
+        public bool IsServerReady { get; private set; }
+
         public GameServerConnection(string serverUrl)
         {
             ServerUrl = serverUrl;
@@ -17,11 +22,6 @@ namespace JourneyCore.Client.Net
 
             Closed += OnClosed;
         }
-
-        public string ServerUrl { get; }
-        public HubConnection Connection { get; private set; }
-        public ServerStateUpdater StateUpdater { get; private set; }
-        public bool IsServerReady { get; private set; }
 
         public event AsyncEventHandler<Exception> Closed;
 

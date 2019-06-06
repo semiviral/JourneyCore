@@ -11,15 +11,29 @@ namespace JourneyCore.Lib.Graphics.Drawing
     public class DrawView : IAnchorable
     {
         public const float DefaultPlayerViewRotation = 180f;
+
         // todo define this non-arbitrarily
         public const float DefaultZoomIncrement = 01.05f;
-        
+
+        private float _ZoomFactor = 1.0f;
+
         public string Name { get; }
         public int Layer { get; }
         public View View { get; }
 
         private SortedList<int, List<DrawItem>> DrawQueue { get; }
         private Vector2f DefaultSize { get; }
+
+        public float ZoomFactor
+        {
+            get => _ZoomFactor;
+            set
+            {
+                _ZoomFactor = value.LimitToRange(1.0f, 10f);
+
+                View.Size = DefaultSize * _ZoomFactor;
+            }
+        }
 
         public DrawView(string name, int layer, View view)
         {
@@ -42,20 +56,7 @@ namespace JourneyCore.Lib.Graphics.Drawing
             get => View.Rotation;
             set => View.Rotation = value + DefaultPlayerViewRotation % 360;
         }
-        
-        public float ZoomFactor
-        {
-            get => _ZoomFactor;
-            set
-            {
-                _ZoomFactor = value.LimitToRange(1.0f, 10f);
 
-                View.Size = DefaultSize * _ZoomFactor;
-            }
-        }
-
-        private float _ZoomFactor = 1.0f;
-        
         public void AddDrawItem(int layer, DrawItem drawItem)
         {
             if (!DrawQueue.Keys.Contains(layer))
@@ -114,7 +115,7 @@ namespace JourneyCore.Lib.Graphics.Drawing
                     {
                         continue;
                     }
-                    
+
                     window.Draw(vArray, renderStates);
                 }
             }

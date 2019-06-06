@@ -8,6 +8,14 @@ namespace JourneyCore.Client.Display.UserInterface
 {
     public class Ui
     {
+        public static int HpRowWidth { get; } = 6;
+
+        private TileSetMetadata UiTileSet { get; }
+        private byte[] UiSpriteSheetImage { get; }
+        private Texture UiSpriteSheetTexture { get; }
+        public Sprite[] Hearts { get; private set; }
+        private double CurrentHp { get; set; }
+
         public Ui(TileSetMetadata uiTileSet, byte[] uiSpriteSheetImage)
         {
             UiSpriteSheetImage = uiSpriteSheetImage;
@@ -17,14 +25,6 @@ namespace JourneyCore.Client.Display.UserInterface
             UiTileSet = uiTileSet;
             UiSpriteSheetTexture = new Texture(UiSpriteSheetImage);
         }
-
-        public static int HpRowWidth { get; } = 6;
-
-        private TileSetMetadata UiTileSet { get; }
-        private byte[] UiSpriteSheetImage { get; }
-        private Texture UiSpriteSheetTexture { get; }
-        public Sprite[] Hearts { get; private set; }
-        private double CurrentHp { get; set; }
 
         public void UpdateHealth(double newHp)
         {

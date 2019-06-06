@@ -9,6 +9,8 @@ namespace JourneyCore.Lib.Game.Object.Entity
 {
     public class Projectile : IEntity, IEntityTemporary
     {
+        public int Speed { get; }
+
         public Projectile(Sprite graphic, int speed, long lifetime = 0, string guid = "")
         {
             Graphic = graphic;
@@ -18,18 +20,11 @@ namespace JourneyCore.Lib.Game.Object.Entity
             Guid = string.IsNullOrWhiteSpace(guid) ? global::System.Guid.NewGuid().ToString() : guid;
         }
 
-        public int Speed { get; }
         public string Guid { get; }
         public Sprite Graphic { get; }
         public long Lifetime { get; }
-        public DateTime MaximumLifetime { get; private set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
-
-        public DateTime TriggerAlive()
-        {
-            return MaximumLifetime = DateTime.Now.AddMilliseconds(Lifetime);
-        }
 
         public void MoveEntity(Vector2f direction, int mapTileSize, float elapsedFrameTime)
         {
@@ -44,6 +39,13 @@ namespace JourneyCore.Lib.Game.Object.Entity
         public void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public DateTime MaximumLifetime { get; private set; }
+
+        public DateTime TriggerAlive()
+        {
+            return MaximumLifetime = DateTime.Now.AddMilliseconds(Lifetime);
         }
     }
 }

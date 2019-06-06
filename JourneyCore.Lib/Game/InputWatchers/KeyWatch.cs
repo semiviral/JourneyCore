@@ -6,15 +6,15 @@ namespace JourneyCore.Lib.Game.InputWatchers
 {
     public class KeyWatch
     {
+        private List<Action<Keyboard.Key>> KeyActions { get; }
+
+        public Keyboard.Key Key { get; }
+
         public KeyWatch(Keyboard.Key key, params Action<Keyboard.Key>[] keyActions)
         {
             Key = key;
             KeyActions = new List<Action<Keyboard.Key>>(keyActions);
         }
-
-        private List<Action<Keyboard.Key>> KeyActions { get; }
-
-        public Keyboard.Key Key { get; }
 
         public void Invoke()
         {

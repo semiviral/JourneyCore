@@ -4,11 +4,6 @@ namespace JourneyCore.Lib.System.Components
 {
     public class CustomProperty
     {
-        public CustomProperty()
-        {
-            Type = "string";
-        }
-
         [XmlAttribute("name")]
         public string Name { get; set; }
 
@@ -17,5 +12,10 @@ namespace JourneyCore.Lib.System.Components
 
         [XmlAttribute("value")]
         public string Value { get; set; }
+
+        public CustomProperty()
+        {
+            Type = "string";
+        }
     }
 }

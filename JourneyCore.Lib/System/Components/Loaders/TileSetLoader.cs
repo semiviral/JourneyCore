@@ -20,18 +20,20 @@ namespace JourneyCore.Lib.System.Components.Loaders
                     return tileSet;
                 }
 
-                foreach (Tile tile in tileSet.Tiles)
-                {
-                    tile.Gid = tile.Id + firstGid;
-                    tile.TextureRect = new IntRect(tile.Id % tileSet.Columns,
-                        tile.Id / tileSet.Columns,
-                        tileSet.TileWidth, tileSet.TileHeight);
-
-                    tile.ApplyProperties();
-                }
+                tileSet.Tiles.ForEach(tile => BuildTile(tileSet, tile, firstGid));
 
                 return tileSet;
             }
+        }
+
+        private static void BuildTile(TileSet tileSet, Tile tile, int firstGid)
+        {
+            tile.Gid = tile.Id + firstGid;
+            tile.TextureRect = new IntRect(tile.Id % tileSet.Columns,
+                tile.Id / tileSet.Columns,
+                tileSet.TileWidth, tileSet.TileHeight);
+
+            tile.ApplyProperties();
         }
     }
 }

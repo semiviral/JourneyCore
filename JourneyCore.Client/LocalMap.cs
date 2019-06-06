@@ -12,6 +12,12 @@ namespace JourneyCore.Client
 {
     public class LocalMap
     {
+        public byte[] Image { get; }
+        public RenderStates RenderStates { get; }
+        public MapMetadata Metadata { get; private set; }
+        public VertexArray VArray { get; }
+        public Minimap Minimap { get; }
+
         public LocalMap(byte[] mapImage)
         {
             Image = mapImage;
@@ -20,12 +26,6 @@ namespace JourneyCore.Client
             VArray = new VertexArray(PrimitiveType.Quads);
             Minimap = new Minimap();
         }
-
-        public byte[] Image { get; }
-        public RenderStates RenderStates { get; }
-        public MapMetadata Metadata { get; private set; }
-        public VertexArray VArray { get; }
-        public Minimap Minimap { get; }
 
         public void Update(MapMetadata mapMetadata)
         {

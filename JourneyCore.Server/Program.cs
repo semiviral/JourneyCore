@@ -12,10 +12,7 @@ namespace JourneyCore.Server
             {
                 CreateWebHostBuilder(args).Build().Run();
             }
-            catch (Exception ex)
-            {
-
-            }
+            catch (Exception ex) { }
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)

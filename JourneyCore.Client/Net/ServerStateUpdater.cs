@@ -8,6 +8,13 @@ namespace JourneyCore.Client.Net
 {
     public class ServerStateUpdater
     {
+        private Timer TickTimer { get; }
+        private AutoResetEvent AutoReset { get; }
+        private List<UpdatePackage> UpdatePackages { get; }
+        private Stopwatch Watch { get; }
+
+        public int TickRate { get; }
+
         /// <summary>
         /// </summary>
         /// <param name="tickRate">Time interval in milliseconds to dequeue all state updates</param>
@@ -28,13 +35,6 @@ namespace JourneyCore.Client.Net
             UpdatePackages = new List<UpdatePackage>();
             Watch = new Stopwatch();
         }
-
-        private Timer TickTimer { get; }
-        private AutoResetEvent AutoReset { get; }
-        private List<UpdatePackage> UpdatePackages { get; }
-        private Stopwatch Watch { get; }
-
-        public int TickRate { get; }
 
         public event AsyncEventHandler<UpdatePackage[]> SyncCallback;
 
