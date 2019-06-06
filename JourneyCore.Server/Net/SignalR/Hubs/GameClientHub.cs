@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using JourneyCore.Lib.System;
 using JourneyCore.Server.Net.SignalR.Services;
@@ -12,11 +11,9 @@ namespace JourneyCore.Server.Net.SignalR.Hubs
         public GameClientHub(IGameService gameService)
         {
             GameService = gameService;
-            IsCancelled = new CancellationToken(false);
         }
 
         private IGameService GameService { get; }
-        private CancellationToken IsCancelled { get; }
 
         /// <summary>
         ///     Method called when hub connection is created

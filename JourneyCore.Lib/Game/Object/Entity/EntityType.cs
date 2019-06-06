@@ -1,4 +1,4 @@
-﻿namespace JourneyCore.Lib.Game.Context.Entities
+﻿namespace JourneyCore.Lib.Game.Object.Entity
 {
     public enum EntityType
     {

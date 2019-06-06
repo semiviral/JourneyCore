@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using SFML.Window;
 
 namespace JourneyCore.Lib.Game.InputWatchers
@@ -22,7 +21,7 @@ namespace JourneyCore.Lib.Game.InputWatchers
 
         #region METHODS
 
-        public void AddWatchedInput(Mouse.Button button, Func<Mouse.Button, Task> inputAction)
+        public void AddWatchedInput(Mouse.Button button, Action<Mouse.Button> inputAction)
         {
             if (!GetWatchedButtons().Contains(button))
             {
@@ -32,7 +31,7 @@ namespace JourneyCore.Lib.Game.InputWatchers
             GetInputWatch(button).AddButtonAction(inputAction);
         }
 
-        public void AddWatchedInput(Keyboard.Key key, Func<Keyboard.Key, Task> keyAction)
+        public void AddWatchedInput(Keyboard.Key key, Action<Keyboard.Key> keyAction)
         {
             if (!GetWatchedKeys().Contains(key))
             {
@@ -42,7 +41,7 @@ namespace JourneyCore.Lib.Game.InputWatchers
             GetInputWatch(key).AddKeyAction(keyAction);
         }
 
-        public void RemoveWatchedInputAction(Keyboard.Key key, Func<Keyboard.Key, Task> inputAction)
+        public void RemoveWatchedInputAction(Keyboard.Key key, Action<Keyboard.Key> inputAction)
         {
             if (!GetWatchedKeys().Contains(key))
             {
@@ -52,7 +51,7 @@ namespace JourneyCore.Lib.Game.InputWatchers
             GetInputWatch(key).RemoveKeyAction(inputAction);
         }
 
-        public void RemoveWatchedInputAction(Mouse.Button button, Func<Mouse.Button, Task> inputAction)
+        public void RemoveWatchedInputAction(Mouse.Button button, Action<Mouse.Button> inputAction)
         {
             if (!GetWatchedButtons().Contains(button))
             {
@@ -83,7 +82,7 @@ namespace JourneyCore.Lib.Game.InputWatchers
         }
 
 
-        public async Task CheckWatchedInputs()
+        public void CheckWatchedInputs()
         {
             if (!WindowFocused)
             {
@@ -94,7 +93,7 @@ namespace JourneyCore.Lib.Game.InputWatchers
             {
                 if (Keyboard.IsKeyPressed(watchedKey))
                 {
-                    await GetInputWatch(watchedKey).InvokeAsync();
+                    GetInputWatch(watchedKey).Invoke();
                 }
             }
 
@@ -102,7 +101,7 @@ namespace JourneyCore.Lib.Game.InputWatchers
             {
                 if (Mouse.IsButtonPressed(watchedButton))
                 {
-                    await GetInputWatch(watchedButton).InvokeAsync();
+                    GetInputWatch(watchedButton).Invoke();
                 }
             }
         }

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using JourneyCore.Lib.Game.Context.Entities;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
+using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
 using JourneyCore.Server.Net.SignalR.Contexts;
@@ -23,7 +23,7 @@ namespace JourneyCore.Server.Net.SignalR.Services
             TextureImages = new Dictionary<string, byte[]>();
             TileSets = new Dictionary<string, TileSet>();
             TileMaps = new Dictionary<string, Map>();
-            Players = new List<Entity>();
+            Players = new List<Player>();
 
             TickRate = (int)(1f / 30f * 1000f);
         }
@@ -50,7 +50,7 @@ namespace JourneyCore.Server.Net.SignalR.Services
 
         public bool Status { get; private set; }
 
-        public List<Entity> Players { get; }
+        public List<Player> Players { get; }
         public Dictionary<string, Map> TileMaps { get; }
         public Dictionary<string, TileSet> TileSets { get; }
 

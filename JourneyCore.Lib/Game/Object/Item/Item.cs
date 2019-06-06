@@ -1,25 +1,24 @@
 ﻿using System;
 
-namespace JourneyCore.Lib.Game.Context.Items
+namespace JourneyCore.Lib.Game.Object.Item
 {
-    public class Item : Context
+    public class Item
     {
-        private int _stackSize;
+        private int _StackSize;
 
         public EventHandler<ItemStackSizeChangedEventArgs> ItemStackSizeChanged;
 
-        public Item(Context owner, string name, string primaryTag, int maxStackSize) : base(owner, name,
-            primaryTag)
+        public Item(string name, string primaryTag, int maxStackSize)
         {
             MaxStackSize = maxStackSize;
         }
 
         public int StackSize
         {
-            get => _stackSize;
+            get => _StackSize;
             set
             {
-                if (_stackSize == value)
+                if (_StackSize == value)
                 {
                     return;
                 }
@@ -37,7 +36,7 @@ namespace JourneyCore.Lib.Game.Context.Items
                 return;
             }
 
-            _stackSize = newSize;
+            _StackSize = newSize;
         }
     }
 }

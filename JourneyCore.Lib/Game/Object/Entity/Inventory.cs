@@ -1,17 +1,15 @@
-﻿using JourneyCore.Lib.Game.Context.Items;
-
-namespace JourneyCore.Lib.Game.Context.Entities
+﻿namespace JourneyCore.Lib.Game.Object.Entity
 {
     public class Inventory
     {
         public Inventory()
         {
-            Items = new Item[11];
+            Items = new Item.Item[11];
         }
 
-        public Item[] Items { get; }
+        public Item.Item[] Items { get; }
 
-        public void AddInventoryItem(int slot, Item newItem)
+        public void AddInventoryItem(int slot, Item.Item newItem)
         {
             Items[slot] = newItem;
         }

@@ -4,10 +4,11 @@ using System.Threading.Tasks;
 using JourneyCore.Client.Display;
 using JourneyCore.Client.Display.UserInterface;
 using JourneyCore.Client.Net;
-using JourneyCore.Lib.Game.Context.Entities;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.InputWatchers;
+using JourneyCore.Lib.Game.Object;
+using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.Graphics.Drawing;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
@@ -22,6 +23,8 @@ namespace JourneyCore.Client
 {
     public class GameLoop : Context
     {
+        private static Tuple<int, string> _FatalExit;
+
         public GameLoop()
         {
             IsRunning = true;
@@ -38,13 +41,12 @@ namespace JourneyCore.Client
 
         private GameServerConnection NetManager { get; set; }
         private ConsoleManager ConManager { get; }
-        private GameWindow Win { get; set; }
-        private UI UserInterface { get; set; }
+        private GameWindow Window { get; set; }
+        private Ui UserInterface { get; set; }
         private LocalMap CurrentMap { get; set; }
-        private Entity Player { get; set; }
+        private Player Player { get; set; }
         private InputWatcher InputWatcher { get; }
         private bool IsRunning { get; set; }
-
 
         public async Task StartAsync()
         {
@@ -60,39 +62,36 @@ namespace JourneyCore.Client
                 }
             }
 
-            Win.DrawItem("game", 1,
-                new DrawItem(Guid.NewGuid().ToString(), 0,
-                    (window, frameTime) => { window.Draw(CurrentMap.VArray, CurrentMap.RenderStates); }));
-            Win.DrawItem("minimap", 0,
-                new DrawItem(Guid.NewGuid().ToString(), 0,
-                    (window, frameTime) => { window.Draw(CurrentMap.Minimap.VArray); }));
+            Window.DrawItem("game", 0,
+                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null, new DrawObject(typeof(VertexArray), CurrentMap.VArray), CurrentMap.RenderStates));
+            Window.DrawItem("minimap", 0,
+                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null, new DrawObject(typeof(VertexArray), CurrentMap.Minimap.VArray), RenderStates.Default));
 
-            try
-            {
-                while (IsRunning)
-                {
-                    await InputWatcher.CheckWatchedInputs();
+            Window.SetActive(true);
 
-                    Win.UpdateWindow();
-                }
-            }
-            catch (Exception ex)
+            while (Window.IsActive)
             {
-                Console.WriteLine(ex.Message);
+                InputWatcher.CheckWatchedInputs();
+
+                Window.UpdateWindow();
             }
         }
 
+        // todo fix exiting to not block threads
 
-        public static void ExitWithFatality(string error, int exitCode = -1)
+        public static void CallFatality(string error, int exitCode = -1)
         {
-            // allow game window to close before fataling
+            _FatalExit = new Tuple<int, string>(exitCode, error);
+        }
 
-            Log.Fatal(error);
+        private void ExitWithFatality()
+        {
+            Log.Fatal(_FatalExit.Item2);
             Log.Fatal("Press any key to continue.");
 
             Console.ReadLine();
 
-            Environment.Exit(exitCode);
+            Environment.Exit(_FatalExit.Item1);
         }
 
 
@@ -110,12 +109,12 @@ namespace JourneyCore.Client
             await InitialiseLocalMap();
             await InitialisePlayer();
             SetupWatchedKeys();
-            SetupWatchedButtons();
+            SetupWatchedMouse();
             await InitialiseUserInterface();
             InitialiseMiniMap();
 
-            Win.GainedFocus += (sender, args) => { InputWatcher.WindowFocused = true; };
-            Win.LostFocus += (sender, args) => { InputWatcher.WindowFocused = false; };
+            Window.GainedFocus += (sender, args) => { InputWatcher.WindowFocused = true; };
+            Window.LostFocus += (sender, args) => { InputWatcher.WindowFocused = false; };
         }
 
         private async Task InitialiseGameServerConnection(string serverUrl, string servicePath)
@@ -128,29 +127,34 @@ namespace JourneyCore.Client
         {
             Log.Information("Initialising game window...");
 
-            Win = new GameWindow("Journey to the Core", new VideoMode(1280, 720, 8), maximumFrameRate,
+            Window = new GameWindow("Journey to the Core", new VideoMode(1280, 720, 8), maximumFrameRate,
                 new Vector2f(2f, 2f),
                 15f);
-            Win.Closed += (sender, args) =>
+            Window.Closed += (sender, args) =>
             {
                 IsRunning = false;
-                ExitWithFatality("Game window closed.");
+                CallFatality("Game window closed.");
+            };
+            Window.MouseWheelScrolled += (sender, args) =>
+            {
+                Window.GetDrawView("minimap").ZoomFactor += args.Delta * -1f;
             };
 
             const float viewSizeX = 300f;
             const float minimapSizeX = 0.2f;
 
-            Win.CreateView("game", 0, new View(new FloatRect(0f, 0f, viewSizeX, viewSizeX * GameWindow.WidescreenRatio))
-            {
-                Viewport = new FloatRect(0f, 0f, 1f, 1f)
-            });
+            Window.CreateDrawView("game", 0,
+                new View(new FloatRect(0f, 0f, viewSizeX, viewSizeX * GameWindow.WidescreenRatio))
+                {
+                    Viewport = new FloatRect(0f, 0f, 1f, 1f)
+                });
 
-            Win.CreateView("ui", 1, new View(new FloatRect(0f, 0f, 200f, 600f))
+            Window.CreateDrawView("ui", 1, new View(new FloatRect(0f, 0f, 200f, 600f))
             {
                 Viewport = new FloatRect(0.8f, 0.3f, 0.2f, 0.7f)
             });
 
-            Win.CreateView("minimap", 2,
+            Window.CreateDrawView("minimap", 2,
                 new View(new FloatRect(0f, 0f, viewSizeX, viewSizeX * GameWindow.WidescreenRatio))
                 {
                     Viewport = new FloatRect(1f - (minimapSizeX * GameWindow.LetterboxRatio - 0.005f), 0.005f,
@@ -182,137 +186,120 @@ namespace JourneyCore.Client
 
             retVal = RESTClient.Request(RequestMethod.GET,
                 $"{NetManager.ServerUrl}/gameservice/images/projectiles");
-            Texture projectilesTexutre = new Texture(JsonConvert.DeserializeObject<byte[]>(retVal));
+            Texture projectilesTexture = new Texture(JsonConvert.DeserializeObject<byte[]>(retVal));
 
 
-            Player = new Entity(projectilesTexutre, 0,
-                new Sprite(humanTexture));
+            Player = new Player(new Sprite(humanTexture), projectilesTexture, 0);
             Player.PropertyChanged += PlayerPropertyChanged;
             Player.PositionChanged += PlayerPositionChanged;
             Player.RotationChanged += PlayerRotationChanged;
 
-            Win.MoveView("game", Player.Graphic.Position);
+            Player.AnchorItem(Window.GetDrawView("game"));
+            Player.AnchorItem(Window.GetDrawView("minimap"));
 
-            // todo
-            //  implement some sort of position/rotation
-            //  anchoring class or subscription for items
-
-            Win.DrawItem("game", 2,
-                new DrawItem(Player.Guid, 0, (window, frameTime) => { window.Draw(Player.Graphic); }));
+            Window.DrawItem("game", 10,
+                new DrawItem(Player.Guid, DateTime.MinValue, null, new DrawObject(Player.Graphic.GetType(), Player.Graphic, Player.Graphic.GetVertices), new RenderStates(Player.Graphic.Texture)));
 
             Log.Information("Player intiailised.");
         }
 
         private void SetupWatchedKeys()
         {
-            Log.Information("Creating key watch events...");
+            Log.Information("Creating input watch events...");
 
             Vector2f movement = new Vector2f(0, 0);
 
             InputWatcher.AddWatchedInput(Keyboard.Key.W, key =>
             {
-                movement = new Vector2f((float)GraphMath.SinFromDegrees(Player.Graphic.Rotation),
-                    (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation) * -1f);
+                movement = new Vector2f((float)GraphMath.SinFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360),
+                    (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360) * -1f);
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.A) || Keyboard.IsKeyPressed(Keyboard.Key.D))
                 {
                     movement *= 0.5f;
                 }
 
-                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, Win.ElapsedTime);
-
-                return Task.CompletedTask;
+                Player.MoveEntity(movement, MapLoader.PixelTileWidth * MapLoader.Scale, Window.ElapsedTime);
             });
 
             InputWatcher.AddWatchedInput(Keyboard.Key.A, key =>
             {
-                movement = new Vector2f((float)GraphMath.CosFromDegrees(Player.Graphic.Rotation) * -1f,
-                    (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation) * -1f);
+                movement = new Vector2f((float)GraphMath.CosFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360) * -1f,
+                    (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360) * -1f);
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.W) || Keyboard.IsKeyPressed(Keyboard.Key.S))
                 {
                     movement *= 0.5f;
                 }
 
-                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, Win.ElapsedTime);
-
-                return Task.CompletedTask;
+                Player.MoveEntity(movement, MapLoader.PixelTileWidth * MapLoader.Scale, Window.ElapsedTime);
             });
 
             InputWatcher.AddWatchedInput(Keyboard.Key.S, key =>
             {
-                movement = new Vector2f((float)GraphMath.SinFromDegrees(Player.Graphic.Rotation) * -1f,
-                    (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation));
+                movement = new Vector2f((float)GraphMath.SinFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360) * -1f,
+                    (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360));
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.A) || Keyboard.IsKeyPressed(Keyboard.Key.D))
                 {
                     movement *= 0.5f;
                 }
 
-                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, Win.ElapsedTime);
-
-                return Task.CompletedTask;
+                Player.MoveEntity(movement, MapLoader.PixelTileWidth * MapLoader.Scale, Window.ElapsedTime);
             });
 
             InputWatcher.AddWatchedInput(Keyboard.Key.D, key =>
             {
-                movement = new Vector2f((float)GraphMath.CosFromDegrees(Player.Graphic.Rotation),
-                    (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation));
+                movement = new Vector2f((float)GraphMath.CosFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360),
+                    (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360));
 
                 if (Keyboard.IsKeyPressed(Keyboard.Key.W) || Keyboard.IsKeyPressed(Keyboard.Key.S))
                 {
                     movement *= 0.5f;
                 }
 
-                Player.Move(movement, MapLoader.PixelTileWidth * MapLoader.Scale, Win.ElapsedTime);
-
-                return Task.CompletedTask;
+                Player.MoveEntity(movement, MapLoader.PixelTileWidth * MapLoader.Scale, Window.ElapsedTime);
             });
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.G, key =>
-            {
-                CurrentMap.Minimap.VArray.ModifyOpacity(-25, 10);
+            InputWatcher.AddWatchedInput(Keyboard.Key.G, key => { CurrentMap.Minimap.VArray.ModifyOpacity(-25, 10); });
 
-                return Task.CompletedTask;
-            });
-
-            InputWatcher.AddWatchedInput(Keyboard.Key.H, key =>
-            {
-                CurrentMap.Minimap.VArray.ModifyOpacity(25);
-
-                return Task.CompletedTask;
-            });
+            InputWatcher.AddWatchedInput(Keyboard.Key.H, key => { CurrentMap.Minimap.VArray.ModifyOpacity(25); });
 
             InputWatcher.AddWatchedInput(Keyboard.Key.Q,
-                async key => { await Player.RotateEntity(Win.ElapsedTime, 180f, false); });
+                key => { Player.RotateEntity(Window.ElapsedTime, 180f, false); });
 
             InputWatcher.AddWatchedInput(Keyboard.Key.E,
-                async key => { await Player.RotateEntity(Win.ElapsedTime, 180f, true); });
+                key => { Player.RotateEntity(Window.ElapsedTime, 180f, true); });
         }
 
-        private void SetupWatchedButtons()
+        private void SetupWatchedMouse()
         {
             InputWatcher.AddWatchedInput(Mouse.Button.Left, button =>
             {
-                if (Win.IsInMenu)
+                if (Window.IsInMenu)
                 {
-                    return Task.CompletedTask;
+                    return;
                 }
 
-                Vector2i mousePosition = Win.GetRelativeMousePosition();
-                View gameView = Win.GetView("game");
+                Vector2i mousePosition = Window.GetRelativeMousePosition();
+                View gameView = Window.GetDrawView("game").View;
 
                 double relativeMouseX =
-                    gameView.Size.X * (mousePosition.X / (Win.Size.X * gameView.Viewport.Width)) -
+                    gameView.Size.X * (mousePosition.X / (Window.Size.X * gameView.Viewport.Width)) -
                     gameView.Size.X / 2f;
                 double relativeMouseY =
-                    gameView.Size.Y * (mousePosition.Y / (Win.Size.Y * gameView.Viewport.Height)) -
+                    gameView.Size.Y * (mousePosition.Y / (Window.Size.Y * gameView.Viewport.Height)) -
                     gameView.Size.Y / 2f;
 
-                Win.DrawItem("game", 2,
-                    Player.GetFiredProjectile(relativeMouseX, relativeMouseY, CurrentMap.Metadata.TileWidth));
+                DrawItem projectileDrawItem =
+                    Player.FireProjectile(relativeMouseX, relativeMouseY, CurrentMap.Metadata.TileWidth);
 
-                return Task.CompletedTask;
+                if (projectileDrawItem == null)
+                {
+                    return;
+                }
+
+                Window.DrawItem("game", 20, projectileDrawItem);
             });
         }
 
@@ -325,22 +312,12 @@ namespace JourneyCore.Client
             retVal = await RESTClient.RequestAsync(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/images/ui");
             byte[] uiImage = JsonConvert.DeserializeObject<byte[]>(retVal);
 
-            UserInterface = new UI(tileSetMetadata, uiImage);
-            UserInterface.UpdateHealth(Player.CurrentHP);
-
-            Win.DrawItem("ui", 2, new DrawItem(Guid.NewGuid().ToString(), 0, (window, frameTime) =>
-            {
-                foreach (Sprite sprite in UserInterface.Hearts)
-                {
-                    window.Draw(sprite);
-                }
-            }));
+            UserInterface = new Ui(tileSetMetadata, uiImage);
+            UserInterface.UpdateHealth(Player.CurrentHp);
         }
 
         private void InitialiseMiniMap()
         {
-            Win.MoveView("minimap", Player.Graphic.Position);
-
             RectangleShape playerTile =
                 new RectangleShape(
                     new Vector2f(CurrentMap.Metadata.TileWidth / 2f, CurrentMap.Metadata.TileHeight / 2f))
@@ -352,13 +329,10 @@ namespace JourneyCore.Client
                 };
             playerTile.Origin = playerTile.Size / 2f;
 
-            Player.MinimapObject = playerTile;
+            DrawObject playerTileObj = new DrawObject(playerTile.GetType(), playerTile, playerTile.GetVertices);
+            Player.AnchorItem(playerTileObj);
 
-            // todo something with this
-            //CurrentMap.Minimap.AnchorExpression = playerTile;
-
-            Win.DrawItem("minimap", 1,
-                new DrawItem(Player.Guid, 0, (window, frameTime) => { window.Draw(playerTile); }));
+            Window.DrawItem("minimap", 10, new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null, playerTileObj, RenderStates.Default));
         }
 
         #endregion
@@ -387,24 +361,14 @@ namespace JourneyCore.Client
 
         #region EVENT
 
-        private Task PlayerPositionChanged(object sender, Vector2f position)
+        private void PlayerPositionChanged(object sender, Vector2f position)
         {
-            Win.MoveView("game", position);
-            Win.MoveView("minimap", position);
-
-            NetManager.StateUpdater.AllocateStateUpdate(StateUpdateType.Position,
-                new Vector2i((int)position.X, (int)position.Y));
-
-            return Task.CompletedTask;
+            NetManager.StateUpdater.AllocateStateUpdate(StateUpdateType.Position, position);
         }
 
-        private Task PlayerRotationChanged(object sender, float rotation)
+        private void PlayerRotationChanged(object sender, float rotation)
         {
-            Win.RotateView("game", rotation);
-
-            NetManager.StateUpdater.AllocateStateUpdate(StateUpdateType.Rotation, (int)rotation);
-
-            return Task.CompletedTask;
+            NetManager.StateUpdater.AllocateStateUpdate(StateUpdateType.Rotation, rotation);
         }
 
         private void PlayerPropertyChanged(object sender, PropertyChangedEventArgs args)

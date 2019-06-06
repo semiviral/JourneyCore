@@ -30,10 +30,10 @@ namespace JourneyCore.Client
         public void Update(MapMetadata mapMetadata)
         {
             VArray.Clear();
-            VArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount + 1));
+            VArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount));
 
             Minimap.VArray.Clear();
-            Minimap.VArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount + 1));
+            Minimap.VArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount));
 
             Metadata = mapMetadata;
         }

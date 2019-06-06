@@ -1,36 +1,68 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using JourneyCore.Lib.Game.Object;
+using JourneyCore.Lib.Graphics.Drawing;
 using SFML.Graphics;
-using SFML.System;
 
 namespace JourneyCore.Client
 {
     public class Minimap
     {
+        public VertexArray VArray { get; }
+        public Dictionary<uint, DrawObject> MinimapObjects { get; }
+
         public Minimap()
         {
             VArray = new VertexArray(PrimitiveType.Quads);
+            MinimapObjects = new Dictionary<uint, DrawObject>();
         }
 
-        public Minimap(Transformable anchorExpression) : this()
+        public void AddMinimapEntity(DrawObject drawObj)
         {
-            AnchorExpression = anchorExpression;
+            if (!drawObj.Batchable || drawObj.ObjectType != typeof(RectangleShape))
+            {
+                return;
+            }
+
+            RectangleShape castedShape = (RectangleShape)drawObj.Object;
+
+            drawObj.RecalculateVertices += OnMinimapEntityVerticesUpdated;
+
+            castedShape.Origin = castedShape.Size / 2f;
+
+            uint startIndex = VArray.VertexCount;
+            VArray.Resize(startIndex + 4);
+
+            if (VArray.VertexCount < startIndex)
+            {
+                throw new IndexOutOfRangeException($"Index `{startIndex}` out of range of VArray.");
+            }
+
+            drawObj.StartIndex = drawObj.StartIndex == 0 ? startIndex : drawObj.StartIndex;
+            MinimapObjects.Add(startIndex, drawObj);
+
+            CalculateVerticesByIndex(startIndex);
         }
 
-        public VertexArray VArray { get; }
-        public Transformable AnchorExpression { get; set; }
-
-        public Task AnchorPositionChanged(object sender, Vector2f position)
+        public void CalculateVerticesByIndex(uint startIndex)
         {
-            AnchorExpression.Position = position;
+            if (!MinimapObjects.Keys.Contains(startIndex))
+            {
+                return;
+            }
+            
+            Vertex[] vertices = MinimapObjects[startIndex].GetVertices();
 
-            return Task.CompletedTask;
+            VArray[startIndex + 0] = vertices[0];
+            VArray[startIndex + 1] = vertices[1];
+            VArray[startIndex + 2] = vertices[2];
+            VArray[startIndex + 3] = vertices[3];
         }
 
-        public Task AnchorRotationChanged(object sender, float rotation)
+        public void OnMinimapEntityVerticesUpdated(object sender, uint startIndex)
         {
-            AnchorExpression.Rotation = rotation;
-
-            return Task.CompletedTask;
+            CalculateVerticesByIndex(startIndex);
         }
     }
 }

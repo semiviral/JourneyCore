@@ -1,41 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using SFML.Window;
 
 namespace JourneyCore.Lib.Game.InputWatchers
 {
     public class KeyWatch
     {
-        public KeyWatch(Keyboard.Key key, params Func<Keyboard.Key, Task>[] keyActions)
+        public KeyWatch(Keyboard.Key key, params Action<Keyboard.Key>[] keyActions)
         {
             Key = key;
-            KeyActions = new List<Func<Keyboard.Key, Task>>();
+            KeyActions = new List<Action<Keyboard.Key>>();
 
-            foreach (Func<Keyboard.Key, Task> keyAction in keyActions)
+            foreach (Action<Keyboard.Key> keyAction in keyActions)
             {
                 KeyActions.Add(keyAction);
             }
         }
 
-        private List<Func<Keyboard.Key, Task>> KeyActions { get; }
+        private List<Action<Keyboard.Key>> KeyActions { get; }
 
         public Keyboard.Key Key { get; }
 
-        public async Task InvokeAsync()
+        public void Invoke()
         {
-            foreach (Func<Keyboard.Key, Task> keyAction in KeyActions)
+            foreach (Action<Keyboard.Key> keyAction in KeyActions)
             {
-                await keyAction(Key);
+                keyAction(Key);
             }
         }
 
-        public void AddKeyAction(Func<Keyboard.Key, Task> keyAction)
+        public void AddKeyAction(Action<Keyboard.Key> keyAction)
         {
             KeyActions.Add(keyAction);
         }
 
-        public void RemoveKeyAction(Func<Keyboard.Key, Task> keyAction)
+        public void RemoveKeyAction(Action<Keyboard.Key> keyAction)
         {
             KeyActions.Remove(keyAction);
         }

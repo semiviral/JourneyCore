@@ -10,7 +10,7 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
     {
         public int Id { get; set; }
         public string Type { get; set; }
-        public float Probability { get; set; }
+        public double Probability { get; set; }
         public CustomProperty[] Properties { get; set; }
         public int Gid { get; set; }
         public IntRect TextureRect { get; set; }

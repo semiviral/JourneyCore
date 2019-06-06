@@ -1,4 +1,4 @@
-﻿namespace JourneyCore.Lib.Game.Context.Items
+﻿namespace JourneyCore.Lib.Game.Object.Item
 {
     public class ItemStackSizeChangedEventArgs
     {

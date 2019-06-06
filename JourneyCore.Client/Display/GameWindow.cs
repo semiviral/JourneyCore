@@ -25,7 +25,9 @@ namespace JourneyCore.Client.Display
             Window.Closed += OnClose;
             Window.GainedFocus += OnGainedFocus;
             Window.LostFocus += OnLostFocus;
+            Window.MouseWheelScrolled += OnMouseWheelScrolled;
             Window.SetFramerateLimit((uint)TargetFps);
+            Window.SetActive(false);
 
             DrawViews = new SortedList<int, DrawView>();
             DeltaClock = new Delta();
@@ -49,7 +51,7 @@ namespace JourneyCore.Client.Display
         private RenderWindow Window { get; }
         private static Delta DeltaClock { get; set; }
         private SortedList<int, DrawView> DrawViews { get; }
-        private static int _targetFps;
+        private static int _TargetFps;
 
         public Vector2u Size => Window.Size;
         public bool IsInMenu { get; private set; }
@@ -59,13 +61,13 @@ namespace JourneyCore.Client.Display
 
         public int TargetFps
         {
-            get => _targetFps;
+            get => _TargetFps;
             set
             {
                 // fps changed stuff
 
-                _targetFps = value;
-                IndividualFrameTime = 1f / _targetFps;
+                _TargetFps = value;
+                IndividualFrameTime = 1f / _TargetFps;
             }
         }
 
@@ -81,8 +83,6 @@ namespace JourneyCore.Client.Display
         {
             ElapsedTime = DeltaClock.GetDelta();
 
-            Window.SetActive(false);
-
             Window.DispatchEvents();
             Window.Clear();
 
@@ -92,8 +92,6 @@ namespace JourneyCore.Client.Display
 
                 drawView.Draw(Window, ElapsedTime);
             }
-
-            Window.SetActive(true);
 
             Window.Display();
         }
@@ -113,6 +111,7 @@ namespace JourneyCore.Client.Display
         public event EventHandler Closed;
         public event EventHandler GainedFocus;
         public event EventHandler LostFocus;
+        public event EventHandler<MouseWheelScrollEventArgs> MouseWheelScrolled;
 
         private void OnClose(object sender, EventArgs args)
         {
@@ -132,17 +131,22 @@ namespace JourneyCore.Client.Display
             LostFocus?.Invoke(sender, args);
         }
 
+        public void OnMouseWheelScrolled(object sender, MouseWheelScrollEventArgs args)
+        {
+            MouseWheelScrolled?.Invoke(sender, args);
+        }
+
         #endregion
 
 
         #region VIEW
 
-        public DrawView CreateView(string viewName, int drawLayer, View defaultView)
+        public DrawView CreateDrawView(string viewName, int drawLayer, View defaultView)
         {
-            return CreateView(new DrawView(viewName, drawLayer, defaultView));
+            return CreateDrawView(new DrawView(viewName, drawLayer, defaultView));
         }
 
-        public DrawView CreateView(DrawView drawView)
+        public DrawView CreateDrawView(DrawView drawView)
         {
             if (DrawViews.Any(dView => dView.Value.Name.Equals(drawView.Name)))
             {
@@ -158,45 +162,45 @@ namespace JourneyCore.Client.Display
         {
             Window.SetView(view);
 
-            return GetView(name);
+            return GetDrawView(name)?.View;
         }
 
-        public View GetView(string name)
+        public DrawView GetDrawView(string name)
         {
-            return DrawViews.SingleOrDefault(view => view.Value.Name.Equals(name)).Value?.View;
+            return DrawViews.SingleOrDefault(view => view.Value.Name.Equals(name)).Value;
         }
 
-        public View SetViewport(string name, FloatRect viewport)
+        public DrawView SetViewport(string name, FloatRect viewport)
         {
-            View view = GetView(name);
+            DrawView drawView = GetDrawView(name);
 
-            view.Viewport = viewport;
+            drawView.View.Viewport = viewport;
 
-            SetWindowView(name, view);
+            SetWindowView(name, drawView.View);
 
-            return view;
+            return drawView;
         }
 
-        public View MoveView(string name, Vector2f position)
+        public DrawView MoveView(string name, Vector2f position)
         {
-            View view = GetView(name);
+            DrawView drawView = GetDrawView(name);
 
-            view.Center = position;
+            drawView.Position = position;
 
-            SetWindowView(name, view);
+            SetWindowView(name, drawView.View);
 
-            return view;
+            return drawView;
         }
 
-        public View RotateView(string name, float rotation)
+        public DrawView RotateView(string name, float rotation)
         {
-            View view = GetView(name);
+            DrawView drawView = GetDrawView(name);
 
-            view.Rotation = rotation;
+            drawView.Rotation = rotation;
 
-            SetWindowView(name, view);
+            SetWindowView(name, drawView.View);
 
-            return view;
+            return drawView;
         }
 
         #endregion

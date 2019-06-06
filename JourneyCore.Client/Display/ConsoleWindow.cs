@@ -5,8 +5,8 @@ namespace JourneyCore.Client.Display
 {
     public class ConsoleManager
     {
-        private const int SW_HIDE = 0;
-        private const int SW_SHOW = 5;
+        private const int SwHide = 0;
+        private const int SwShow = 5;
 
         [DllImport("kernel32.dll")]
         private static extern IntPtr GetConsoleWindow();
@@ -16,7 +16,7 @@ namespace JourneyCore.Client.Display
 
         public void Hide(bool hide)
         {
-            ShowWindow(GetConsoleWindow(), hide ? SW_HIDE : SW_SHOW);
+            ShowWindow(GetConsoleWindow(), hide ? SwHide : SwShow);
         }
     }
 }

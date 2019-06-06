@@ -23,12 +23,12 @@ namespace JourneyCore.Lib.System
             return x2 * x2 + y2 * y2;
         }
 
-        public static double CosFromDegrees(float degrees)
+        public static double CosFromDegrees(double degrees)
         {
             return Math.Cos(ToRadians(degrees));
         }
 
-        public static double SinFromDegrees(float degrees)
+        public static double SinFromDegrees(double degrees)
         {
             return Math.Sin(ToRadians(degrees));
         }
@@ -69,6 +69,17 @@ namespace JourneyCore.Lib.System
             }
 
             return vector;
+        }
+
+        public static Vector2f RotatePoint(Vector2f outerCoords, Vector2f origin, float rotation)
+        {
+            double angleInRadians = rotation * (Math.PI / 180);
+            float cosTheta = (float)Math.Cos(angleInRadians);
+            float sinTheta = (float)Math.Sin(angleInRadians);
+
+            return new Vector2f(
+                cosTheta * (outerCoords.X - origin.X) - sinTheta * (outerCoords.Y - origin.Y) + origin.X,
+                sinTheta * (outerCoords.X - origin.X) + cosTheta * (outerCoords.Y - origin.Y) + origin.Y);
         }
     }
 

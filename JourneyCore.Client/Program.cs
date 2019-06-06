@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace JourneyCore.Client
 {
@@ -8,9 +9,16 @@ namespace JourneyCore.Client
 
         private static async Task Main(string[] args)
         {
-            GLoop = new GameLoop();
-            await GLoop.Initialise("http://localhost:5000", "GameService", 60);
-            await GLoop.StartAsync();
+            try
+            {
+                GLoop = new GameLoop();
+                await GLoop.Initialise("http://localhost:5000", "GameService", 60);
+                await GLoop.StartAsync();
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
     }
 }

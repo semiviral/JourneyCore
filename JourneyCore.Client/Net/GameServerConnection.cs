@@ -72,7 +72,7 @@ namespace JourneyCore.Client.Net
 
                     if (tries > 4)
                     {
-                        GameLoop.ExitWithFatality("Could not connect to server. Aborting game launch.");
+                        GameLoop.CallFatality("Could not connect to server. Aborting game launch.");
                     }
 
                     await Connection.StartAsync();
@@ -124,7 +124,7 @@ namespace JourneyCore.Client.Net
                 return tickRate;
             }
 
-            GameLoop.ExitWithFatality(
+            GameLoop.CallFatality(
                 "Request for server tick interval returned an illegal value. Aborting game launch.");
             return -1;
         }

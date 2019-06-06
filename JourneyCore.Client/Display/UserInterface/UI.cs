@@ -6,27 +6,27 @@ using SFML.System;
 
 namespace JourneyCore.Client.Display.UserInterface
 {
-    public class UI
+    public class Ui
     {
-        public UI(TileSetMetadata uiTileSet, byte[] uiSpriteSheetImage)
+        public Ui(TileSetMetadata uiTileSet, byte[] uiSpriteSheetImage)
         {
-            UISpriteSheetImage = uiSpriteSheetImage;
+            UiSpriteSheetImage = uiSpriteSheetImage;
             Hearts = new Sprite[0];
             CurrentHp = 0f;
 
-            UITileSet = uiTileSet;
-            UISpriteSheetTexture = new Texture(UISpriteSheetImage);
+            UiTileSet = uiTileSet;
+            UiSpriteSheetTexture = new Texture(UiSpriteSheetImage);
         }
 
         public static int HpRowWidth { get; } = 6;
 
-        private TileSetMetadata UITileSet { get; }
-        private byte[] UISpriteSheetImage { get; }
-        private Texture UISpriteSheetTexture { get; }
+        private TileSetMetadata UiTileSet { get; }
+        private byte[] UiSpriteSheetImage { get; }
+        private Texture UiSpriteSheetTexture { get; }
         public Sprite[] Hearts { get; private set; }
-        private float CurrentHp { get; set; }
+        private double CurrentHp { get; set; }
 
-        public void UpdateHealth(float newHp)
+        public void UpdateHealth(double newHp)
         {
             double difference = CurrentHp - newHp;
 
@@ -42,7 +42,7 @@ namespace JourneyCore.Client.Display.UserInterface
 
         public IntRect GetTextureRectByType(string name)
         {
-            IntRect newRect = UITileSet.Tiles.SingleOrDefault(tile => tile.Type.Equals(name)).TextureRect;
+            IntRect newRect = UiTileSet.Tiles.SingleOrDefault(tile => tile.Type.Equals(name)).TextureRect;
 
             newRect.Top *= newRect.Height;
             newRect.Left *= newRect.Width;
@@ -63,12 +63,12 @@ namespace JourneyCore.Client.Display.UserInterface
 
             for (int i = 0; i < fullHearts; i++)
             {
-                newHearts[i] = new Sprite(UISpriteSheetTexture, GetTextureRectByType("HeartFull"));
+                newHearts[i] = new Sprite(UiSpriteSheetTexture, GetTextureRectByType("HeartFull"));
             }
 
             if (halfHearts > 0)
             {
-                newHearts[fullHearts] = new Sprite(UISpriteSheetTexture, GetTextureRectByType("HeartHalf"));
+                newHearts[fullHearts] = new Sprite(UiSpriteSheetTexture, GetTextureRectByType("HeartHalf"));
             }
 
             for (int i = 0; i < newHearts.Length; i++)

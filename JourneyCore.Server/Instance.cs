@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using JourneyCore.Lib.Game.Context.Entities;
+using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System.Event;
 
 namespace JourneyCore.Server
@@ -11,13 +11,13 @@ namespace JourneyCore.Server
         {
             Id = Guid.NewGuid().ToString();
 
-            Entities = new List<Entity>();
+            Entities = new List<Player>();
             UpdatedProperties = new List<UpdatedProperty>();
         }
 
         public string Id { get; }
 
-        public List<Entity> Entities { get; }
+        public List<Player> Entities { get; }
         public List<UpdatedProperty> UpdatedProperties { get; }
     }
 }
