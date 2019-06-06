@@ -39,12 +39,13 @@ namespace JourneyCore.Lib.Game.Object.Entity
             double angle = (180 / Math.PI * Math.Atan2(centerRelativeMouseY, centerRelativeMouseX) + Graphic.Rotation +
                             DrawView.DefaultPlayerViewRotation + 90d) % 360;
 
-            Projectile projectile = new Projectile(new Sprite(ProjectileRenderStates.Texture, new IntRect(0, 0, 8, 8)),
+            Projectile projectile = new Projectile(new Sprite(ProjectileRenderStates.Texture, new IntRect(0, 0, 32, 32)),
                 25, 1000);
             projectile.Graphic.Origin = new Vector2f(projectile.Graphic.TextureRect.Width / 2f,
                 projectile.Graphic.TextureRect.Height / 2f);
             projectile.Graphic.Position = Graphic.Position;
             projectile.Graphic.Rotation = (float)angle + 180f % 360;
+            projectile.Graphic.Scale = new Vector2f(0.35f, 0.35f);
 
             DrawItem projectileDrawItem = new DrawItem(projectile.Guid, projectile.TriggerAlive(), frameTime =>
                 {

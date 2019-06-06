@@ -9,8 +9,8 @@ namespace JourneyCore.Lib.Graphics.Drawing
         public static Vertex[] GetVertices(this Sprite graphic)
         {
             Vertex[] vertices = new Vertex[4];
-            int pixelRadiusX = graphic.TextureRect.Width / 2;
-            int pixelRadiusY = graphic.TextureRect.Height / 2;
+            float pixelRadiusX = graphic.TextureRect.Width / 2f * graphic.Scale.X;
+            float pixelRadiusY = graphic.TextureRect.Height / 2f * graphic.Scale.Y;
 
             Vector2f topLeft = new Vector2f(graphic.Position.X - pixelRadiusX, graphic.Position.Y + pixelRadiusY);
             Vector2f topRight = new Vector2f(graphic.Position.X + pixelRadiusX, graphic.Position.Y + pixelRadiusY);

@@ -6,7 +6,7 @@
  "name":"JourneyCore-Maps",
  "spacing":0,
  "tilecount":780,
- "tiledversion":"1.2.4",
+ "tiledversion":"1.2.3",
  "tileheight":16,
  "tiles":[
         {
@@ -221,30 +221,206 @@
         }, 
         {
          "id":33,
+         "objectgroup":
+            {
+             "draworder":"index",
+             "name":"",
+             "objects":[
+                    {
+                     "height":16,
+                     "id":1,
+                     "name":"Collision",
+                     "rotation":0,
+                     "type":"Square",
+                     "visible":true,
+                     "width":6,
+                     "x":0,
+                     "y":0
+                    }],
+             "opacity":1,
+             "type":"objectgroup",
+             "visible":true,
+             "x":0,
+             "y":0
+            },
          "type":"WoodFloor"
         }, 
         {
          "id":34,
+         "objectgroup":
+            {
+             "draworder":"index",
+             "name":"",
+             "objects":[
+                    {
+                     "height":6,
+                     "id":1,
+                     "name":"Collision",
+                     "rotation":0,
+                     "type":"Square",
+                     "visible":true,
+                     "width":16,
+                     "x":0,
+                     "y":0
+                    }],
+             "opacity":1,
+             "type":"objectgroup",
+             "visible":true,
+             "x":0,
+             "y":0
+            },
          "type":"WoodFloor"
         }, 
         {
          "id":35,
+         "objectgroup":
+            {
+             "draworder":"index",
+             "name":"",
+             "objects":[
+                    {
+                     "height":6,
+                     "id":1,
+                     "name":"Collision",
+                     "rotation":0,
+                     "type":"Square",
+                     "visible":true,
+                     "width":6,
+                     "x":10,
+                     "y":10
+                    }],
+             "opacity":1,
+             "type":"objectgroup",
+             "visible":true,
+             "x":0,
+             "y":0
+            },
          "type":"WoodFloor"
         }, 
         {
          "id":36,
+         "objectgroup":
+            {
+             "draworder":"index",
+             "name":"",
+             "objects":[
+                    {
+                     "height":6,
+                     "id":1,
+                     "name":"Collision",
+                     "rotation":0,
+                     "type":"Square",
+                     "visible":true,
+                     "width":6,
+                     "x":0,
+                     "y":10
+                    }],
+             "opacity":1,
+             "type":"objectgroup",
+             "visible":true,
+             "x":0,
+             "y":0
+            },
          "type":"WoodFloor"
         }, 
         {
          "id":37,
+         "objectgroup":
+            {
+             "draworder":"index",
+             "name":"",
+             "objects":[
+                    {
+                     "height":6,
+                     "id":1,
+                     "name":"Collision",
+                     "rotation":0,
+                     "type":"Square",
+                     "visible":true,
+                     "width":16,
+                     "x":0,
+                     "y":0
+                    }, 
+                    {
+                     "height":16,
+                     "id":2,
+                     "name":"Collision",
+                     "rotation":0,
+                     "type":"Square",
+                     "visible":true,
+                     "width":6,
+                     "x":0,
+                     "y":0
+                    }],
+             "opacity":1,
+             "type":"objectgroup",
+             "visible":true,
+             "x":0,
+             "y":0
+            },
          "type":"WoodFloor"
         }, 
         {
          "id":38,
+         "objectgroup":
+            {
+             "draworder":"index",
+             "name":"",
+             "objects":[
+                    {
+                     "height":6,
+                     "id":1,
+                     "name":"Collision",
+                     "rotation":0,
+                     "type":"Square",
+                     "visible":true,
+                     "width":16,
+                     "x":0,
+                     "y":0
+                    }, 
+                    {
+                     "height":16,
+                     "id":2,
+                     "name":"Collision",
+                     "rotation":0,
+                     "type":"Square",
+                     "visible":true,
+                     "width":6,
+                     "x":10,
+                     "y":0
+                    }],
+             "opacity":1,
+             "type":"objectgroup",
+             "visible":true,
+             "x":0,
+             "y":0
+            },
          "type":"WoodFloor"
         }, 
         {
          "id":46,
+         "objectgroup":
+            {
+             "draworder":"index",
+             "name":"",
+             "objects":[
+                    {
+                     "height":6,
+                     "id":1,
+                     "name":"Collision",
+                     "rotation":0,
+                     "type":"Square",
+                     "visible":true,
+                     "width":16,
+                     "x":0,
+                     "y":10
+                    }],
+             "opacity":1,
+             "type":"objectgroup",
+             "visible":true,
+             "x":0,
+             "y":0
+            },
          "type":"WoodFloor"
         }, 
         {
@@ -257,13 +433,13 @@
                     {
                      "height":16,
                      "id":1,
-                     "name":"",
+                     "name":"Collision",
                      "rotation":0,
-                     "type":"",
+                     "type":"Square",
                      "visible":true,
                      "width":6,
-                     "x":9.9375,
-                     "y":-0.0681818
+                     "x":10,
+                     "y":0
                     }],
              "opacity":1,
              "type":"objectgroup",
@@ -275,18 +451,128 @@
         }, 
         {
          "id":48,
+         "objectgroup":
+            {
+             "draworder":"index",
+             "name":"",
+             "objects":[
+                    {
+                     "height":6,
+                     "id":1,
+                     "name":"Collision",
+                     "rotation":0,
+                     "type":"Square",
+                     "visible":true,
+                     "width":6,
+                     "x":10,
+                     "y":0
+                    }],
+             "opacity":1,
+             "type":"objectgroup",
+             "visible":true,
+             "x":0,
+             "y":0
+            },
          "type":"WoodFloor"
         }, 
         {
          "id":49,
+         "objectgroup":
+            {
+             "draworder":"index",
+             "name":"",
+             "objects":[
+                    {
+                     "height":6,
+                     "id":1,
+                     "name":"Collision",
+                     "rotation":0,
+                     "type":"Square",
+                     "visible":true,
+                     "width":6,
+                     "x":0,
+                     "y":0
+                    }],
+             "opacity":1,
+             "type":"objectgroup",
+             "visible":true,
+             "x":0,
+             "y":0
+            },
          "type":"WoodFloor"
         }, 
         {
          "id":50,
+         "objectgroup":
+            {
+             "draworder":"index",
+             "name":"",
+             "objects":[
+                    {
+                     "height":16,
+                     "id":1,
+                     "name":"Collision",
+                     "rotation":0,
+                     "type":"Square",
+                     "visible":true,
+                     "width":6,
+                     "x":0,
+                     "y":0
+                    }, 
+                    {
+                     "height":6,
+                     "id":2,
+                     "name":"Collision",
+                     "rotation":0,
+                     "type":"Square",
+                     "visible":true,
+                     "width":16,
+                     "x":0,
+                     "y":10
+                    }],
+             "opacity":1,
+             "type":"objectgroup",
+             "visible":true,
+             "x":0,
+             "y":0
+            },
          "type":"WoodFloor"
         }, 
         {
          "id":51,
+         "objectgroup":
+            {
+             "draworder":"index",
+             "name":"",
+             "objects":[
+                    {
+                     "height":16,
+                     "id":1,
+                     "name":"Collision",
+                     "rotation":0,
+                     "type":"Square",
+                     "visible":true,
+                     "width":6,
+                     "x":10,
+                     "y":0
+                    }, 
+                    {
+                     "height":6,
+                     "id":2,
+                     "name":"Collision",
+                     "rotation":0,
+                     "type":"Square",
+                     "visible":true,
+                     "width":16,
+                     "x":0,
+                     "y":10
+                    }],
+             "opacity":1,
+             "type":"objectgroup",
+             "visible":true,
+             "x":0,
+             "y":0
+            },
          "type":"WoodFloor"
         }, 
         {
