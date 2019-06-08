@@ -64,13 +64,13 @@ namespace JourneyCore.Client
             int scaledSizeX = tileMetadata.TextureRect.Width * MapLoader.Scale;
             int scaledSizeY = tileMetadata.TextureRect.Height * MapLoader.Scale;
 
-            Vector2f topLeft = GraphMath.CalculateVertexPosition(VertexCorner.TopLeft, tileCoords.X, tileCoords.Y,
+            Vector2f topLeft = VertexMath.CalculateVertexPosition(VertexCorner.TopLeft, tileCoords.X, tileCoords.Y,
                 scaledSizeX, scaledSizeY);
-            Vector2f topRight = GraphMath.CalculateVertexPosition(VertexCorner.TopRight, tileCoords.X, tileCoords.Y,
+            Vector2f topRight = VertexMath.CalculateVertexPosition(VertexCorner.TopRight, tileCoords.X, tileCoords.Y,
                 scaledSizeX, scaledSizeY);
-            Vector2f bottomRight = GraphMath.CalculateVertexPosition(VertexCorner.BottomRight, tileCoords.X,
+            Vector2f bottomRight = VertexMath.CalculateVertexPosition(VertexCorner.BottomRight, tileCoords.X,
                 tileCoords.Y, scaledSizeX, scaledSizeY);
-            Vector2f bottomLeft = GraphMath.CalculateVertexPosition(VertexCorner.BottomLeft, tileCoords.X, tileCoords.Y,
+            Vector2f bottomLeft = VertexMath.CalculateVertexPosition(VertexCorner.BottomLeft, tileCoords.X, tileCoords.Y,
                 scaledSizeX, scaledSizeY);
 
             QuadCoords textureCoords = GetTileTextureCoords(tilePrimitive);

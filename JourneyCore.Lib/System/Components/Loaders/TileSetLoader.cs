@@ -28,6 +28,11 @@ namespace JourneyCore.Lib.System.Components.Loaders
 
         private static void BuildTile(TileSet tileSet, Tile tile, int firstGid)
         {
+            if (tile.ObjectGroup != null)
+            {
+
+            }
+
             tile.Gid = tile.Id + firstGid;
             tile.TextureRect = new IntRect(tile.Id % tileSet.Columns,
                 tile.Id / tileSet.Columns,

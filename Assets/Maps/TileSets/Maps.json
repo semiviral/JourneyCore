@@ -6,7 +6,7 @@
  "name":"JourneyCore-Maps",
  "spacing":0,
  "tilecount":780,
- "tiledversion":"1.2.3",
+ "tiledversion":"1.2.4",
  "tileheight":16,
  "tiles":[
         {
@@ -243,7 +243,7 @@
              "x":0,
              "y":0
             },
-         "type":"WoodFloor"
+         "type":"WoodWall"
         }, 
         {
          "id":34,
@@ -269,7 +269,7 @@
              "x":0,
              "y":0
             },
-         "type":"WoodFloor"
+         "type":"WoodWall"
         }, 
         {
          "id":35,
@@ -295,7 +295,7 @@
              "x":0,
              "y":0
             },
-         "type":"WoodFloor"
+         "type":"WoodWall"
         }, 
         {
          "id":36,
@@ -321,7 +321,7 @@
              "x":0,
              "y":0
             },
-         "type":"WoodFloor"
+         "type":"WoodWall"
         }, 
         {
          "id":37,
@@ -358,7 +358,7 @@
              "x":0,
              "y":0
             },
-         "type":"WoodFloor"
+         "type":"WoodWall"
         }, 
         {
          "id":38,
@@ -395,7 +395,7 @@
              "x":0,
              "y":0
             },
-         "type":"WoodFloor"
+         "type":"WoodWall"
         }, 
         {
          "id":46,
@@ -421,7 +421,7 @@
              "x":0,
              "y":0
             },
-         "type":"WoodFloor"
+         "type":"WoodWall"
         }, 
         {
          "id":47,
@@ -447,7 +447,7 @@
              "x":0,
              "y":0
             },
-         "type":"WoodFloor"
+         "type":"WoodWall"
         }, 
         {
          "id":48,
@@ -473,7 +473,7 @@
              "x":0,
              "y":0
             },
-         "type":"WoodFloor"
+         "type":"WoodWall"
         }, 
         {
          "id":49,
@@ -499,7 +499,7 @@
              "x":0,
              "y":0
             },
-         "type":"WoodFloor"
+         "type":"WoodWall"
         }, 
         {
          "id":50,
@@ -536,7 +536,7 @@
              "x":0,
              "y":0
             },
-         "type":"WoodFloor"
+         "type":"WoodWall"
         }, 
         {
          "id":51,
@@ -573,7 +573,7 @@
              "x":0,
              "y":0
             },
-         "type":"WoodFloor"
+         "type":"WoodWall"
         }, 
         {
          "id":58,

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.System.Components;
@@ -11,6 +12,7 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
         public int Id { get; set; }
         public string Type { get; set; }
         public double Probability { get; set; }
+        public TileObjectGroup ObjectGroup { get; set; }
         public CustomProperty[] Properties { get; set; }
         public int Gid { get; set; }
         public IntRect TextureRect { get; set; }
