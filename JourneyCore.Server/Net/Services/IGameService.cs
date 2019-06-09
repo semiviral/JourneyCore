@@ -7,7 +7,7 @@ using JourneyCore.Lib.System;
 using Microsoft.Extensions.Hosting;
 using SFML.System;
 
-namespace JourneyCore.Server.Net.SignalR.Services
+namespace JourneyCore.Server.Net.Services
 {
     public interface IGameService : IHostedService
     {

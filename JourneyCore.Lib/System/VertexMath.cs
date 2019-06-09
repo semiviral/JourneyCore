@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using SFML.System;
 
 namespace JourneyCore.Lib.System
 {
     public static class VertexMath
     {
-        public static Vector2f CalculateVertexPosition(VertexCorner corner, int x, int y, int sizeX, int sizeY)
+        public static Vector2f CalculateVertexPosition(VertexCorner corner, float x, float y, float sizeX, float sizeY)
         {
             Vector2f vector = new Vector2f();
 

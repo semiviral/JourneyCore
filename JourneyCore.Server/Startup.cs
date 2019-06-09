@@ -1,6 +1,6 @@
-﻿using JourneyCore.Server.Net.SignalR.Contexts;
+﻿using JourneyCore.Server.Net.Services;
+using JourneyCore.Server.Net.SignalR.Contexts;
 using JourneyCore.Server.Net.SignalR.Hubs;
-using JourneyCore.Server.Net.SignalR.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

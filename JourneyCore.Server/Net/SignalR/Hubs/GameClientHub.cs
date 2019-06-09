@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using JourneyCore.Lib.System;
-using JourneyCore.Server.Net.SignalR.Services;
+using JourneyCore.Server.Net.Services;
 using Microsoft.AspNetCore.SignalR;
 
 namespace JourneyCore.Server.Net.SignalR.Hubs

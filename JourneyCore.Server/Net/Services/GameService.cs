@@ -12,7 +12,7 @@ using JourneyCore.Lib.System.Components.Loaders;
 using JourneyCore.Server.Net.SignalR.Contexts;
 using SFML.System;
 
-namespace JourneyCore.Server.Net.SignalR.Services
+namespace JourneyCore.Server.Net.Services
 {
     public class GameService : IGameService
     {

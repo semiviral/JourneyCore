@@ -70,11 +70,18 @@ namespace JourneyCore.Client
 
             Window.SetActive(true);
 
-            while (Window.IsActive)
+            try
             {
-                InputWatcher.CheckWatchedInputs();
+                while (Window.IsActive)
+                {
+                    InputWatcher.CheckWatchedInputs();
 
-                Window.UpdateWindow();
+                    Window.UpdateWindow();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message);
             }
         }
 
@@ -105,17 +112,24 @@ namespace JourneyCore.Client
 
         public async Task Initialise(string serverUrl, string servicePath, int maximumFrameRate)
         {
-            await InitialiseGameServerConnection(serverUrl, servicePath);
-            InitialiseGameWindow(maximumFrameRate);
-            await InitialiseLocalMap();
-            await InitialisePlayer();
-            SetupWatchedKeys();
-            SetupWatchedMouse();
-            await InitialiseUserInterface();
-            InitialiseMiniMap();
+            try
+            {
+                await InitialiseGameServerConnection(serverUrl, servicePath);
+                InitialiseGameWindow(maximumFrameRate);
+                await InitialiseLocalMap();
+                await InitialisePlayer();
+                SetupWatchedKeys();
+                SetupWatchedMouse();
+                await InitialiseUserInterface();
+                InitialiseMiniMap();
 
-            Window.GainedFocus += (sender, args) => { InputWatcher.WindowFocused = true; };
-            Window.LostFocus += (sender, args) => { InputWatcher.WindowFocused = false; };
+                Window.GainedFocus += (sender, args) => { InputWatcher.WindowFocused = true; };
+                Window.LostFocus += (sender, args) => { InputWatcher.WindowFocused = false; };
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message);
+            }
         }
 
         private async Task InitialiseGameServerConnection(string serverUrl, string servicePath)
@@ -224,7 +238,7 @@ namespace JourneyCore.Client
                     movement *= 0.5f;
                 }
 
-                Player.MoveEntity(movement, MapLoader.PixelTileWidth * MapLoader.Scale, Window.ElapsedTime);
+                Player.MoveEntity(movement, MapLoader.TilePixelSize * MapLoader.Scale, Window.ElapsedTime);
             });
 
             InputWatcher.AddWatchedInput(Keyboard.Key.A, key =>
@@ -240,7 +254,7 @@ namespace JourneyCore.Client
                     movement *= 0.5f;
                 }
 
-                Player.MoveEntity(movement, MapLoader.PixelTileWidth * MapLoader.Scale, Window.ElapsedTime);
+                Player.MoveEntity(movement, MapLoader.TilePixelSize * MapLoader.Scale, Window.ElapsedTime);
             });
 
             InputWatcher.AddWatchedInput(Keyboard.Key.S, key =>
@@ -256,7 +270,7 @@ namespace JourneyCore.Client
                     movement *= 0.5f;
                 }
 
-                Player.MoveEntity(movement, MapLoader.PixelTileWidth * MapLoader.Scale, Window.ElapsedTime);
+                Player.MoveEntity(movement, MapLoader.TilePixelSize * MapLoader.Scale, Window.ElapsedTime);
             });
 
             InputWatcher.AddWatchedInput(Keyboard.Key.D, key =>
@@ -271,7 +285,7 @@ namespace JourneyCore.Client
                     movement *= 0.5f;
                 }
 
-                Player.MoveEntity(movement, MapLoader.PixelTileWidth * MapLoader.Scale, Window.ElapsedTime);
+                Player.MoveEntity(movement, MapLoader.TilePixelSize * MapLoader.Scale, Window.ElapsedTime);
             });
 
             InputWatcher.AddWatchedInput(Keyboard.Key.G, key => { CurrentMap.Minimap.VArray.ModifyOpacity(-25, 10); });

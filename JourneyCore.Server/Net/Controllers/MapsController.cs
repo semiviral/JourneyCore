@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using JourneyCore.Server.Net.SignalR.Services;
+using JourneyCore.Server.Net.Services;
 using Microsoft.AspNetCore.Mvc;
 using SFML.System;
 

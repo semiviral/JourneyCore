@@ -2,10 +2,12 @@
 
 namespace JourneyCore.Lib.Game.Environment.Metadata
 {
-    public struct TileSetMetadata
+    public class TileSetMetadata
     {
-        public string TextureName { get; }
-        public List<TileMetadata> Tiles { get; }
+        public string TextureName { get; set; }
+        public List<TileMetadata> Tiles { get; set; }
+
+        public TileSetMetadata() { }
 
         public TileSetMetadata(string textureName, List<TileMetadata> tiles)
         {

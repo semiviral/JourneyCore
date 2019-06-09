@@ -13,7 +13,7 @@ namespace JourneyCore.Lib.System.Components.Loaders
         public static int Scale = 1;
         public static int TileSize = 16;
 
-        public static int PixelTileWidth => Scale * TileSize;
+        public static int TilePixelSize => Scale * TileSize;
 
         public static Map LoadMap(string mapPath, short tileScale)
         {

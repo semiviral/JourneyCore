@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
+using JourneyCore.Lib.Game.Object;
 using JourneyCore.Lib.Graphics;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
@@ -17,6 +19,7 @@ namespace JourneyCore.Client
         public MapMetadata Metadata { get; private set; }
         public VertexArray VArray { get; }
         public Minimap Minimap { get; }
+        public List<ICollidable> CollisionObjects { get; }
 
         public LocalMap(byte[] mapImage)
         {
@@ -25,17 +28,18 @@ namespace JourneyCore.Client
             Metadata = new MapMetadata();
             VArray = new VertexArray(PrimitiveType.Quads);
             Minimap = new Minimap();
+            CollisionObjects = new List<ICollidable>();
         }
 
         public void Update(MapMetadata mapMetadata)
         {
+            Metadata = mapMetadata;
+
             VArray.Clear();
-            VArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount));
+            VArray.Resize((uint)(Metadata.Width * Metadata.Height * 4 * Metadata.LayerCount));
 
             Minimap.VArray.Clear();
-            Minimap.VArray.Resize((uint)(mapMetadata.Width * mapMetadata.Height * 4 * mapMetadata.LayerCount));
-
-            Metadata = mapMetadata;
+            Minimap.VArray.Resize((uint)(Metadata.Width * Metadata.Height * 4 * Metadata.LayerCount));
         }
 
         public void LoadChunk(Chunk chunk)
@@ -43,16 +47,41 @@ namespace JourneyCore.Client
             for (int x = 0; x < chunk.Length; x++)
             for (int y = 0; y < chunk[0].Length; y++)
             {
-                AllocateTileToVArray(chunk[x][y],
-                    new Vector2i(chunk.Left * MapLoader.ChunkSize + x, chunk.Top * MapLoader.ChunkSize + y),
-                    chunk.Layer);
+                Vector2f tileCoords = new Vector2f(chunk.Left * MapLoader.ChunkSize + x,
+                    chunk.Top * MapLoader.ChunkSize + y);
+
+                ProcessCollisions(chunk[x][y], tileCoords);
+
+                AllocateTileToVArray(chunk[x][y], tileCoords, chunk.Layer);
             }
         }
 
 
         #region MAP BUILDING
 
-        private void AllocateTileToVArray(TilePrimitive tilePrimitive, Vector2i tileCoords, int layerId)
+        private void ProcessCollisions(TilePrimitive tilePrimitive, Vector2f tileCoords)
+        {
+            TileMetadata tileMetadata = GetTileMetadata(tilePrimitive.Gid);
+
+            if (tileMetadata?.Collidables == null)
+            {
+                return;
+            }
+            else
+            {
+
+            }
+
+            foreach (CollisionBox collidable in tileMetadata.Collidables)
+            {
+                CollisionObjects.Add(new CollisionBox(collidable)
+                {
+                    Position = new Vector2f(tileCoords.X * MapLoader.TilePixelSize + collidable.Position.X, tileCoords.Y * MapLoader.TilePixelSize + collidable.Position.Y)
+                });
+            }
+        }
+
+        private void AllocateTileToVArray(TilePrimitive tilePrimitive, Vector2f tileCoords, int drawLayer)
         {
             if (tilePrimitive.Gid == 0)
             {
@@ -70,13 +99,14 @@ namespace JourneyCore.Client
                 scaledSizeX, scaledSizeY);
             Vector2f bottomRight = VertexMath.CalculateVertexPosition(VertexCorner.BottomRight, tileCoords.X,
                 tileCoords.Y, scaledSizeX, scaledSizeY);
-            Vector2f bottomLeft = VertexMath.CalculateVertexPosition(VertexCorner.BottomLeft, tileCoords.X, tileCoords.Y,
+            Vector2f bottomLeft = VertexMath.CalculateVertexPosition(VertexCorner.BottomLeft, tileCoords.X,
+                tileCoords.Y,
                 scaledSizeX, scaledSizeY);
 
             QuadCoords textureCoords = GetTileTextureCoords(tilePrimitive);
 
             uint index = (uint)((tileCoords.Y * Metadata.Width + tileCoords.X) * 4 +
-                                (layerId - 1) * (VArray.VertexCount / Metadata.LayerCount));
+                                (drawLayer - 1) * (VArray.VertexCount / Metadata.LayerCount));
 
             VArray[index + 0] = new Vertex(topLeft, textureCoords.TopLeft);
             VArray[index + 1] = new Vertex(topRight, textureCoords.TopRight);
@@ -91,7 +121,7 @@ namespace JourneyCore.Client
 
         private TileMetadata GetTileMetadata(int gid)
         {
-            return Metadata.TileSets.SelectMany(tileSet => tileSet.Tiles).Single(tile => tile.Gid == gid);
+            return Metadata.TileSets.SelectMany(tileSet => tileSet.Tiles).SingleOrDefault(tile => tile.Gid == gid);
         }
 
         private QuadCoords GetTileTextureCoords(TilePrimitive tilePrimitive)

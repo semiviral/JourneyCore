@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace JourneyCore.Lib.Game.Object
+﻿namespace JourneyCore.Lib.Game.Object
 {
     public interface ICollidable
     {

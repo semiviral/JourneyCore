@@ -2,6 +2,7 @@
 {
     public class TileObject
     {
+        public string Name { get; set; }
         public string Type { get; set; }
         public float Rotation { get; set; }
         public float Height { get; set; }
