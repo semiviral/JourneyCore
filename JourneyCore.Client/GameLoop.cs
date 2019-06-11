@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using JourneyCore.Client.Net;
 using JourneyCore.Lib.Display;
 using JourneyCore.Lib.Display.Drawing;
+using JourneyCore.Lib.Display.Interactive;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.InputWatchers;
@@ -164,10 +165,31 @@ namespace JourneyCore.Client
             const float minimapSizeX = 0.2f;
 
             Window.CreateDrawView("menu", GameWindowLayer.Menu,
-                new View(new FloatRect(0f, 0f, viewSizeY, viewSizeY * GameWindow.WidescreenRatio))
+                new View(new FloatRect(0f, 0f, Window.Size.X, Window.Size.Y))
                 {
                     Viewport = new FloatRect(0f, 0f, 1f, 1f)
-                });
+                }, true);
+
+            RectangleShape shadowShape = new RectangleShape((Vector2f)Window.Size)
+            {
+                FillColor = new Color(0, 0, 0, 155)
+            };
+            Window.DrawItem("menu", 0,
+                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
+                    new DrawObject(typeof(RectangleShape), shadowShape), RenderStates.Default));
+
+            Font defaultFont =
+                new Font(
+                    @"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\Assets\Fonts\Courier New.ttf");
+            Button testButton = new Button(defaultFont, "Test")
+            {
+                Size = new Vector2f(100f, 100f),
+                FillColor = Color.Cyan,
+                Position = new Vector2f(100f, 100f)
+            };
+            Window.DrawItem("menu", 10,
+                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
+                    new DrawObject(typeof(Button), testButton), RenderStates.Default));
 
             Window.CreateDrawView("game", GameWindowLayer.Game,
                 new View(new FloatRect(0f, 0f, viewSizeY * GameWindow.WidescreenRatio, viewSizeY))

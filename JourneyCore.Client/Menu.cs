@@ -1,5 +1,7 @@
 ﻿using System;
+using JourneyCore.Lib.Display;
 using JourneyCore.Lib.Display.Interactive;
+using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using SFML.Graphics;
 
 namespace JourneyCore.Client
@@ -8,9 +10,15 @@ namespace JourneyCore.Client
     {
         public Button testButton { get; }
 
+        public Menu()
+        {
+            Font defaultFont = new Font(@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\Assets\Fonts\Courier New.ttf");
+            testButton = new Button(defaultFont, "Test");
+        }
+
         public void Draw(RenderTarget target, RenderStates states)
         {
-            throw new NotImplementedException();
+            testButton.Draw(target, states);
         }
     }
 }
