@@ -31,12 +31,9 @@ namespace JourneyCore.Client
         private LocalMap CurrentMap { get; set; }
         private Player Player { get; set; }
         private InputWatcher InputWatcher { get; }
-        private bool IsRunning { get; set; }
 
         public GameLoop()
         {
-            IsRunning = true;
-
             ConManager = new ConsoleManager();
             ConManager.Hide(false);
 
@@ -74,7 +71,7 @@ namespace JourneyCore.Client
             {
                 while (Window.IsActive)
                 {
-                    InputWatcher.CheckWatchedInputs();
+                    //InputWatcher.CheckWatchedInputs();
 
                     Window.UpdateWindow();
                 }
@@ -147,7 +144,7 @@ namespace JourneyCore.Client
                 15f);
             Window.Closed += (sender, args) =>
             {
-                IsRunning = false;
+                Window.SetActive(false);
                 CallFatality("Game window closed.");
             };
             Window.MouseWheelScrolled += (sender, args) =>

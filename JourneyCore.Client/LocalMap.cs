@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
@@ -14,20 +15,48 @@ namespace JourneyCore.Client
 {
     public class LocalMap
     {
+        private readonly Minimap _Minimap;
+        private readonly VertexArray _VArray;
+        private object VArrayLock { get; }
+        private object MinimapVArrayLock { get; }
+
         public byte[] Image { get; }
         public RenderStates RenderStates { get; }
         public MapMetadata Metadata { get; private set; }
-        public VertexArray VArray { get; }
-        public Minimap Minimap { get; }
+
+        public VertexArray VArray
+        {
+            get
+            {
+                lock (VArrayLock)
+                {
+                    return _VArray;
+                }
+            }
+        }
+
+        public Minimap Minimap
+        {
+            get
+            {
+                lock (MinimapVArrayLock)
+                {
+                    return _Minimap;
+                }
+            }
+        }
+
         public List<ICollidable> CollisionObjects { get; }
 
         public LocalMap(byte[] mapImage)
         {
+            VArrayLock = MinimapVArrayLock = new object();
+
             Image = mapImage;
             RenderStates = new RenderStates(new Texture(Image));
             Metadata = new MapMetadata();
-            VArray = new VertexArray(PrimitiveType.Quads);
-            Minimap = new Minimap();
+            _VArray = new VertexArray(PrimitiveType.Quads);
+            _Minimap = new Minimap();
             CollisionObjects = new List<ICollidable>();
         }
 
@@ -43,6 +72,12 @@ namespace JourneyCore.Client
         }
 
         public void LoadChunk(Chunk chunk)
+        {
+            Thread chunkLoadingThread = new Thread(() => LoadChunkThreaded(chunk));
+            chunkLoadingThread.Start();
+        }
+
+        private void LoadChunkThreaded(Chunk chunk)
         {
             for (int x = 0; x < chunk.Length; x++)
             for (int y = 0; y < chunk[0].Length; y++)
@@ -67,16 +102,13 @@ namespace JourneyCore.Client
             {
                 return;
             }
-            else
-            {
-
-            }
 
             foreach (CollisionBox collidable in tileMetadata.Collidables)
             {
                 CollisionObjects.Add(new CollisionBox(collidable)
                 {
-                    Position = new Vector2f(tileCoords.X * MapLoader.TilePixelSize + collidable.Position.X, tileCoords.Y * MapLoader.TilePixelSize + collidable.Position.Y)
+                    Position = new Vector2f(tileCoords.X * MapLoader.TilePixelSize + collidable.Position.X,
+                        tileCoords.Y * MapLoader.TilePixelSize + collidable.Position.Y)
                 });
             }
         }
