@@ -4,8 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using JourneyCore.Client.Net;
 using JourneyCore.Lib.Display;
+using JourneyCore.Lib.Display.Component;
 using JourneyCore.Lib.Display.Drawing;
-using JourneyCore.Lib.Display.Interactive;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.InputWatchers;
@@ -195,29 +195,18 @@ namespace JourneyCore.Client
                 new Font(
                     @"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\Assets\Fonts\Courier New.ttf");
 
-            Button testButton = new Button(defaultFont, "Test")
+            Button testButton = new Button(Window, defaultFont, "Test")
             {
                 Size = new Vector2f(100f, 100f),
                 FillColor = Color.Cyan,
-                Position = new Vector2f(100f, 100f)
+                Position = new Vector2f(100f, 100f),
+                DefaultColor = Color.Cyan,
+                HoverColor = Color.Green,
+                PressedColor =  Color.Red
             };
 
             Window.DrawItem("menu", 10,
-                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, frameTime =>
-                    {
-                        if (testButton.IsHovered(Window.GetRelativeMousePosition()))
-                        {
-                            testButton.FillColor = Color.Green;
-                        }
-                        else
-                        {
-                            if (testButton.FillColor == Color.Green)
-                            {
-                                testButton.FillColor = Color.Cyan;
-                            }
-                        }
-                    },
-                    new DrawObject(typeof(Button), testButton), RenderStates.Default));
+                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null, new DrawObject(typeof(Button), testButton), RenderStates.Default));
 
             Window.CreateDrawView("game", GameWindowLayer.Game,
                 new View(new FloatRect(0f, 0f, viewSizeY * GameWindow.WidescreenRatio, viewSizeY))

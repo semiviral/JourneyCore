@@ -17,7 +17,7 @@ namespace JourneyCore.Lib.Display
         Menu
     }
 
-    public class GameWindow
+    public class GameWindow : IGameWindow
     {
         public const float WidescreenRatio = 16f / 9f;
         public const float LetterboxRatio = 4f / 3f;

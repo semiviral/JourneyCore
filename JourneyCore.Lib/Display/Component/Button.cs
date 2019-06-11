@@ -1,8 +1,9 @@
 ﻿using System;
 using SFML.Graphics;
 using SFML.System;
+using SFML.Window;
 
-namespace JourneyCore.Lib.Display.Interactive
+namespace JourneyCore.Lib.Display.Component
 {
     public enum HorizontalTextAlignment
     {
@@ -22,14 +23,34 @@ namespace JourneyCore.Lib.Display.Interactive
     {
         private Vector2f _ParsedPosition;
         private Vector2f _ParsedSize;
+        private RenderWindow _WindowContext;
 
         public Vector2f Position { get; set; }
         public Vector2f Size { get; set; }
 
-        public Button(Font defaultFont, string text)
+        public bool IsPressed { get; set; }
+        public bool IsHovered { get; set; }
+
+        public Color DefaultColor { get; set; }
+        public Color HoverColor { get; set; }
+        public Color PressedColor { get; set; }
+
+        public Button(IGameWindow windowContext, Font defaultFont, string text)
         {
+            windowContext.MouseMoved += OnMouseMoved;
+            windowContext.MouseButtonPressed += OnMouseButtonPressed;
+            windowContext.MouseButtonReleased += OnMouseButtonReleased;
+
+            MouseEntered += OnMouseEntered;
+            MouseExited += OnMouseExited;
+            Pressed += OnPressed;
+            Released += OnReleased;
+
             Position = new Vector2f(0f, 0f);
             Size = new Vector2f(10f, 10f);
+
+            IsHovered = false;
+            IsPressed = false;
 
             BackgroundSprite = new Sprite();
             BackgroundShape = new RectangleShape(Size);
@@ -58,17 +79,86 @@ namespace JourneyCore.Lib.Display.Interactive
             _TextObject.Draw(target, states);
         }
 
-        public bool IsHovered(Vector2f mousePosition)
+        private void OnMouseMoved(object sender, MouseMoveEventArgs args)
         {
-            return IsHovered((Vector2i)mousePosition);
+            if (BackgroundShape.GetGlobalBounds().Contains(args.X, args.Y))
+            {
+                IsHovered = true;
+
+                MouseEntered?.Invoke(sender, args);
+            }
+            else
+            {
+                if (IsHovered)
+                {
+                    MouseExited?.Invoke(sender, args);
+                }
+
+                IsHovered = false;
+            }
         }
 
-        public bool IsHovered(Vector2i mousePosition)
+        private void OnMouseButtonPressed(object sender, MouseButtonEventArgs args)
         {
-            FloatRect floatRect = BackgroundShape.GetGlobalBounds();
+            if (!IsHovered)
+            {
+                return;
+            }
 
-            return floatRect.Contains(mousePosition.X, mousePosition.Y);
+            IsPressed = true;
+
+            FillColor = PressedColor;
+
+            Pressed?.Invoke(sender, args);
         }
+
+        private void OnMouseButtonReleased(object sender, MouseButtonEventArgs args)
+        {
+            if (!IsPressed)
+            {
+                return;
+            }
+
+            IsPressed = false;
+
+            Released?.Invoke(sender, args);
+        }
+
+        #region EVENTS
+
+        public event EventHandler<MouseMoveEventArgs> MouseEntered;
+        public event EventHandler<MouseMoveEventArgs> MouseExited;
+        public event EventHandler<MouseButtonEventArgs> Pressed;
+        public event EventHandler<MouseButtonEventArgs> Released;
+
+        #endregion
+
+        #region AUTO-COLORING
+
+        private void OnMouseEntered(object sender, MouseMoveEventArgs args)
+        {
+            FillColor = IsPressed ? PressedColor : HoverColor;
+        }
+
+        private void OnMouseExited(object sender, MouseMoveEventArgs args)
+        {
+            if (IsHovered && !IsPressed)
+            {
+                FillColor = DefaultColor;
+            }
+        }
+
+        private void OnPressed(object sender, MouseButtonEventArgs args)
+        {
+            FillColor = PressedColor;
+        }
+
+        private void OnReleased(object sender, MouseButtonEventArgs args)
+        {
+            FillColor = IsHovered ? HoverColor : DefaultColor;
+        }
+
+        #endregion
 
         #region POSITIONING / SIZING
 
@@ -139,8 +229,7 @@ namespace JourneyCore.Lib.Display.Interactive
 
         private RectangleShape BackgroundShape { get; }
 
-        public Color FillColor
-        {
+        public Color FillColor {
             get => BackgroundShape.FillColor;
             set => BackgroundShape.FillColor = value;
         }
@@ -158,8 +247,7 @@ namespace JourneyCore.Lib.Display.Interactive
         public HorizontalTextAlignment HorizontalTextAlignment { get; set; }
         public Font DefaultFont { get; }
 
-        public string Text
-        {
+        public string Text {
             get => _TextObject.DisplayedString;
             set => _TextObject = new Text(value, DefaultFont);
         }
