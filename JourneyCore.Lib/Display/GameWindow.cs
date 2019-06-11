@@ -34,6 +34,9 @@ namespace JourneyCore.Lib.Display
             Window.GainedFocus += OnGainedFocus;
             Window.LostFocus += OnLostFocus;
             Window.MouseWheelScrolled += OnMouseWheelScrolled;
+            Window.MouseMoved += OnMouseMoved;
+            Window.MouseButtonPressed += OnMouseButtonPressed;
+            Window.MouseButtonReleased += OnMouseButtonReleased;
             Window.SetFramerateLimit((uint)TargetFps);
 
             DrawViews = new SortedList<GameWindowLayer, DrawView>();
@@ -63,7 +66,7 @@ namespace JourneyCore.Lib.Display
         private static int _TargetFps;
 
         public Vector2u Size => Window.Size;
-        public bool IsInMenu { get; private set; }
+        public bool EnableInput { get; set; }
         public bool IsActive => Window.IsOpen;
         public Vector2f ContentScale { get; set; }
         public Vector2f PositionScale { get; set; }
@@ -119,6 +122,9 @@ namespace JourneyCore.Lib.Display
         public event EventHandler GainedFocus;
         public event EventHandler LostFocus;
         public event EventHandler<MouseWheelScrollEventArgs> MouseWheelScrolled;
+        public event EventHandler<MouseMoveEventArgs> MouseMoved;
+        public event EventHandler<MouseButtonEventArgs> MouseButtonPressed;
+        public event EventHandler<MouseButtonEventArgs> MouseButtonReleased;
 
         private void OnClose(object sender, EventArgs args)
         {
@@ -141,6 +147,21 @@ namespace JourneyCore.Lib.Display
         public void OnMouseWheelScrolled(object sender, MouseWheelScrollEventArgs args)
         {
             MouseWheelScrolled?.Invoke(sender, args);
+        }
+
+        public void OnMouseMoved(object sender, MouseMoveEventArgs args)
+        {
+            MouseMoved?.Invoke(sender, args);
+        }
+
+        public void OnMouseButtonPressed(object sender, MouseButtonEventArgs args)
+        {
+            MouseButtonPressed?.Invoke(sender, args);
+        }
+
+        public void OnMouseButtonReleased(object sender, MouseButtonEventArgs args)
+        {
+            MouseButtonReleased?.Invoke(sender, args);
         }
 
         #endregion

@@ -24,6 +24,17 @@ namespace JourneyCore.Client
     public class GameLoop : Context
     {
         private static Tuple<int, string> _FatalExit;
+        private bool _IsFocused;
+
+        private bool IsFocused
+        {
+            get => _IsFocused;
+            set
+            {
+                _IsFocused = value;
+                Window.EnableInput = _IsFocused;
+            }
+        }
 
         private GameServerConnection NetManager { get; set; }
         private ConsoleManager ConManager { get; }
@@ -124,8 +135,10 @@ namespace JourneyCore.Client
                 await CreateUserInterface();
                 SetupMinimap();
 
-                Window.GainedFocus += (sender, args) => { InputWatcher.WindowFocused = true; };
-                Window.LostFocus += (sender, args) => { InputWatcher.WindowFocused = false; };
+                InputWatcher.EnableInputFunc = () => Window.EnableInput;
+
+                Window.GainedFocus += (sender, args) => { IsFocused = true; };
+                Window.LostFocus += (sender, args) => { IsFocused = false; };
             }
             catch (Exception ex)
             {
@@ -155,7 +168,7 @@ namespace JourneyCore.Client
             {
                 Window.GetDrawView("minimap").ZoomFactor += args.Delta * -1f;
             };
-
+            
             Log.Information("Game window initialised.");
         }
 
@@ -181,14 +194,29 @@ namespace JourneyCore.Client
             Font defaultFont =
                 new Font(
                     @"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\Assets\Fonts\Courier New.ttf");
+
             Button testButton = new Button(defaultFont, "Test")
             {
                 Size = new Vector2f(100f, 100f),
                 FillColor = Color.Cyan,
                 Position = new Vector2f(100f, 100f)
             };
+
             Window.DrawItem("menu", 10,
-                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
+                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, frameTime =>
+                    {
+                        if (testButton.IsHovered(Window.GetRelativeMousePosition()))
+                        {
+                            testButton.FillColor = Color.Green;
+                        }
+                        else
+                        {
+                            if (testButton.FillColor == Color.Green)
+                            {
+                                testButton.FillColor = Color.Cyan;
+                            }
+                        }
+                    },
                     new DrawObject(typeof(Button), testButton), RenderStates.Default));
 
             Window.CreateDrawView("game", GameWindowLayer.Game,
@@ -334,11 +362,6 @@ namespace JourneyCore.Client
         {
             InputWatcher.AddWatchedInput(Mouse.Button.Left, button =>
             {
-                if (Window.IsInMenu)
-                {
-                    return;
-                }
-
                 Vector2i mousePosition = Window.GetRelativeMousePosition();
                 View gameView = Window.GetDrawView("game").View;
 

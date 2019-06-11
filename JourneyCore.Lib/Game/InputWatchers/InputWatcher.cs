@@ -10,11 +10,11 @@ namespace JourneyCore.Lib.Game.InputWatchers
         private List<KeyWatch> WatchedKeys { get; }
         private List<ButtonWatch> WatchedButtons { get; }
 
-        public bool WindowFocused { get; set; }
+        public Func<bool> EnableInputFunc { get; set; }
 
         public InputWatcher()
         {
-            WindowFocused = true;
+            EnableInputFunc = () => true;
             WatchedKeys = new List<KeyWatch>();
             WatchedButtons = new List<ButtonWatch>();
         }
@@ -84,7 +84,7 @@ namespace JourneyCore.Lib.Game.InputWatchers
 
         public void CheckWatchedInputs()
         {
-            if (!WindowFocused)
+            if (!EnableInputFunc())
             {
                 return;
             }

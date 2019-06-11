@@ -34,7 +34,7 @@ namespace JourneyCore.Lib.Display.Interactive
             BackgroundSprite = new Sprite();
             BackgroundShape = new RectangleShape(Size);
             FillColor = Color.Transparent;
-            
+
             VerticalTextAlignment = VerticalTextAlignment.Top;
             HorizontalTextAlignment = HorizontalTextAlignment.Left;
             DefaultFont = defaultFont;
@@ -58,6 +58,20 @@ namespace JourneyCore.Lib.Display.Interactive
             _TextObject.Draw(target, states);
         }
 
+        public bool IsHovered(Vector2f mousePosition)
+        {
+            return IsHovered((Vector2i)mousePosition);
+        }
+
+        public bool IsHovered(Vector2i mousePosition)
+        {
+            FloatRect floatRect = BackgroundShape.GetGlobalBounds();
+
+            return floatRect.Contains(mousePosition.X, mousePosition.Y);
+        }
+
+        #region POSITIONING / SIZING
+
         private void SizeChanged()
         {
             BackgroundSprite.Scale = new Vector2f(Size.X / BackgroundSprite.TextureRect.Width,
@@ -66,8 +80,6 @@ namespace JourneyCore.Lib.Display.Interactive
 
             _ParsedSize = Size;
         }
-
-        #region POSITIONING
 
         private void PositionChanged()
         {
