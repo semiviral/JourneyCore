@@ -1,7 +1,7 @@
 ﻿using System;
 using SFML.Graphics;
 
-namespace JourneyCore.Lib.Graphics.Drawing
+namespace JourneyCore.Lib.Display.Drawing
 {
     public class DrawItem
     {

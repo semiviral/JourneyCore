@@ -4,7 +4,7 @@ using JourneyCore.Lib.Game.Environment.Metadata;
 using SFML.Graphics;
 using SFML.System;
 
-namespace JourneyCore.Client.Display.UserInterface
+namespace JourneyCore.Lib.Display
 {
     public class Ui
     {

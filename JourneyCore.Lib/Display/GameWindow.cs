@@ -1,18 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using JourneyCore.Lib.Graphics.Drawing;
+using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.System.Time;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
-namespace JourneyCore.Client.Display
+namespace JourneyCore.Lib.Display
 {
+    public enum GameWindowLayer
+    {
+        Game,
+        Minimap,
+        UI,
+        Menu
+    }
+
     public class GameWindow
     {
-        public const float WidescreenRatio = 9f / 16f;
-        public const float LetterboxRatio = 3f / 4f;
+        public const float WidescreenRatio = 16f / 9f;
+        public const float LetterboxRatio = 4f / 3f;
 
         public GameWindow(string windowTitle, VideoMode videoMode, int targetFps, Vector2f contentScale,
             float positionScale)
@@ -27,10 +35,11 @@ namespace JourneyCore.Client.Display
             Window.LostFocus += OnLostFocus;
             Window.MouseWheelScrolled += OnMouseWheelScrolled;
             Window.SetFramerateLimit((uint)TargetFps);
-            Window.SetActive(false);
 
-            DrawViews = new SortedList<int, DrawView>();
+            DrawViews = new SortedList<GameWindowLayer, DrawView>();
             DeltaClock = new Delta();
+
+            Window.SetActive(false);
         }
 
         public RenderWindow SetActive(bool activeState)
@@ -50,7 +59,7 @@ namespace JourneyCore.Client.Display
 
         private RenderWindow Window { get; }
         private static Delta DeltaClock { get; set; }
-        private SortedList<int, DrawView> DrawViews { get; }
+        private SortedList<GameWindowLayer, DrawView> DrawViews { get; }
         private static int _TargetFps;
 
         public Vector2u Size => Window.Size;
@@ -59,11 +68,9 @@ namespace JourneyCore.Client.Display
         public Vector2f ContentScale { get; set; }
         public Vector2f PositionScale { get; set; }
 
-        public int TargetFps
-        {
+        public int TargetFps {
             get => _TargetFps;
-            set
-            {
+            set {
                 // fps changed stuff
 
                 _TargetFps = value;
@@ -86,7 +93,7 @@ namespace JourneyCore.Client.Display
             Window.DispatchEvents();
             Window.Clear();
 
-            foreach ((int key, DrawView drawView) in DrawViews)
+            foreach ((GameWindowLayer windowLayer, DrawView drawView) in DrawViews.Where(drawView => drawView.Value.Visible))
             {
                 SetWindowView(drawView.Name, drawView.View);
 
@@ -141,9 +148,9 @@ namespace JourneyCore.Client.Display
 
         #region VIEW
 
-        public DrawView CreateDrawView(string viewName, int drawLayer, View defaultView)
+        public DrawView CreateDrawView(string viewName, GameWindowLayer layer, View defaultView, bool visible = false)
         {
-            return CreateDrawView(new DrawView(viewName, drawLayer, defaultView));
+            return CreateDrawView(new DrawView(viewName, layer, defaultView, visible));
         }
 
         public DrawView CreateDrawView(DrawView drawView)

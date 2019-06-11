@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using JourneyCore.Lib.Game.Environment.Tiling;
 using JourneyCore.Lib.Game.Object;
 using SFML.Graphics;
 

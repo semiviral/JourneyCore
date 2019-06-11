@@ -1,7 +1,7 @@
 ﻿using SFML.Graphics;
 using SFML.System;
 
-namespace JourneyCore.Lib.Graphics.Drawing
+namespace JourneyCore.Lib.Display.Drawing
 {
     public static class TransformableStaticExtensions
     {

@@ -1,4 +1,4 @@
-﻿using JourneyCore.Lib.Graphics.Drawing;
+﻿using JourneyCore.Lib.Display.Drawing;
 using SFML.Graphics;
 
 namespace JourneyCore.Lib.Game.Object.Entity

@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using JourneyCore.Lib.Display;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
 using JourneyCore.Lib.Game.Object;
-using JourneyCore.Lib.Graphics;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
 using SFML.Graphics;

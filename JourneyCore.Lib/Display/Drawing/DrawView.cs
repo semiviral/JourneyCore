@@ -6,7 +6,7 @@ using JourneyCore.Lib.System;
 using SFML.Graphics;
 using SFML.System;
 
-namespace JourneyCore.Lib.Graphics.Drawing
+namespace JourneyCore.Lib.Display.Drawing
 {
     public class DrawView : IAnchorable
     {
@@ -18,8 +18,9 @@ namespace JourneyCore.Lib.Graphics.Drawing
         private float _ZoomFactor = 1.0f;
 
         public string Name { get; }
-        public int Layer { get; }
+        public GameWindowLayer Layer { get; }
         public View View { get; }
+        public bool Visible { get; set; }
 
         private SortedList<int, List<DrawItem>> DrawQueue { get; }
         private Vector2f DefaultSize { get; }
@@ -35,11 +36,12 @@ namespace JourneyCore.Lib.Graphics.Drawing
             }
         }
 
-        public DrawView(string name, int layer, View view)
+        public DrawView(string name, GameWindowLayer layer, View view, bool visible = false)
         {
             Name = name;
             Layer = layer;
             View = view;
+            Visible = visible;
 
             DrawQueue = new SortedList<int, List<DrawItem>>();
             DefaultSize = View.Size;

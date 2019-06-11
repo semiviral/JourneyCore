@@ -3,7 +3,7 @@ using JourneyCore.Lib.Game.Object;
 using SFML.Graphics;
 using SFML.System;
 
-namespace JourneyCore.Lib.Graphics.Drawing
+namespace JourneyCore.Lib.Display.Drawing
 {
     public class DrawObject : Transformable, Drawable, IAnchorable
     {

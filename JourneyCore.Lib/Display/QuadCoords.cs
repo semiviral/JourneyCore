@@ -1,6 +1,6 @@
 ﻿using SFML.System;
 
-namespace JourneyCore.Lib.Graphics
+namespace JourneyCore.Lib.Display
 {
     public struct QuadCoords
     {

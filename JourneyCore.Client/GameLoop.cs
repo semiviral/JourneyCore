@@ -1,14 +1,14 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Threading;
 using System.Threading.Tasks;
-using JourneyCore.Client.Display;
-using JourneyCore.Client.Display.UserInterface;
 using JourneyCore.Client.Net;
+using JourneyCore.Lib.Display;
+using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.InputWatchers;
 using JourneyCore.Lib.Game.Object.Entity;
-using JourneyCore.Lib.Graphics.Drawing;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
 using Newtonsoft.Json;
@@ -71,14 +71,15 @@ namespace JourneyCore.Client
             {
                 while (Window.IsActive)
                 {
-                    //InputWatcher.CheckWatchedInputs();
+                    InputWatcher.CheckWatchedInputs();
 
                     Window.UpdateWindow();
                 }
             }
             catch (Exception ex)
             {
-                Log.Error(ex.Message);
+                CallFatality(ex.Message);
+                ExitWithFatality();
             }
         }
 
@@ -87,16 +88,17 @@ namespace JourneyCore.Client
         public static void CallFatality(string error, int exitCode = -1)
         {
             _FatalExit = new Tuple<int, string>(exitCode, error);
+            ExitWithFatality();
         }
 
-        private void ExitWithFatality()
+        private static void ExitWithFatality()
         {
-            Log.Fatal(_FatalExit.Item2);
-            Log.Fatal("Press any key to continue.");
+            ThreadPool.QueueUserWorkItem(callback =>
+            {
+                Log.Fatal(_FatalExit.Item2);
 
-            Console.ReadLine();
-
-            Environment.Exit(_FatalExit.Item1);
+                Environment.Exit(_FatalExit.Item1);
+            });
         }
 
 
@@ -111,14 +113,15 @@ namespace JourneyCore.Client
         {
             try
             {
-                await InitialiseGameServerConnection(serverUrl, servicePath);
-                InitialiseGameWindow(maximumFrameRate);
-                await InitialiseLocalMap();
-                await InitialisePlayer();
+                await ConnectGameServer(serverUrl, servicePath);
+                CreateGameWindow(maximumFrameRate);
+                CreateDrawViews();
+                await CreateLocalMap();
+                await SetupPlayer();
                 SetupWatchedKeys();
                 SetupWatchedMouse();
-                await InitialiseUserInterface();
-                InitialiseMiniMap();
+                await CreateUserInterface();
+                SetupMinimap();
 
                 Window.GainedFocus += (sender, args) => { InputWatcher.WindowFocused = true; };
                 Window.LostFocus += (sender, args) => { InputWatcher.WindowFocused = false; };
@@ -129,13 +132,13 @@ namespace JourneyCore.Client
             }
         }
 
-        private async Task InitialiseGameServerConnection(string serverUrl, string servicePath)
+        private async Task ConnectGameServer(string serverUrl, string servicePath)
         {
             NetManager = new GameServerConnection(serverUrl);
             await NetManager.InitialiseAsync(servicePath);
         }
 
-        private void InitialiseGameWindow(int maximumFrameRate)
+        private void CreateGameWindow(int maximumFrameRate)
         {
             Log.Information("Initialising game window...");
 
@@ -152,31 +155,40 @@ namespace JourneyCore.Client
                 Window.GetDrawView("minimap").ZoomFactor += args.Delta * -1f;
             };
 
-            const float viewSizeX = 300f;
+            Log.Information("Game window initialised.");
+        }
+
+        private void CreateDrawViews()
+        {
+            const float viewSizeY = 200f;
             const float minimapSizeX = 0.2f;
 
-            Window.CreateDrawView("game", 0,
-                new View(new FloatRect(0f, 0f, viewSizeX, viewSizeX * GameWindow.WidescreenRatio))
+            Window.CreateDrawView("menu", GameWindowLayer.Menu,
+                new View(new FloatRect(0f, 0f, viewSizeY, viewSizeY * GameWindow.WidescreenRatio))
                 {
                     Viewport = new FloatRect(0f, 0f, 1f, 1f)
                 });
 
-            Window.CreateDrawView("ui", 1, new View(new FloatRect(0f, 0f, 200f, 600f))
-            {
-                Viewport = new FloatRect(0.8f, 0.3f, 0.2f, 0.7f)
-            });
-
-            Window.CreateDrawView("minimap", 2,
-                new View(new FloatRect(0f, 0f, viewSizeX, viewSizeX * GameWindow.WidescreenRatio))
+            Window.CreateDrawView("game", GameWindowLayer.Game,
+                new View(new FloatRect(0f, 0f, viewSizeY * GameWindow.WidescreenRatio, viewSizeY))
                 {
-                    Viewport = new FloatRect(1f - (minimapSizeX * GameWindow.LetterboxRatio - 0.005f), 0.005f,
-                        minimapSizeX * GameWindow.LetterboxRatio, minimapSizeX)
-                });
+                    Viewport = new FloatRect(0f, 0f, 1f, 1f)
+                }, true);
 
-            Log.Information("Game window initialised.");
+            Window.CreateDrawView("ui", GameWindowLayer.UI,
+                new View(new FloatRect(0f, 0f, 200f, 600f))
+                {
+                    Viewport = new FloatRect(0.8f, 0.3f, 0.2f, 0.7f)
+                }, true);
+
+            Window.CreateDrawView("minimap", GameWindowLayer.Minimap,
+                new View(new FloatRect(0f, 0f, viewSizeY * GameWindow.WidescreenRatio, viewSizeY))
+                {
+                    Viewport = new FloatRect(0.8f, 0f, minimapSizeX, minimapSizeX * GameWindow.LetterboxRatio)
+                }, true);
         }
 
-        private async Task InitialiseLocalMap()
+        private async Task CreateLocalMap()
         {
             string retVal =
                 await RESTClient.RequestAsync(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/images/maps");
@@ -187,7 +199,7 @@ namespace JourneyCore.Client
             CurrentMap.Update(await RequestMapMetadata("AdventurersGuild"));
         }
 
-        private async Task InitialisePlayer()
+        private async Task SetupPlayer()
         {
             Log.Information("Initialising player...");
 
@@ -327,7 +339,7 @@ namespace JourneyCore.Client
             });
         }
 
-        private async Task InitialiseUserInterface()
+        private async Task CreateUserInterface()
         {
             string retVal =
                 await RESTClient.RequestAsync(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/tilesets/ui");
@@ -340,7 +352,7 @@ namespace JourneyCore.Client
             UserInterface.UpdateHealth(Player.CurrentHp);
         }
 
-        private void InitialiseMiniMap()
+        private void SetupMinimap()
         {
             RectangleShape playerTile =
                 new RectangleShape(

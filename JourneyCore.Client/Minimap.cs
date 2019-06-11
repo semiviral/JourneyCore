@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using JourneyCore.Lib.Graphics.Drawing;
+using JourneyCore.Lib.Display.Drawing;
 using SFML.Graphics;
 
 namespace JourneyCore.Client
