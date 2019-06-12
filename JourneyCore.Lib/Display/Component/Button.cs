@@ -5,20 +5,6 @@ using SFML.Window;
 
 namespace JourneyCore.Lib.Display.Component
 {
-    public enum HorizontalTextAlignment
-    {
-        Left,
-        Middle,
-        Right
-    }
-
-    public enum VerticalTextAlignment
-    {
-        Top,
-        Middle,
-        Bottom
-    }
-
     public class Button : Drawable
     {
         private Vector2f _ParsedPosition;
@@ -45,7 +31,7 @@ namespace JourneyCore.Lib.Display.Component
             MouseExited += OnMouseExited;
             Pressed += OnPressed;
             Released += OnReleased;
-
+        
             Position = new Vector2f(0f, 0f);
             Size = new Vector2f(10f, 10f);
 
@@ -56,10 +42,11 @@ namespace JourneyCore.Lib.Display.Component
             BackgroundShape = new RectangleShape(Size);
             FillColor = Color.Transparent;
 
-            VerticalTextAlignment = VerticalTextAlignment.Top;
-            HorizontalTextAlignment = HorizontalTextAlignment.Left;
             DefaultFont = defaultFont;
             Text = text;
+            FloatRect localBounds = _TextObject.GetLocalBounds();
+            _TextObject.Origin = new Vector2f(localBounds.Width / 2f, localBounds.Height / 2f);
+
         }
 
         public void Draw(RenderTarget target, RenderStates states)
@@ -175,51 +162,10 @@ namespace JourneyCore.Lib.Display.Component
         {
             BackgroundShape.Position = Position;
             BackgroundSprite.Position = Position;
-            CalculateTextPosition();
+
+            _TextObject.Position = Position + (Size / 2f);
 
             _ParsedPosition = Position;
-        }
-
-        private void CalculateTextPosition()
-        {
-            if (Math.Abs(_ParsedPosition.Y - Position.Y) > 0.01)
-            {
-                switch (VerticalTextAlignment)
-                {
-                    case VerticalTextAlignment.Top:
-                        _TextObject.Position = new Vector2f(_TextObject.Position.X, Position.Y);
-                        break;
-                    case VerticalTextAlignment.Middle:
-                        _TextObject.Position = new Vector2f(_TextObject.Position.X, Position.Y + Size.Y / 2f);
-                        break;
-                    case VerticalTextAlignment.Bottom:
-                        _TextObject.Position = new Vector2f(_TextObject.Position.X,
-                            Position.Y + (Size.Y - _TextObject.CharacterSize));
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-
-            if (Math.Abs(_ParsedPosition.X - Position.X) > 0.01)
-            {
-                switch (HorizontalTextAlignment)
-                {
-                    case HorizontalTextAlignment.Left:
-                        _TextObject.Position = new Vector2f(Position.X, _TextObject.Position.Y);
-                        break;
-                    case HorizontalTextAlignment.Middle:
-                        _TextObject.Position = new Vector2f(Position.X + Size.X / 2f, _TextObject.Position.Y);
-                        break;
-                    case HorizontalTextAlignment.Right:
-                        _TextObject.Position =
-                            new Vector2f(Position.X + (Size.X - Text.Length * _TextObject.CharacterSize),
-                                _TextObject.Position.Y);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
         }
 
         #endregion
@@ -242,9 +188,6 @@ namespace JourneyCore.Lib.Display.Component
         #region VARIABLES - TEXT
 
         private Text _TextObject;
-
-        public VerticalTextAlignment VerticalTextAlignment { get; set; }
-        public HorizontalTextAlignment HorizontalTextAlignment { get; set; }
         public Font DefaultFont { get; }
 
         public string Text {

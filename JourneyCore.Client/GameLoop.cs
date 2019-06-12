@@ -345,6 +345,8 @@ namespace JourneyCore.Client
 
             InputWatcher.AddWatchedInput(Keyboard.Key.E,
                 key => { Player.RotateEntity(Window.ElapsedTime, 180f, true); });
+
+            InputWatcher.AddWatchedInput(Keyboard.Key.Escape, key => { DrawView drawView = Window.GetDrawView("menu"); drawView.Visible = !drawView.Visible; });
         }
 
         private void SetupWatchedMouse()
