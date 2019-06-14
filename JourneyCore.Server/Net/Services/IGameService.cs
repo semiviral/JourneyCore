@@ -4,7 +4,6 @@ using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Net;
 using JourneyCore.Lib.Game.Object.Entity;
-using JourneyCore.Lib.System;
 using Microsoft.Extensions.Hosting;
 using SFML.System;
 

@@ -1,8 +1,4 @@
-﻿using System;
-using JourneyCore.Lib.Display;
-using JourneyCore.Lib.Display.Component;
-using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
-using SFML.Graphics;
+﻿using SFML.Graphics;
 
 namespace JourneyCore.Client
 {

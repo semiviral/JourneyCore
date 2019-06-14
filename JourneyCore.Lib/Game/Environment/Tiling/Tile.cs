@@ -2,7 +2,6 @@
 using System.Linq;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Object;
-using JourneyCore.Lib.System.Components;
 using JourneyCore.Lib.System.Components.Loaders;
 using SFML.Graphics;
 using SFML.System;
@@ -68,7 +67,7 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
             }
 
             return new TileMetadata(Gid, Type, TextureRect, MiniMapColor, ObjectGroup.Objects.Select(tileObject =>
-                new CollisionBox(CollisionBoundingType.Square, new Vector2f(tileObject.X, tileObject.Y),
+                new CollisionBox(new Vector2f(tileObject.X, tileObject.Y),
                     new Vector2f(tileObject.Width, tileObject.Height))).ToList());
         }
 

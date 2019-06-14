@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.System.Static;
 using SFML.Graphics;
 using SFML.System;

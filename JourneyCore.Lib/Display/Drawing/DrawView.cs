@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using JourneyCore.Lib.Game.Object;
-using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Static;
 using SFML.Graphics;
 using SFML.System;

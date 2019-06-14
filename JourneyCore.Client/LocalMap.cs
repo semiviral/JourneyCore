@@ -6,7 +6,6 @@ using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
 using JourneyCore.Lib.Game.Object;
-using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
 using JourneyCore.Lib.System.Math;
 using SFML.Graphics;
@@ -47,7 +46,7 @@ namespace JourneyCore.Client
             }
         }
 
-        public List<ICollidable> CollisionObjects { get; }
+        public List<CollisionBox> CollisionObjects { get; }
 
         public LocalMap(byte[] mapImage)
         {
@@ -58,7 +57,7 @@ namespace JourneyCore.Client
             Metadata = new MapMetadata();
             _VArray = new VertexArray(PrimitiveType.Quads);
             _Minimap = new Minimap();
-            CollisionObjects = new List<ICollidable>();
+            CollisionObjects = new List<CollisionBox>();
         }
 
         public void Update(MapMetadata mapMetadata)
