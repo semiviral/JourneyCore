@@ -12,6 +12,7 @@ using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
 using JourneyCore.Lib.System.Event;
+using JourneyCore.Lib.System.Static;
 using Newtonsoft.Json;
 using RESTModule;
 using Serilog;

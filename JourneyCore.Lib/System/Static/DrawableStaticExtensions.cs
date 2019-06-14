@@ -1,8 +1,7 @@
-﻿using JourneyCore.Lib.System;
-using SFML.Graphics;
+﻿using SFML.Graphics;
 using SFML.System;
 
-namespace JourneyCore.Lib.Display.Drawing
+namespace JourneyCore.Lib.System.Static
 {
     public static class SpriteStaticExtensions
     {

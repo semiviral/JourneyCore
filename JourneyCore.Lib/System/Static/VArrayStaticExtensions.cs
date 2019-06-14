@@ -1,6 +1,6 @@
 ﻿using SFML.Graphics;
 
-namespace JourneyCore.Lib.Display.Drawing
+namespace JourneyCore.Lib.System.Static
 {
     public static class StaticExtensions
     {
