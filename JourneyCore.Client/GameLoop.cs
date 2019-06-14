@@ -274,7 +274,7 @@ namespace JourneyCore.Client
 
             Vector2f movement = new Vector2f(0, 0);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.W, key =>
+            InputWatcher.AddWatchedInput(Keyboard.Key.W, () =>
             {
                 movement = new Vector2f(
                     (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360),
@@ -289,7 +289,7 @@ namespace JourneyCore.Client
                 Player.MoveEntity(movement, MapLoader.TilePixelSize * MapLoader.Scale, Window.ElapsedTime);
             });
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.A, key =>
+            InputWatcher.AddWatchedInput(Keyboard.Key.A, () =>
             {
                 movement = new Vector2f(
                     (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation +
@@ -305,7 +305,7 @@ namespace JourneyCore.Client
                 Player.MoveEntity(movement, MapLoader.TilePixelSize * MapLoader.Scale, Window.ElapsedTime);
             });
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.S, key =>
+            InputWatcher.AddWatchedInput(Keyboard.Key.S, () =>
             {
                 movement = new Vector2f(
                     (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation +
@@ -321,7 +321,7 @@ namespace JourneyCore.Client
                 Player.MoveEntity(movement, MapLoader.TilePixelSize * MapLoader.Scale, Window.ElapsedTime);
             });
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.D, key =>
+            InputWatcher.AddWatchedInput(Keyboard.Key.D, () =>
             {
                 movement = new Vector2f(
                     (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360),
@@ -336,22 +336,22 @@ namespace JourneyCore.Client
                 Player.MoveEntity(movement, MapLoader.TilePixelSize * MapLoader.Scale, Window.ElapsedTime);
             });
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.G, key => { CurrentMap.Minimap.VArray.ModifyOpacity(-25, 10); });
+            InputWatcher.AddWatchedInput(Keyboard.Key.G, () => { CurrentMap.Minimap.VArray.ModifyOpacity(-25, 10); });
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.H, key => { CurrentMap.Minimap.VArray.ModifyOpacity(25); });
+            InputWatcher.AddWatchedInput(Keyboard.Key.H, () => { CurrentMap.Minimap.VArray.ModifyOpacity(25); });
 
             InputWatcher.AddWatchedInput(Keyboard.Key.Q,
-                key => { Player.RotateEntity(Window.ElapsedTime, 180f, false); });
+                () => { Player.RotateEntity(Window.ElapsedTime, 180f, false); });
 
             InputWatcher.AddWatchedInput(Keyboard.Key.E,
-                key => { Player.RotateEntity(Window.ElapsedTime, 180f, true); });
+                () => { Player.RotateEntity(Window.ElapsedTime, 180f, true); });
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.Escape, key => { DrawView drawView = Window.GetDrawView("menu"); drawView.Visible = !drawView.Visible; });
+            InputWatcher.AddWatchedInput(Keyboard.Key.Escape, () => { DrawView drawView = Window.GetDrawView("menu"); drawView.Visible = !drawView.Visible; });
         }
 
         private void SetupWatchedMouse()
         {
-            InputWatcher.AddWatchedInput(Mouse.Button.Left, button =>
+            InputWatcher.AddWatchedInput(Mouse.Button.Left, () =>
             {
                 Vector2i mousePosition = Window.GetRelativeMousePosition();
                 View gameView = Window.GetDrawView("game").View;
