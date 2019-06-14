@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SFML.Window;
 
-namespace JourneyCore.Lib.Game.InputWatchers
+namespace JourneyCore.Lib.System.Event
 {
     public class InputWatcher
     {

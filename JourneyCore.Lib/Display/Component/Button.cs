@@ -21,7 +21,7 @@ namespace JourneyCore.Lib.Display.Component
         public Color HoverColor { get; set; }
         public Color PressedColor { get; set; }
 
-        public Button(IGameWindow windowContext, Font defaultFont, string text)
+        public Button(GameWindow windowContext, Font defaultFont, string text)
         {
             windowContext.MouseMoved += OnMouseMoved;
             windowContext.MouseButtonPressed += OnMouseButtonPressed;
