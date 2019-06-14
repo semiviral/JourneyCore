@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Web;
+using JourneyCore.Lib.Game.Net.Security;
 using JourneyCore.Lib.System.Event;
 using Microsoft.AspNetCore.SignalR.Client;
 using Newtonsoft.Json;
@@ -10,6 +12,7 @@ namespace JourneyCore.Client.Net
 {
     public class GameServerConnection
     {
+        public string Guid { get; }
         public string ServerUrl { get; }
         public HubConnection Connection { get; private set; }
         public ServerStateUpdater StateUpdater { get; private set; }
@@ -17,6 +20,7 @@ namespace JourneyCore.Client.Net
 
         public GameServerConnection(string serverUrl)
         {
+            Guid = System.Guid.NewGuid().ToString();
             ServerUrl = serverUrl;
             IsServerReady = false;
 
@@ -39,12 +43,12 @@ namespace JourneyCore.Client.Net
 
         public async Task InitialiseAsync(string servicePath)
         {
-            BuildConnection(servicePath);
+            await BuildConnection(servicePath);
             await WaitForServerReady();
             await BuildSynchroniser();
         }
 
-        private void BuildConnection(string servicePath)
+        private async Task BuildConnection(string servicePath)
         {
             Log.Information("Initialising connection to game server...");
 
@@ -55,6 +59,19 @@ namespace JourneyCore.Client.Net
                 await Task.Delay(1000);
                 await Connection.StartAsync();
             };
+
+            DiffieHellman dHell = new DiffieHellman();
+
+            string pubKey = Convert.ToBase64String(dHell.PublicKey);
+
+            string fullUrl =
+                $"{ServerUrl}/gameservice/security/handshake?guid={HttpUtility.HtmlEncode(Guid)}&clientPublicKey={HttpUtility.HtmlEncode(pubKey)}";
+
+            string retVal = await RESTClient.RequestAsync(RequestMethod.GET, fullUrl);
+            DiffieHellmanKeyPackage keyP = JsonConvert.DeserializeObject<DiffieHellmanKeyPackage>(retVal);
+
+            
+
         }
 
         private async Task WaitForServerReady()

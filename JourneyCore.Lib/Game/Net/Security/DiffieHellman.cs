@@ -1,101 +1,97 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace JourneyCore.Lib.Game.Net.Security
 {
-    public class DiffieHellman : IDisposable
+    public class DiffieHellman
     {
-        private Aes Aes { get; }
-        private ECDiffieHellmanCng DiffieHellmanCng { get; }
+        private readonly ECDiffieHellmanCng _DiffieHellmanCng;
+        private byte[] _SharedKey;
 
         public byte[] PublicKey { get; }
-        public byte[] IV => Aes.IV;
+        public byte[] IV { get; set; }
 
         public DiffieHellman()
         {
-            Aes = new AesCryptoServiceProvider();
-            DiffieHellmanCng = new ECDiffieHellmanCng()
+            _DiffieHellmanCng = new ECDiffieHellmanCng
             {
                 KeyDerivationFunction = ECDiffieHellmanKeyDerivationFunction.Hash,
                 HashAlgorithm = CngAlgorithm.Sha256
             };
 
-            PublicKey = DiffieHellmanCng.PublicKey.ToByteArray();
+            PublicKey = _DiffieHellmanCng.PublicKey.ToByteArray();
         }
 
-        public async Task<byte[]> Encrypt(byte[] publicKey, string secretMessage)
+        public DiffieHellman(byte[] remotePublicKey) : this()
         {
-            byte[] encryptedMessage;
-            CngKey key = CngKey.Import(publicKey, CngKeyBlobFormat.EccPublicBlob);
-            byte[] derivedKey = DiffieHellmanCng.DeriveKeyMaterial(key);
+            CalculateSharedKey(remotePublicKey);
+        }
 
-            Aes.Key = derivedKey;
-
-            using (MemoryStream cipherText = new MemoryStream())
+        public DiffieHellman(byte[] publicKey, byte[] remotePublicKey)
+        {
+            _DiffieHellmanCng = new ECDiffieHellmanCng(CngKey.Import(publicKey, CngKeyBlobFormat.EccPublicBlob))
             {
-                using (ICryptoTransform encryptor = Aes.CreateEncryptor())
+                KeyDerivationFunction = ECDiffieHellmanKeyDerivationFunction.Hash,
+                HashAlgorithm = CngAlgorithm.Sha256
+            };
+
+            PublicKey = _DiffieHellmanCng.PublicKey.ToByteArray();
+
+            CalculateSharedKey(remotePublicKey);
+        }
+
+        public void CalculateSharedKey(byte[] remotePublicKey)
+        {
+            _SharedKey =
+                _DiffieHellmanCng.DeriveKeyMaterial(CngKey.Import(remotePublicKey, CngKeyBlobFormat.EccPublicBlob));
+        }
+
+        public async Task<byte[]> Encrypt(string secretMessage)
+        {
+            using (Aes aes = new AesCryptoServiceProvider
+            {
+                Key = _SharedKey,
+                IV = IV
+            })
+            {
+                using (MemoryStream cipherText = new MemoryStream())
                 {
-                    using (CryptoStream cryptoStream = new CryptoStream(cipherText, encryptor, CryptoStreamMode.Write))
+                    using (CryptoStream cryptoStream =
+                        new CryptoStream(cipherText, aes.CreateEncryptor(), CryptoStreamMode.Write))
                     {
-                        byte[] cipherTextMessage = Encoding.UTF8.GetBytes(secretMessage);
-                        await cryptoStream.WriteAsync(cipherTextMessage, 0, cipherTextMessage.Length);
+                        byte[] plainTextMessage = Encoding.UTF8.GetBytes(secretMessage);
+
+                        await cryptoStream.WriteAsync(plainTextMessage, 0, plainTextMessage.Length);
+                        cryptoStream.Close();
+
+                        return plainTextMessage;
                     }
                 }
-
-                encryptedMessage = cipherText.ToArray();
             }
-
-            return encryptedMessage;
         }
 
-        public async Task<string> Decrypt(byte[] publicKey, byte[] encryptedMessage, byte[] iv)
+        public async Task<string> Decrypt(DiffieHellmanKeyPackage keyPackage, byte[] secretMessage)
         {
-            string decryptedMessage = string.Empty;
-            CngKey key = CngKey.Import(publicKey, CngKeyBlobFormat.EccPublicBlob);
-            byte[] derivedKey = DiffieHellmanCng.DeriveKeyMaterial(key);
-
-            Aes.Key = derivedKey;
-            Aes.IV = iv;
-
-            using (MemoryStream plainText = new MemoryStream())
+            using (Aes aes = new AesCryptoServiceProvider
             {
-                using (ICryptoTransform decryptor = Aes.CreateDecryptor())
+                Key = keyPackage.RemotePublicKey,
+                IV = keyPackage.IV
+            })
+            {
+                using (MemoryStream cipherText = new MemoryStream())
                 {
-                    using (CryptoStream cryptoStream = new CryptoStream(plainText, decryptor, CryptoStreamMode.Write))
+                    using (CryptoStream cryptoStream =
+                        new CryptoStream(cipherText, aes.CreateDecryptor(), CryptoStreamMode.Write))
                     {
-                        await cryptoStream.WriteAsync(encryptedMessage, 0, encryptedMessage.Length);
+                        await cryptoStream.WriteAsync(secretMessage, 0, secretMessage.Length);
+                        cryptoStream.Close();
+
+                        return Encoding.UTF8.GetString(secretMessage);
                     }
                 }
-
-                decryptedMessage = Encoding.UTF8.GetString(plainText.ToArray());
             }
-
-            return decryptedMessage;
         }
-
-        #region IDISPOSABLE
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposing)
-            {
-                return;
-            }
-
-            Aes?.Dispose();
-            DiffieHellmanCng?.Dispose();
-        }
-
-        #endregion
     }
 }

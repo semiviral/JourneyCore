@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Net;
+using JourneyCore.Lib.Game.Net.Security;
 using JourneyCore.Lib.Game.Object.Entity;
 using Microsoft.Extensions.Hosting;
 using SFML.System;
@@ -18,6 +19,7 @@ namespace JourneyCore.Server.Net.Services
 
         Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages);
 
+        DiffieHellmanKeyPackage RegisterDiffieHellman(string guid, byte[] clientPublicKey);
         byte[] GetImage(string textureName);
         TileSetMetadata GetTileSetMetadata(string tileSetName);
         MapMetadata GetMapMetadata(string mapName);

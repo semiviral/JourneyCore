@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
 using JourneyCore.Lib.Game.Net;
+using JourneyCore.Lib.Game.Net.Security;
 using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System.Components.Loaders;
 using JourneyCore.Server.Net.SignalR.Contexts;
@@ -41,6 +43,8 @@ namespace JourneyCore.Server.Net.Services
         #region VARIABLES
 
         private IGameClientContext GameClientContext { get; }
+        private Dictionary<string, DiffieHellman> CryptoServices { get; }
+
         public Dictionary<string, byte[]> TextureImages { get; }
 
         /// <summary>
@@ -95,6 +99,19 @@ namespace JourneyCore.Server.Net.Services
 
 
         #region IGameService
+
+        public DiffieHellmanKeyPackage RegisterDiffieHellman(string guid, byte[] clientPublicKey)
+        {
+            using (Aes aes = new AesCryptoServiceProvider())
+            {
+                CryptoServices.Add(guid, new DiffieHellman(clientPublicKey)
+                {
+                    IV = aes.IV
+                });
+            }
+
+            return new DiffieHellmanKeyPackage(CryptoServices[guid].PublicKey, CryptoServices[guid].IV);
+        }
 
         public byte[] GetImage(string textureName)
         {
