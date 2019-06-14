@@ -1,4 +1,5 @@
-﻿using SFML.Graphics;
+﻿using JourneyCore.Lib.System.Math;
+using SFML.Graphics;
 using SFML.System;
 
 namespace JourneyCore.Lib.System.Static

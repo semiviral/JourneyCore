@@ -1,7 +1,6 @@
-﻿using System;
-using SFML.System;
+﻿using SFML.System;
 
-namespace JourneyCore.Lib.System
+namespace JourneyCore.Lib.System.Math
 {
     public static class GraphMath
     {
@@ -25,24 +24,24 @@ namespace JourneyCore.Lib.System
 
         public static double CosFromDegrees(double degrees)
         {
-            return Math.Cos(ToRadians(degrees));
+            return global::System.Math.Cos(ToRadians(degrees));
         }
 
         public static double SinFromDegrees(double degrees)
         {
-            return Math.Sin(ToRadians(degrees));
+            return global::System.Math.Sin(ToRadians(degrees));
         }
 
         public static double ToRadians(double degrees)
         {
-            return Math.PI * degrees / 180d;
+            return global::System.Math.PI * degrees / 180d;
         }
         
         public static Vector2f RotatePoint(Vector2f outerCoords, Vector2f origin, float rotation)
         {
-            double angleInRadians = rotation * (Math.PI / 180);
-            float cosTheta = (float)Math.Cos(angleInRadians);
-            float sinTheta = (float)Math.Sin(angleInRadians);
+            double angleInRadians = rotation * (global::System.Math.PI / 180);
+            float cosTheta = (float)global::System.Math.Cos(angleInRadians);
+            float sinTheta = (float)global::System.Math.Sin(angleInRadians);
 
             return new Vector2f(
                 cosTheta * (outerCoords.X - origin.X) - sinTheta * (outerCoords.Y - origin.Y) + origin.X,

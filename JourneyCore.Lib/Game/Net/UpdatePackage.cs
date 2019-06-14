@@ -1,4 +1,4 @@
-﻿namespace JourneyCore.Lib.System
+﻿namespace JourneyCore.Lib.Game.Net
 {
     public struct UpdatePackage
     {
@@ -10,5 +10,11 @@
             UpdateType = updateType;
             Args = args;
         }
+    }
+
+    public enum StateUpdateType
+    {
+        Position,
+        Rotation
     }
 }

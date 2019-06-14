@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace JourneyCore.Lib.System.Components
+namespace JourneyCore.Lib.System.Components.Loaders
 {
     public class CustomProperty
     {

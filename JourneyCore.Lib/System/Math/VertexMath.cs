@@ -1,7 +1,7 @@
 ﻿using System;
 using SFML.System;
 
-namespace JourneyCore.Lib.System
+namespace JourneyCore.Lib.System.Math
 {
     public static class VertexMath
     {

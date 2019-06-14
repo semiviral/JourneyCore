@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using JourneyCore.Lib.Game.Net;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Event;
 

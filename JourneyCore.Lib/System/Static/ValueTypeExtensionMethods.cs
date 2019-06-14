@@ -1,4 +1,4 @@
-﻿namespace JourneyCore.Lib.System
+﻿namespace JourneyCore.Lib.System.Static
 {
     public static class ValueTypeExtensionMethods
     {

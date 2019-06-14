@@ -8,6 +8,7 @@ using JourneyCore.Lib.Game.Environment.Tiling;
 using JourneyCore.Lib.Game.Object;
 using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
+using JourneyCore.Lib.System.Math;
 using SFML.Graphics;
 using SFML.System;
 
