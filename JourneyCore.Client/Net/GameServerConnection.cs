@@ -96,7 +96,7 @@ namespace JourneyCore.Client.Net
 
                     IsServerReady = await GetServerReadyState();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     Log.Warning("Connection to server failed, retrying in 5 seconds...");
                     tries += 1;

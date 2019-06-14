@@ -118,7 +118,6 @@ namespace JourneyCore.Lib.Game.Object.Entity
         }
 
         private double _CurrentHp;
-        private DrawObject _DrawObject;
 
         #endregion
 

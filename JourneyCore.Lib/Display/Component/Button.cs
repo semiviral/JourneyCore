@@ -9,7 +9,6 @@ namespace JourneyCore.Lib.Display.Component
     {
         private Vector2f _ParsedPosition;
         private Vector2f _ParsedSize;
-        private RenderWindow _WindowContext;
 
         public Vector2f Position { get; set; }
         public Vector2f Size { get; set; }

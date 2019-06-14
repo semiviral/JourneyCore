@@ -15,7 +15,7 @@ namespace JourneyCore.Client
                 await GLoop.Initialise("http://localhost:5000", "GameService", 60);
                 await GLoop.StartAsync();
             }
-            catch (Exception ex) { }
+            catch (Exception) { }
         }
     }
 }
