@@ -203,7 +203,8 @@ namespace JourneyCore.Client
                 Position = new Vector2f(100f, 100f),
                 DefaultColor = Color.Cyan,
                 HoverColor = Color.Green,
-                PressedColor = Color.Red
+                PressedColor = Color.Red,
+                PressedAction = () => { CurrentMap.Minimap.VArray.ModifyOpacity(-25, 10); }
             };
 
             Window.DrawItem("menu", 10,

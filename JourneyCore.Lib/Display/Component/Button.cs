@@ -20,6 +20,8 @@ namespace JourneyCore.Lib.Display.Component
         public Color HoverColor { get; set; }
         public Color PressedColor { get; set; }
 
+        public Action PressedAction { get; set; }
+
         public Button(GameWindow windowContext, Font defaultFont, string text)
         {
             windowContext.MouseMoved += OnMouseMoved;
@@ -137,6 +139,8 @@ namespace JourneyCore.Lib.Display.Component
         private void OnPressed(object sender, MouseButtonEventArgs args)
         {
             FillColor = PressedColor;
+
+            PressedAction?.Invoke();
         }
 
         private void OnReleased(object sender, MouseButtonEventArgs args)
@@ -162,7 +166,8 @@ namespace JourneyCore.Lib.Display.Component
             BackgroundShape.Position = Position;
             BackgroundSprite.Position = Position;
 
-            _TextObject.Position = Position + (Size / 2f);
+            // todo figure out text centering
+            _TextObject.Position = Position + Size / 2f;
 
             _ParsedPosition = Position;
         }
