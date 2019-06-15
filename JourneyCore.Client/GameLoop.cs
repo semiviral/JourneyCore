@@ -28,11 +28,9 @@ namespace JourneyCore.Client
         private static Tuple<int, string> _FatalExit;
         private bool _IsFocused;
 
-        private bool IsFocused
-        {
+        private bool IsFocused {
             get => _IsFocused;
-            set
-            {
+            set {
                 _IsFocused = value;
                 Window.EnableInput = _IsFocused;
             }
@@ -60,7 +58,7 @@ namespace JourneyCore.Client
 
         public async Task StartAsync()
         {
-            // todo this doesn't belong, loading whole map for dev purposes
+#if DEBUG
             for (int x = 0; x < CurrentMap.Metadata.Width / MapLoader.ChunkSize; x++)
             {
                 for (int y = 0; y < CurrentMap.Metadata.Height / MapLoader.ChunkSize; y++)
@@ -71,6 +69,7 @@ namespace JourneyCore.Client
                     }
                 }
             }
+#endif
 
             Window.DrawItem("game", 0,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
@@ -170,7 +169,7 @@ namespace JourneyCore.Client
             {
                 Window.GetDrawView("minimap").ZoomFactor += args.Delta * -1f;
             };
-            
+
             Log.Information("Game window initialised.");
         }
 
@@ -204,7 +203,7 @@ namespace JourneyCore.Client
                 Position = new Vector2f(100f, 100f),
                 DefaultColor = Color.Cyan,
                 HoverColor = Color.Green,
-                PressedColor =  Color.Red
+                PressedColor = Color.Red
             };
 
             Window.DrawItem("menu", 10,
