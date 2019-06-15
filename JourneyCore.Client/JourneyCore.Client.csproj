@@ -38,6 +38,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Microsoft.IdentityModel.Tokens">
+      <HintPath>..\..\..\..\..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.identitymodel.tokens\5.3.0\lib\netstandard2.0\Microsoft.IdentityModel.Tokens.dll</HintPath>
+    </Reference>
     <Reference Include="RESTModule">
       <HintPath>..\..\REST-Module\bin\Release\netcoreapp2.2\RESTModule.dll</HintPath>
     </Reference>

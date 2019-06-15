@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using JourneyCore.Lib.Display;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
@@ -11,7 +10,7 @@ using JourneyCore.Lib.System.Math;
 using SFML.Graphics;
 using SFML.System;
 
-namespace JourneyCore.Client
+namespace JourneyCore.Lib.Display.Component
 {
     public class LocalMap
     {

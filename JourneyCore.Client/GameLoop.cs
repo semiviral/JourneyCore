@@ -232,7 +232,7 @@ namespace JourneyCore.Client
         private async Task CreateLocalMap()
         {
             string retVal =
-                await RESTClient.RequestAsync(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/images/maps");
+                await NetManager.GetResponseAsync(RequestMethod.GET, "gameservice/images/maps");
             CurrentMap = new LocalMap(JsonConvert.DeserializeObject<byte[]>(retVal));
 
             Log.Information("Requesting map: AdventurersGuild");
@@ -244,13 +244,11 @@ namespace JourneyCore.Client
         {
             Log.Information("Initialising player...");
 
-            string retVal =
-                await RESTClient.RequestAsync(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/images/human");
+            string retVal = await NetManager.GetResponseAsync(RequestMethod.GET, "gameservice/images/human");
             Texture humanTexture = new Texture(JsonConvert.DeserializeObject<byte[]>(retVal));
 
 
-            retVal = RESTClient.Request(RequestMethod.GET,
-                $"{NetManager.ServerUrl}/gameservice/images/projectiles");
+            retVal = await NetManager.GetResponseAsync(RequestMethod.GET, "gameservice/images/projectiles");
             Texture projectilesTexture = new Texture(JsonConvert.DeserializeObject<byte[]>(retVal));
 
 
@@ -417,16 +415,14 @@ namespace JourneyCore.Client
 
         private async Task<MapMetadata> RequestMapMetadata(string mapName)
         {
-            string retVal =
-                await RESTClient.RequestAsync(RequestMethod.GET, $"{NetManager.ServerUrl}/maps/metadata/{mapName}");
+            string retVal = await NetManager.GetResponseAsync(RequestMethod.GET, $"maps/{mapName}/metadata");
 
             return JsonConvert.DeserializeObject<MapMetadata>(retVal);
         }
 
         private async Task<Chunk[]> RequestChunk(Vector2i coords)
         {
-            string retVal = await RESTClient.RequestAsync(RequestMethod.GET,
-                $"{NetManager.ServerUrl}/maps/{CurrentMap.Metadata.Name}/{coords.X}/{coords.Y}");
+            string retVal = await NetManager.GetResponseAsync(RequestMethod.GET, $"maps/{CurrentMap.Metadata.Name}?x={coords.X}&y={coords.Y}");
 
             return JsonConvert.DeserializeObject<Chunk[]>(retVal);
         }

@@ -48,6 +48,20 @@ namespace JourneyCore.Lib.Game.Net.Security
                 _DiffieHellmanCng.DeriveKeyMaterial(CngKey.Import(remotePublicKey, CngKeyBlobFormat.EccPublicBlob));
         }
 
+        public void CalculateSharedKey(byte[] remotePublicKey, byte[] iv)
+        {
+            IV = iv;
+
+            CalculateSharedKey(remotePublicKey);
+        }
+
+        public void CalculateSharedKey(DiffieHellmanKeyPackage keyPackage)
+        {
+            IV = keyPackage.IV;
+
+            CalculateSharedKey(keyPackage.RemotePublicKey);
+        }
+
         public async Task<byte[]> Encrypt(string secretMessage)
         {
             using (Aes aes = new AesCryptoServiceProvider

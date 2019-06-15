@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Web;
 using JourneyCore.Lib.Game.Net.Security;
 using JourneyCore.Lib.System.Event;
+using JourneyCore.Lib.System.Static;
 using Microsoft.AspNetCore.SignalR.Client;
 using Newtonsoft.Json;
 using RESTModule;
@@ -12,20 +12,33 @@ namespace JourneyCore.Client.Net
 {
     public class GameServerConnection
     {
+        private DiffieHellman EncryptionService { get; }
+
         public string Guid { get; }
         public string ServerUrl { get; }
         public HubConnection Connection { get; private set; }
         public ServerStateUpdater StateUpdater { get; private set; }
         public bool IsServerReady { get; private set; }
+        public bool IsHandshakeComplete { get; private set; }
 
         public GameServerConnection(string serverUrl)
         {
+            EncryptionService = new DiffieHellman();
+
             Guid = System.Guid.NewGuid().ToString();
             ServerUrl = serverUrl;
             IsServerReady = false;
+            IsHandshakeComplete = false;
 
             Closed += OnClosed;
         }
+
+        public async Task<string> GetResponseAsync(RequestMethod requestMethod, string urlSuffix)
+        {
+            return await RESTClient.RequestAsync(requestMethod, $"{ServerUrl}/{urlSuffix}");
+        }
+
+        #region EVENTS
 
         public event AsyncEventHandler<Exception> Closed;
 
@@ -39,16 +52,22 @@ namespace JourneyCore.Client.Net
             await Closed.Invoke(sender, ex);
         }
 
+        #endregion
+
+
         #region INIT
 
         public async Task InitialiseAsync(string servicePath)
         {
-            await BuildConnection(servicePath);
+            BuildConnection(servicePath);
             await WaitForServerReady();
+            await ServerHandshake();
             await BuildSynchroniser();
+
+            Log.Information("Connection to game server completed successfully.");
         }
 
-        private async Task BuildConnection(string servicePath)
+        private void BuildConnection(string servicePath)
         {
             Log.Information("Initialising connection to game server...");
 
@@ -59,19 +78,6 @@ namespace JourneyCore.Client.Net
                 await Task.Delay(1000);
                 await Connection.StartAsync();
             };
-
-            DiffieHellman dHell = new DiffieHellman();
-
-            string pubKey = Convert.ToBase64String(dHell.PublicKey);
-
-            string fullUrl =
-                $"{ServerUrl}/gameservice/security/handshake?guid={HttpUtility.HtmlEncode(Guid)}&clientPublicKey={HttpUtility.HtmlEncode(pubKey)}";
-
-            string retVal = await RESTClient.RequestAsync(RequestMethod.GET, fullUrl);
-            DiffieHellmanKeyPackage keyP = JsonConvert.DeserializeObject<DiffieHellmanKeyPackage>(retVal);
-
-            
-
         }
 
         private async Task WaitForServerReady()
@@ -102,8 +108,32 @@ namespace JourneyCore.Client.Net
                     tries += 1;
                 }
             }
+        }
 
-            Log.Information("Connection to game server completed successfully.");
+        public async Task ServerHandshake()
+        {
+            Log.Information("Handshaking with server...");
+
+            try
+            {
+                string pubKey = Convert.ToBase64String(EncryptionService.PublicKey);
+
+                string fullUrl =
+                    $"{ServerUrl}/gameservice/security/handshake?guid={Guid}&clientPublicKey={pubKey.HtmlEncodeBase64()}";
+
+                string retVal = await RESTClient.RequestAsync(RequestMethod.GET, fullUrl);
+                DiffieHellmanKeyPackage keyPackage = JsonConvert.DeserializeObject<DiffieHellmanKeyPackage>(retVal);
+
+                EncryptionService.CalculateSharedKey(keyPackage);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error occured while attempting handshake: {ex.Message}");
+            }
+
+            IsHandshakeComplete = true;
+
+            Log.Information("Successfully completed handshake with server.");
         }
 
         private async Task BuildSynchroniser()

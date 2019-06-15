@@ -22,6 +22,7 @@ namespace JourneyCore.Server.Net.Services
         {
             GameClientContext = gameClientContext;
 
+            CryptoServices = new Dictionary<string, DiffieHellman>();
             TextureImages = new Dictionary<string, byte[]>();
             TileSets = new Dictionary<string, TileSet>();
             TileMaps = new Dictionary<string, Map>();
@@ -39,6 +40,7 @@ namespace JourneyCore.Server.Net.Services
         }
 
         #endregion
+
 
         #region VARIABLES
 

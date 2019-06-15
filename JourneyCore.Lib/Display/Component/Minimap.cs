@@ -4,7 +4,7 @@ using System.Linq;
 using JourneyCore.Lib.Display.Drawing;
 using SFML.Graphics;
 
-namespace JourneyCore.Client
+namespace JourneyCore.Lib.Display.Component
 {
     public class Minimap
     {

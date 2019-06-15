@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace JourneyCore.Lib.Game.Net.Security
+﻿namespace JourneyCore.Lib.Game.Net.Security
 {
     public class DiffieHellmanKeyPackage
     {

@@ -16,13 +16,13 @@ namespace JourneyCore.Server.Net.Controllers
 
         // todo implement handshakes of some sort to verify client authenticity
         // GET: GameService/GetChunks/MapName?coordX=000,coordY=000
-        [HttpGet("/maps/{mapName}/{x}/{y}")]
+        [HttpGet("/maps/{mapName}")]
         public IActionResult GetChunkSpace(string mapName, int x, int y)
         {
             return new JsonResult(GameService.GetChunk(mapName, new Vector2i(x, y)).ToArray());
         }
 
-        [HttpGet("/maps/metadata/{mapName}")]
+        [HttpGet("/maps/{mapName}/metadata")]
         public IActionResult GetMapMetadata(string mapName)
         {
             return new JsonResult(GameService.GetMapMetadata(mapName));
