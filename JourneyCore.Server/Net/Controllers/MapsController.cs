@@ -1,7 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Threading.Tasks;
+using JourneyCore.Lib.System.Static;
 using JourneyCore.Server.Net.Services;
 using Microsoft.AspNetCore.Mvc;
-using SFML.System;
 
 namespace JourneyCore.Server.Net.Controllers
 {
@@ -14,18 +15,23 @@ namespace JourneyCore.Server.Net.Controllers
             GameService = gameService;
         }
 
-        // todo implement handshakes of some sort to verify client authenticity
-        // GET: GameService/GetChunks/MapName?coordX=000,coordY=000
-        [HttpGet("/maps/{mapName}")]
-        public IActionResult GetChunkSpace(string mapName, int x, int y)
+        [HttpGet("/maps/{mapNameBase64}")]
+        public IActionResult GetChunkSpace(string guid, string remotePublicKeyBase64, string mapNameBase64, string coordsBase64)
         {
-            return new JsonResult(GameService.GetChunk(mapName, new Vector2i(x, y)).ToArray());
+            byte[] remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
+            byte[] mapNameEncrypted = Convert.FromBase64String(mapNameBase64.HtmlDecodeBase64());
+            byte[] coordsEncrypted = Convert.FromBase64String(coordsBase64.HtmlDecodeBase64());
+
+            return new JsonResult(GameService.GetChunk(guid, remotePublicKey, mapNameEncrypted, coordsEncrypted));
         }
 
-        [HttpGet("/maps/{mapName}/metadata")]
-        public IActionResult GetMapMetadata(string mapName)
+        [HttpGet("/maps/{mapNameBase64}/metadata")]
+        public async Task<IActionResult> GetMapMetadata(string guid, string remotePublicKeyBase64, string mapNameBase64)
         {
-            return new JsonResult(GameService.GetMapMetadata(mapName));
+            byte[] remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64);
+            byte[] mapNameEncrypted = Convert.FromBase64String(mapNameBase64);
+
+            return new JsonResult(await GameService.GetMapMetadata(guid, remotePublicKey, mapNameEncrypted));
         }
     }
 }

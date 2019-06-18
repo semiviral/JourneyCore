@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
-using JourneyCore.Lib.Game.Net;
-using JourneyCore.Lib.Game.Net.Security;
 using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System.Components.Loaders;
+using JourneyCore.Lib.System.Net;
+using JourneyCore.Lib.System.Net.Security;
 using JourneyCore.Server.Net.SignalR.Contexts;
+using Newtonsoft.Json;
 using SFML.System;
 
 namespace JourneyCore.Server.Net.Services
@@ -115,27 +116,39 @@ namespace JourneyCore.Server.Net.Services
             return new DiffieHellmanKeyPackage(CryptoServices[guid].PublicKey, CryptoServices[guid].IV);
         }
 
-        public byte[] GetImage(string textureName)
+        public async Task<byte[]> GetImage(string guid, byte[] remotePublicKey, byte[] textureNameEncrypted)
         {
+            string textureName = await CryptoServices[guid].DecryptAsync(remotePublicKey, textureNameEncrypted);
             return TextureImages[textureName];
         }
 
-        public TileSetMetadata GetTileSetMetadata(string tileSetName)
+        public async Task<TileSetMetadata> GetTileSetMetadata(string guid, byte[] remotePublicKey, byte[] tileSetNameEncrypted)
         {
+            string tileSetName = await CryptoServices[guid].DecryptAsync(remotePublicKey, tileSetNameEncrypted);
             return TileSets[tileSetName].GetMetadata();
         }
 
-        public MapMetadata GetMapMetadata(string mapName)
+        public async Task<MapMetadata> GetMapMetadata(string guid, byte[] remotePublicKey, byte[] mapNameEncrypted)
         {
+            string mapName = await CryptoServices[guid].DecryptAsync(remotePublicKey, mapNameEncrypted);
             return TileMaps[mapName].GetMetadata();
         }
 
-        public IEnumerable<Chunk> GetChunk(string mapName, Vector2i chunkCoords)
+        public async Task<List<Chunk>> GetChunk(string guid, byte[] remotePublicKey, byte[] mapNameEncrypted, byte[] coordsEncrypted)
         {
+            string mapName = await CryptoServices[guid].DecryptAsync(remotePublicKey, mapNameEncrypted);
+            string coordsJson = await CryptoServices[guid].DecryptAsync(remotePublicKey, coordsEncrypted);
+            Vector2i coords = JsonConvert.DeserializeObject<Vector2i>(coordsJson);
+
+            // todo upgrade to C# 8.0 for (yield return in async)
+            List<Chunk> chunks = new List<Chunk>();
+
             foreach (MapLayer layer in TileMaps[mapName].Layers)
             {
-                yield return layer.Map[chunkCoords.X][chunkCoords.Y];
+                chunks.Add(layer.Map[coords.X][coords.Y]);
             }
+
+            return chunks;
         }
 
         #endregion

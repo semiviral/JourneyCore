@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using JourneyCore.Lib.System.Static;
 using JourneyCore.Server.Net.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -21,21 +22,28 @@ namespace JourneyCore.Server.Net.Controllers
         }
 
         [HttpGet("gameservice/security/handshake")]
-        public IActionResult GetDiffieHellmanKeys(string guid, string clientPublicKey)
+        public IActionResult GetDiffieHellmanKeys(string guid, string clientPublicKeyBase64)
         {
-            return new JsonResult(GameService.RegisterDiffieHellman(guid, Convert.FromBase64String(clientPublicKey.HtmlDecodeBase64())));
+            return new JsonResult(GameService.RegisterDiffieHellman(guid,
+                Convert.FromBase64String(clientPublicKeyBase64.HtmlDecodeBase64())));
         }
 
-        [HttpGet("gameservice/tilesets/{tileSetName}")]
-        public IActionResult GetTileSet(string tileSetName)
+        [HttpGet("gameservice/tilesets")]
+        public async Task<IActionResult> GetTileSet(string guid, string remotePublicKeyBase64, string tileSetNameBase64)
         {
-            return new JsonResult(GameService.GetTileSetMetadata(tileSetName));
+            byte[] remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
+            byte[] tileSetNameEncrypted = Convert.FromBase64String(tileSetNameBase64.HtmlDecodeBase64());
+
+            return new JsonResult(await GameService.GetTileSetMetadata(guid, remotePublicKey, tileSetNameEncrypted));
         }
 
-        [HttpGet("gameservice/images/{imageName}")]
-        public IActionResult GetImage(string imageName)
+        [HttpGet("gameservice/images")]
+        public async Task<IActionResult> GetImage(string guid, string remotePublicKeyBase64, string imageNameBase64)
         {
-            return new JsonResult(GameService.GetImage(imageName));
+            byte[] remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
+            byte[] imageNameEncrypted = Convert.FromBase64String(imageNameBase64.HtmlDecodeBase64());
+
+            return new JsonResult(await GameService.GetImage(guid, remotePublicKey, imageNameEncrypted));
         }
 
         [HttpGet("gameservice/tickrate")]

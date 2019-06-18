@@ -1,4 +1,4 @@
-﻿namespace JourneyCore.Lib.Game.Net.Security
+﻿namespace JourneyCore.Lib.System.Net.Security
 {
     public class DiffieHellmanKeyPackage
     {

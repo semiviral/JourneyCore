@@ -1,4 +1,4 @@
-﻿namespace JourneyCore.Lib.Game.Net
+﻿namespace JourneyCore.Lib.System.Net
 {
     public struct UpdatePackage
     {

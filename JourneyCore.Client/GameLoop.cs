@@ -8,14 +8,13 @@ using JourneyCore.Lib.Display.Component;
 using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
-using JourneyCore.Lib.Game.Net;
 using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System.Components.Loaders;
 using JourneyCore.Lib.System.Event;
 using JourneyCore.Lib.System.Math;
+using JourneyCore.Lib.System.Net;
 using JourneyCore.Lib.System.Static;
 using Newtonsoft.Json;
-using RESTModule;
 using Serilog;
 using SFML.Graphics;
 using SFML.System;
@@ -231,9 +230,7 @@ namespace JourneyCore.Client
 
         private async Task CreateLocalMap()
         {
-            string retVal =
-                await NetManager.GetResponseAsync(RequestMethod.GET, "gameservice/images/maps");
-            CurrentMap = new LocalMap(JsonConvert.DeserializeObject<byte[]>(retVal));
+            CurrentMap = new LocalMap(await RequestImage("maps"));
 
             Log.Information("Requesting map: AdventurersGuild");
 
@@ -244,12 +241,8 @@ namespace JourneyCore.Client
         {
             Log.Information("Initialising player...");
 
-            string retVal = await NetManager.GetResponseAsync(RequestMethod.GET, "gameservice/images/human");
-            Texture humanTexture = new Texture(JsonConvert.DeserializeObject<byte[]>(retVal));
-
-
-            retVal = await NetManager.GetResponseAsync(RequestMethod.GET, "gameservice/images/projectiles");
-            Texture projectilesTexture = new Texture(JsonConvert.DeserializeObject<byte[]>(retVal));
+            Texture humanTexture = new Texture(await RequestImage("human"));
+            Texture projectilesTexture = new Texture(await RequestImage("projectiles"));
 
 
             Player = new Player(new Sprite(humanTexture), projectilesTexture, 0);
@@ -377,14 +370,10 @@ namespace JourneyCore.Client
 
         private async Task CreateUserInterface()
         {
-            string retVal =
-                await RESTClient.RequestAsync(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/tilesets/ui");
-            TileSetMetadata tileSetMetadata = JsonConvert.DeserializeObject<TileSetMetadata>(retVal);
+            TileSetMetadata uiTileSetMetadata = await RequestTileSetMetadata("ui");
+            byte[] uiImage = await RequestImage("ui");
 
-            retVal = await RESTClient.RequestAsync(RequestMethod.GET, $"{NetManager.ServerUrl}/gameservice/images/ui");
-            byte[] uiImage = JsonConvert.DeserializeObject<byte[]>(retVal);
-
-            UserInterface = new Ui(tileSetMetadata, uiImage);
+            UserInterface = new Ui(uiTileSetMetadata, uiImage);
             UserInterface.UpdateHealth(Player.CurrentHp);
         }
 
@@ -415,14 +404,25 @@ namespace JourneyCore.Client
 
         private async Task<MapMetadata> RequestMapMetadata(string mapName)
         {
-            string retVal = await NetManager.GetResponseAsync(RequestMethod.GET, $"maps/{mapName}/metadata");
-
+            string retVal = await NetManager.GetResponseAsync($"maps/{await NetManager.GetHtmlSafeEncryptedBase64(mapName)}/metadata?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.EncryptionService.PublicKeyString.HtmlEncodeBase64()}");
             return JsonConvert.DeserializeObject<MapMetadata>(retVal);
+        }
+
+        private async Task<byte[]> RequestImage(string imageName)
+        {
+            string retVal = await NetManager.GetResponseAsync($"gameservice/images?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.EncryptionService.PublicKeyString.HtmlEncodeBase64()}&imageNameBase64={await NetManager.GetHtmlSafeEncryptedBase64(imageName)}");
+            return JsonConvert.DeserializeObject<byte[]>(retVal);
+        }
+
+        private async Task<TileSetMetadata> RequestTileSetMetadata(string tileSetName)
+        {
+            string retVal = await NetManager.GetResponseAsync($"gameservice/tilesets?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.EncryptionService.PublicKeyString.HtmlEncodeBase64()}&tileSetNameBase64={await NetManager.GetHtmlSafeEncryptedBase64(tileSetName)}");
+            return JsonConvert.DeserializeObject<TileSetMetadata>(retVal);
         }
 
         private async Task<Chunk[]> RequestChunk(Vector2i coords)
         {
-            string retVal = await NetManager.GetResponseAsync(RequestMethod.GET, $"maps/{CurrentMap.Metadata.Name}?x={coords.X}&y={coords.Y}");
+            string retVal = await NetManager.GetResponseAsync($"maps/{await NetManager.GetHtmlSafeEncryptedBase64(CurrentMap.Metadata.Name)}?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.EncryptionService.PublicKeyString.HtmlEncodeBase64()}&coordsBase64={await NetManager.GetHtmlSafeEncryptedBase64(JsonConvert.SerializeObject(coords))}");
 
             return JsonConvert.DeserializeObject<Chunk[]>(retVal);
         }

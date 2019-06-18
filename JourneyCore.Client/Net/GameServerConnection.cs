@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Threading.Tasks;
-using JourneyCore.Lib.Game.Net.Security;
 using JourneyCore.Lib.System.Event;
+using JourneyCore.Lib.System.Net;
+using JourneyCore.Lib.System.Net.Security;
 using JourneyCore.Lib.System.Static;
 using Microsoft.AspNetCore.SignalR.Client;
 using Newtonsoft.Json;
-using RESTModule;
 using Serilog;
 
 namespace JourneyCore.Client.Net
 {
     public class GameServerConnection
     {
-        private DiffieHellman EncryptionService { get; }
-
+        public DiffieHellman EncryptionService { get; }
         public string Guid { get; }
         public string ServerUrl { get; }
         public HubConnection Connection { get; private set; }
@@ -33,9 +32,15 @@ namespace JourneyCore.Client.Net
             Closed += OnClosed;
         }
 
-        public async Task<string> GetResponseAsync(RequestMethod requestMethod, string urlSuffix)
+        public async Task<string> GetResponseAsync(string urlSuffix)
         {
-            return await RESTClient.RequestAsync(requestMethod, $"{ServerUrl}/{urlSuffix}");
+            return await RestClient.GetAsync($"{ServerUrl}/{urlSuffix}");
+        }
+
+
+        public async Task<string> GetHtmlSafeEncryptedBase64(string target)
+        {
+            return Convert.ToBase64String(await EncryptionService.EncryptAsync(target)).HtmlEncodeBase64();
         }
 
         #region EVENTS
@@ -114,22 +119,14 @@ namespace JourneyCore.Client.Net
         {
             Log.Information("Handshaking with server...");
 
-            try
-            {
-                string pubKey = Convert.ToBase64String(EncryptionService.PublicKey);
+            string fullUrl =
+                $"gameservice/security/handshake?guid={Guid}&clientPublicKeyBase64={EncryptionService.PublicKeyString.HtmlEncodeBase64()}";
 
-                string fullUrl =
-                    $"{ServerUrl}/gameservice/security/handshake?guid={Guid}&clientPublicKey={pubKey.HtmlEncodeBase64()}";
-
-                string retVal = await RESTClient.RequestAsync(RequestMethod.GET, fullUrl);
-                DiffieHellmanKeyPackage keyPackage = JsonConvert.DeserializeObject<DiffieHellmanKeyPackage>(retVal);
-
-                EncryptionService.CalculateSharedKey(keyPackage);
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Error occured while attempting handshake: {ex.Message}");
-            }
+            // not using GetResponseAsync since we haven't
+            // yet established the handshake
+            string retVal = await GetResponseAsync(fullUrl);
+            DiffieHellmanKeyPackage keyPackage = JsonConvert.DeserializeObject<DiffieHellmanKeyPackage>(retVal);
+            EncryptionService.CalculateSharedKey(keyPackage);
 
             IsHandshakeComplete = true;
 
@@ -156,14 +153,14 @@ namespace JourneyCore.Client.Net
 
         private async Task<bool> GetServerReadyState()
         {
-            string retVal = await RESTClient.RequestAsync(RequestMethod.GET, $"{ServerUrl}/gameservice/status");
+            string retVal = await GetResponseAsync("gameservice/status");
 
             return JsonConvert.DeserializeObject<bool>(retVal);
         }
 
         private async Task<int> GetServerTickInterval()
         {
-            string retVal = await RESTClient.RequestAsync(RequestMethod.GET, $"{ServerUrl}/gameservice/tickrate");
+            string retVal = await GetResponseAsync("gameservice/tickrate");
             int tickRate = JsonConvert.DeserializeObject<int>(retVal);
 
             if (tickRate > 0)

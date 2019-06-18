@@ -1,4 +1,6 @@
-﻿namespace JourneyCore.Lib.System.Static
+﻿using System.Linq;
+
+namespace JourneyCore.Lib.System.Static
 {
     public static class ValueTypeExtensionMethods
     {
@@ -19,12 +21,21 @@
 
         public static string HtmlEncodeBase64(this string rawBase64)
         {
-            return rawBase64.Trim('=').Replace('+', '-').Replace('/', '_');
+            string encodedBase64String = rawBase64.Trim('=').Replace('+', '-').Replace('/', '_');
+            int paddingCount = rawBase64.Count(character => character == '=');
+
+            return $"{encodedBase64String}{paddingCount}";
         }
 
         public static string HtmlDecodeBase64(this string encodedBase64)
         {
-            return encodedBase64.Insert(encodedBase64.Length, "=").Replace('-', '+').Replace('_', '/');
+            string decodedBase64String =
+                encodedBase64.Replace('-', '+').Replace('_', '/').Substring(0, encodedBase64.Length - 1);
+
+            int.TryParse(encodedBase64.Substring(encodedBase64.Length - 1), out int paddingCount);
+            string paddingCharacters = new string('=', paddingCount);
+
+            return $"{decodedBase64String}{paddingCharacters}";
         }
     }
 }

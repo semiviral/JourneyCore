@@ -20,10 +20,4 @@
     <ProjectReference Include="..\JourneyCore.Lib\JourneyCore.Lib.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="RESTModule">
-      <HintPath>..\..\REST-Module\bin\Release\netcoreapp2.2\RESTModule.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

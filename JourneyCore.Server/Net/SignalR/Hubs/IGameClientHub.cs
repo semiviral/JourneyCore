@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using JourneyCore.Lib.Game.Net;
+using JourneyCore.Lib.System.Net;
 
 namespace JourneyCore.Server.Net.SignalR.Hubs
 {

@@ -1,4 +1,5 @@
-﻿using SFML.System;
+﻿using SFML.Graphics;
+using SFML.System;
 
 namespace JourneyCore.Lib.System.Math
 {
@@ -46,6 +47,13 @@ namespace JourneyCore.Lib.System.Math
             return new Vector2f(
                 cosTheta * (outerCoords.X - origin.X) - sinTheta * (outerCoords.Y - origin.Y) + origin.X,
                 sinTheta * (outerCoords.X - origin.X) + cosTheta * (outerCoords.Y - origin.Y) + origin.Y);
+        }
+
+        public static bool CircleIntersect(Vector2f circleCenter, IntRect bounds)
+        {
+
+
+            return false;
         }
     }
 }

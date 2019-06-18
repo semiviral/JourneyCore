@@ -31,9 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="RESTModule">
-      <HintPath>..\..\REST-Module\bin\Release\netcoreapp2.2\RESTModule.dll</HintPath>
-    </Reference>
     <Reference Include="System.Security.Cryptography.Cng">
       <HintPath>..\..\..\..\..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\system.security.cryptography.cng\4.5.0\ref\netcoreapp2.1\System.Security.Cryptography.Cng.dll</HintPath>
     </Reference>

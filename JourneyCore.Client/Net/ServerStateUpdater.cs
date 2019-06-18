@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using JourneyCore.Lib.Game.Net;
 using JourneyCore.Lib.System.Event;
+using JourneyCore.Lib.System.Net;
 
 namespace JourneyCore.Client.Net
 {

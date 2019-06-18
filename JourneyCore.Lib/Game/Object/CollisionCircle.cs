@@ -2,21 +2,21 @@
 
 namespace JourneyCore.Lib.Game.Object
 {
-    public struct CollisionBox : ICollidable
+    public struct CollisionCircle : ICollidable
     {
         public Vector2f Position { get; set; }
-        public Vector2f Size { get; set; }
+        public uint Radius { get; set; }
 
-        public CollisionBox(Vector2f position, Vector2f size)
+        public CollisionCircle(Vector2f position, uint radius)
         {
             Position = position;
-            Size = size;
+            Radius = radius;
         }
 
-        public CollisionBox(CollisionBox collisionBox)
+        public CollisionCircle(CollisionCircle collisionCircle)
         {
-            Position = collisionBox.Position;
-            Size = collisionBox.Size;
+            Position = collisionCircle.Position;
+            Radius = collisionCircle.Radius;
         }
 
         public bool Intersects(ICollidable collidable)

@@ -2,11 +2,10 @@
 using System.Threading.Tasks;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
-using JourneyCore.Lib.Game.Net;
-using JourneyCore.Lib.Game.Net.Security;
 using JourneyCore.Lib.Game.Object.Entity;
+using JourneyCore.Lib.System.Net;
+using JourneyCore.Lib.System.Net.Security;
 using Microsoft.Extensions.Hosting;
-using SFML.System;
 
 namespace JourneyCore.Server.Net.Services
 {
@@ -20,9 +19,9 @@ namespace JourneyCore.Server.Net.Services
         Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages);
 
         DiffieHellmanKeyPackage RegisterDiffieHellman(string guid, byte[] clientPublicKey);
-        byte[] GetImage(string textureName);
-        TileSetMetadata GetTileSetMetadata(string tileSetName);
-        MapMetadata GetMapMetadata(string mapName);
-        IEnumerable<Chunk> GetChunk(string mapName, Vector2i chunkCoords);
+        Task<byte[]> GetImage(string guid, byte[] remotePublicKey, byte[] textureNameEncrypted);
+        Task<TileSetMetadata> GetTileSetMetadata(string guid, byte[] remotePublicKey, byte[] tileSetNameEncrypted);
+        Task<MapMetadata> GetMapMetadata(string guid, byte[] remotePublicKey, byte[] mapNameEncrypted);
+        Task<List<Chunk>> GetChunk(string guid, byte[] remotePublicKey, byte[] mapNameEncrypted, byte[] coordsEncrypted);
     }
 }

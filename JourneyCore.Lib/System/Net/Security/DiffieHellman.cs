@@ -1,17 +1,32 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Exception = System.Exception;
 
-namespace JourneyCore.Lib.Game.Net.Security
+namespace JourneyCore.Lib.System.Net.Security
 {
     public class DiffieHellman
     {
         private readonly ECDiffieHellmanCng _DiffieHellmanCng;
         private byte[] _SharedKey;
+        private byte[] _PublicKey;
 
-        public byte[] PublicKey { get; }
+        public byte[] PublicKey
+        {
+            get => _PublicKey;
+            set
+            {
+                _PublicKey = value;
+                PublicKeyString = Convert.ToBase64String(PublicKey);
+            }
+        }
+
+        public string PublicKeyString { get; private set; }
         public byte[] IV { get; set; }
+        public string IVString => Convert.ToBase64String(IV);
+
 
         public DiffieHellman()
         {
@@ -62,10 +77,11 @@ namespace JourneyCore.Lib.Game.Net.Security
             CalculateSharedKey(keyPackage.RemotePublicKey);
         }
 
-        public async Task<byte[]> Encrypt(string secretMessage)
+        public async Task<byte[]> EncryptAsync(string secretMessage)
         {
             using (Aes aes = new AesCryptoServiceProvider
             {
+                Padding = PaddingMode.PKCS7,
                 Key = _SharedKey,
                 IV = IV
             })
@@ -78,33 +94,67 @@ namespace JourneyCore.Lib.Game.Net.Security
                         byte[] plainTextMessage = Encoding.UTF8.GetBytes(secretMessage);
 
                         await cryptoStream.WriteAsync(plainTextMessage, 0, plainTextMessage.Length);
+                        await cryptoStream.FlushAsync();
                         cryptoStream.Close();
 
-                        return plainTextMessage;
+                        return cipherText.ToArray();
                     }
                 }
             }
         }
 
-        public async Task<string> Decrypt(DiffieHellmanKeyPackage keyPackage, byte[] secretMessage)
+        public async Task<byte[]> EncryptAsync(byte[] secretMessageBytes)
         {
             using (Aes aes = new AesCryptoServiceProvider
             {
-                Key = keyPackage.RemotePublicKey,
-                IV = keyPackage.IV
+                Padding = PaddingMode.PKCS7,
+                Key = _SharedKey,
+                IV = IV
             })
             {
                 using (MemoryStream cipherText = new MemoryStream())
                 {
                     using (CryptoStream cryptoStream =
-                        new CryptoStream(cipherText, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                        new CryptoStream(cipherText, aes.CreateEncryptor(), CryptoStreamMode.Write))
                     {
-                        await cryptoStream.WriteAsync(secretMessage, 0, secretMessage.Length);
+                        await cryptoStream.WriteAsync(secretMessageBytes, 0, secretMessageBytes.Length);
+                        await cryptoStream.FlushAsync();
                         cryptoStream.Close();
 
-                        return Encoding.UTF8.GetString(secretMessage);
+                        return cipherText.ToArray();
                     }
                 }
+            }
+        }
+
+        public async Task<string> DecryptAsync(byte[] remotePublicKey, byte[] secretMessage)
+        {
+            try
+            {
+                using (Aes aes = new AesCryptoServiceProvider
+                {
+                    Padding = PaddingMode.PKCS7,
+                    Key = _DiffieHellmanCng.DeriveKeyMaterial(CngKey.Import(remotePublicKey, CngKeyBlobFormat.EccPublicBlob)),
+                    IV = IV
+                })
+                {
+                    using (MemoryStream cipherText = new MemoryStream())
+                    {
+                        using (CryptoStream cryptoStream =
+                            new CryptoStream(cipherText, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                        {
+                            await cryptoStream.WriteAsync(secretMessage, 0, secretMessage.Length);
+                            await cryptoStream.FlushAsync();
+                            cryptoStream.Close();
+
+                            return Encoding.UTF8.GetString(cipherText.ToArray());
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
             }
         }
     }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using JourneyCore.Lib.Game.Net;
+using JourneyCore.Lib.System.Net;
 using JourneyCore.Server.Net.Services;
 using Microsoft.AspNetCore.SignalR;
 
