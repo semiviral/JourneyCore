@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Threading;
 using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.System.Time;
-using Serilog;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;

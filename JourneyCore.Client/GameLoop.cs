@@ -8,6 +8,7 @@ using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Object.Entity;
+using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
 using JourneyCore.Lib.System.Event;
 using JourneyCore.Lib.System.Math;
@@ -45,11 +46,13 @@ namespace JourneyCore.Client
         private Player Player { get; set; }
         private InputWatcher InputWatcher { get; }
 
-        public GameLoop()
+        public GameLoop(uint maximumFrameRate)
         {
             ConManager = new ConsoleManager();
             ConManager.Hide(false);
 
+            CreateGameWindow(maximumFrameRate);
+            
             Log.Information("Game loop started.");
 
             InputWatcher = new InputWatcher();
@@ -63,18 +66,11 @@ namespace JourneyCore.Client
             Window.AddDrawItem("minimap", 0,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
                     new DrawObject(typeof(VertexArray), CurrentMap.Minimap.VArray), RenderStates.Default));
-
-            Window.SetActive(true);
-
+            
             try
             {
                 while (Window.IsActive)
                 {
-                    if (Thread.CurrentThread.ManagedThreadId != 1)
-                    {
-                        CallFatality("Runtime code not executing in main thread. Exiting game.");
-                    }
-
                     InputWatcher.CheckWatchedInputs();
 
                     Window.UpdateWindow();
@@ -108,12 +104,11 @@ namespace JourneyCore.Client
 
         #region INITIALISATION
 
-        public async Task Initialise(string serverUrl, string servicePath, uint maximumFrameRate)
+        public async Task Initialise(string serverUrl, string servicePath)
         {
             try
             {
                 await ConnectGameServer(serverUrl, servicePath);
-                CreateGameWindow(maximumFrameRate);
                 CreateDrawViews();
                 await CreateLocalMap();
                 await SetupPlayer();
