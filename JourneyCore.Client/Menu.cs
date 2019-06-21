@@ -6,11 +6,11 @@ namespace JourneyCore.Client
     {
         public Menu()
         {
-            Font defaultFont = new Font(@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\Assets\Fonts\Courier New.ttf");
+            Font defaultFont =
+                new Font(
+                    @"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\Assets\Fonts\Courier New.ttf");
         }
 
-        public void Draw(RenderTarget target, RenderStates states)
-        {
-        }
+        public void Draw(RenderTarget target, RenderStates states) { }
     }
 }

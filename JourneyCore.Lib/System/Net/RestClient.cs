@@ -15,9 +15,10 @@ namespace JourneyCore.Lib.System.Net
 
         public static async Task<string> GetAsync(string requestString, bool encode = false)
         {
-            HttpResponseMessage response = await HttpClient.GetAsync(encode ? HttpUtility.UrlEncode(requestString) : requestString);
+            HttpResponseMessage response =
+                await HttpClient.GetAsync(encode ? HttpUtility.UrlEncode(requestString) : requestString);
             response.EnsureSuccessStatusCode();
-            
+
             return await response.Content.ReadAsStringAsync();
         }
 

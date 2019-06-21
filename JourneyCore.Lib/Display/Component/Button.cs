@@ -32,7 +32,7 @@ namespace JourneyCore.Lib.Display.Component
             MouseExited += OnMouseExited;
             Pressed += OnPressed;
             Released += OnReleased;
-        
+
             Position = new Vector2f(0f, 0f);
             Size = new Vector2f(10f, 10f);
 
@@ -47,7 +47,6 @@ namespace JourneyCore.Lib.Display.Component
             Text = text;
             FloatRect localBounds = _TextObject.GetLocalBounds();
             _TextObject.Origin = new Vector2f(localBounds.Width / 2f, localBounds.Height / 2f);
-
         }
 
         public void Draw(RenderTarget target, RenderStates states)
@@ -179,7 +178,8 @@ namespace JourneyCore.Lib.Display.Component
 
         private RectangleShape BackgroundShape { get; }
 
-        public Color FillColor {
+        public Color FillColor
+        {
             get => BackgroundShape.FillColor;
             set => BackgroundShape.FillColor = value;
         }
@@ -194,7 +194,8 @@ namespace JourneyCore.Lib.Display.Component
         private Text _TextObject;
         public Font DefaultFont { get; }
 
-        public string Text {
+        public string Text
+        {
             get => _TextObject.DisplayedString;
             set => _TextObject = new Text(value, DefaultFont);
         }

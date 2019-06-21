@@ -5,7 +5,6 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using JourneyCore.Lib.Game.Environment.Mapping;
-using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
 using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System.Components.Loaders;
@@ -41,6 +40,11 @@ namespace JourneyCore.Server.Net.Services
         }
 
         #endregion
+
+        public DiffieHellmanMessagePackage PackageMessage(string guid, byte[] secretMessage)
+        {
+            return new DiffieHellmanMessagePackage(CryptoServices[guid].PublicKey, secretMessage);
+        }
 
 
         #region VARIABLES
@@ -101,9 +105,9 @@ namespace JourneyCore.Server.Net.Services
         #endregion
 
 
-        #region IGameService
+        #region IGAMESERVICE
 
-        public DiffieHellmanKeyPackage RegisterDiffieHellman(string guid, byte[] clientPublicKey)
+        public DiffieHellmanAuthPackage RegisterDiffieHellman(string guid, byte[] clientPublicKey)
         {
             using (Aes aes = new AesCryptoServiceProvider())
             {
@@ -113,28 +117,42 @@ namespace JourneyCore.Server.Net.Services
                 });
             }
 
-            return new DiffieHellmanKeyPackage(CryptoServices[guid].PublicKey, CryptoServices[guid].IV);
+            return new DiffieHellmanAuthPackage(CryptoServices[guid].PublicKey, CryptoServices[guid].IV);
         }
 
-        public async Task<byte[]> GetImage(string guid, byte[] remotePublicKey, byte[] textureNameEncrypted)
+        public async Task<DiffieHellmanMessagePackage> GetImage(string guid, byte[] remotePublicKey,
+            byte[] textureNameEncrypted)
         {
             string textureName = await CryptoServices[guid].DecryptAsync(remotePublicKey, textureNameEncrypted);
-            return TextureImages[textureName];
+            string serializedImageBytes = JsonConvert.SerializeObject(TextureImages[textureName]);
+
+            return new DiffieHellmanMessagePackage(CryptoServices[guid].PublicKey,
+                await CryptoServices[guid].EncryptAsync(serializedImageBytes));
         }
 
-        public async Task<TileSetMetadata> GetTileSetMetadata(string guid, byte[] remotePublicKey, byte[] tileSetNameEncrypted)
+        public async Task<DiffieHellmanMessagePackage> GetTileSetMetadata(string guid, byte[] remotePublicKey,
+            byte[] tileSetNameEncrypted)
         {
             string tileSetName = await CryptoServices[guid].DecryptAsync(remotePublicKey, tileSetNameEncrypted);
-            return TileSets[tileSetName].GetMetadata();
+            string serializedTileSetMetadata = JsonConvert.SerializeObject(TileSets[tileSetName].GetMetadata());
+
+            return new DiffieHellmanMessagePackage(CryptoServices[guid].PublicKey,
+                await CryptoServices[guid].EncryptAsync(serializedTileSetMetadata));
         }
 
-        public async Task<MapMetadata> GetMapMetadata(string guid, byte[] remotePublicKey, byte[] mapNameEncrypted)
+        public async Task<DiffieHellmanMessagePackage> GetMapMetadata(string guid, byte[] remotePublicKey,
+            byte[] mapNameEncrypted)
         {
             string mapName = await CryptoServices[guid].DecryptAsync(remotePublicKey, mapNameEncrypted);
-            return TileMaps[mapName].GetMetadata();
+            string serializedMapMetadata = JsonConvert.SerializeObject(TileMaps[mapName].GetMetadata());
+
+            return new DiffieHellmanMessagePackage(CryptoServices[guid].PublicKey,
+                await CryptoServices[guid].EncryptAsync(serializedMapMetadata));
         }
 
-        public async Task<List<Chunk>> GetChunk(string guid, byte[] remotePublicKey, byte[] mapNameEncrypted, byte[] coordsEncrypted)
+        public async Task<DiffieHellmanMessagePackage> GetChunk(string guid, byte[] remotePublicKey,
+            byte[] mapNameEncrypted,
+            byte[] coordsEncrypted)
         {
             string mapName = await CryptoServices[guid].DecryptAsync(remotePublicKey, mapNameEncrypted);
             string coordsJson = await CryptoServices[guid].DecryptAsync(remotePublicKey, coordsEncrypted);
@@ -148,7 +166,10 @@ namespace JourneyCore.Server.Net.Services
                 chunks.Add(layer.Map[coords.X][coords.Y]);
             }
 
-            return chunks;
+            string serializedChunksList = JsonConvert.SerializeObject(chunks);
+
+            return new DiffieHellmanMessagePackage(CryptoServices[guid].PublicKey,
+                await CryptoServices[guid].EncryptAsync(serializedChunksList));
         }
 
         #endregion

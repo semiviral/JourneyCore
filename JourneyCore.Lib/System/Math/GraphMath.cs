@@ -37,7 +37,7 @@ namespace JourneyCore.Lib.System.Math
         {
             return global::System.Math.PI * degrees / 180d;
         }
-        
+
         public static Vector2f RotatePoint(Vector2f outerCoords, Vector2f origin, float rotation)
         {
             double angleInRadians = rotation * (global::System.Math.PI / 180);
@@ -51,8 +51,6 @@ namespace JourneyCore.Lib.System.Math
 
         public static bool CircleIntersect(Vector2f circleCenter, IntRect bounds)
         {
-
-
             return false;
         }
     }

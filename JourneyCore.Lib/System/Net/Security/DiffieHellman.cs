@@ -3,15 +3,14 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Exception = System.Exception;
 
 namespace JourneyCore.Lib.System.Net.Security
 {
     public class DiffieHellman
     {
         private readonly ECDiffieHellmanCng _DiffieHellmanCng;
-        private byte[] _SharedKey;
         private byte[] _PublicKey;
+        private byte[] _SharedKey;
 
         public byte[] PublicKey
         {
@@ -70,11 +69,11 @@ namespace JourneyCore.Lib.System.Net.Security
             CalculateSharedKey(remotePublicKey);
         }
 
-        public void CalculateSharedKey(DiffieHellmanKeyPackage keyPackage)
+        public void CalculateSharedKey(DiffieHellmanAuthPackage authPackage)
         {
-            IV = keyPackage.IV;
+            IV = authPackage.IV;
 
-            CalculateSharedKey(keyPackage.RemotePublicKey);
+            CalculateSharedKey(authPackage.RemotePublicKey);
         }
 
         public async Task<byte[]> EncryptAsync(string secretMessage)
@@ -134,7 +133,8 @@ namespace JourneyCore.Lib.System.Net.Security
                 using (Aes aes = new AesCryptoServiceProvider
                 {
                     Padding = PaddingMode.PKCS7,
-                    Key = _DiffieHellmanCng.DeriveKeyMaterial(CngKey.Import(remotePublicKey, CngKeyBlobFormat.EccPublicBlob)),
+                    Key = _DiffieHellmanCng.DeriveKeyMaterial(CngKey.Import(remotePublicKey,
+                        CngKeyBlobFormat.EccPublicBlob)),
                     IV = IV
                 })
                 {

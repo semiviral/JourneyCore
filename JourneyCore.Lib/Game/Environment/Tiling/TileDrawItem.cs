@@ -32,7 +32,8 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
                 scaledSizeX, scaledSizeY);
             Vector2f bottomRight = VertexMath.CalculateVertexPosition(VertexCorner.BottomRight, TileCoords.X,
                 TileCoords.Y, scaledSizeX, scaledSizeY);
-            Vector2f bottomLeft = VertexMath.CalculateVertexPosition(VertexCorner.BottomLeft, TileCoords.X, TileCoords.Y,
+            Vector2f bottomLeft = VertexMath.CalculateVertexPosition(VertexCorner.BottomLeft, TileCoords.X,
+                TileCoords.Y,
                 scaledSizeX, scaledSizeY);
 
             QuadCoords textureCoords = GetTileTextureCoords();

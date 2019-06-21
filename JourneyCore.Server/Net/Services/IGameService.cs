@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using JourneyCore.Lib.Game.Environment.Mapping;
-using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System.Net;
 using JourneyCore.Lib.System.Net.Security;
@@ -18,10 +17,10 @@ namespace JourneyCore.Server.Net.Services
 
         Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages);
 
-        DiffieHellmanKeyPackage RegisterDiffieHellman(string guid, byte[] clientPublicKey);
-        Task<byte[]> GetImage(string guid, byte[] remotePublicKey, byte[] textureNameEncrypted);
-        Task<TileSetMetadata> GetTileSetMetadata(string guid, byte[] remotePublicKey, byte[] tileSetNameEncrypted);
-        Task<MapMetadata> GetMapMetadata(string guid, byte[] remotePublicKey, byte[] mapNameEncrypted);
-        Task<List<Chunk>> GetChunk(string guid, byte[] remotePublicKey, byte[] mapNameEncrypted, byte[] coordsEncrypted);
+        DiffieHellmanAuthPackage RegisterDiffieHellman(string guid, byte[] clientPublicKey);
+        Task<DiffieHellmanMessagePackage> GetImage(string guid, byte[] remotePublicKey, byte[] textureNameEncrypted);
+        Task<DiffieHellmanMessagePackage> GetTileSetMetadata(string guid, byte[] remotePublicKey, byte[] tileSetNameEncrypted);
+        Task<DiffieHellmanMessagePackage> GetMapMetadata(string guid, byte[] remotePublicKey, byte[] mapNameEncrypted);
+        Task<DiffieHellmanMessagePackage> GetChunk(string guid, byte[] remotePublicKey, byte[] mapNameEncrypted, byte[] coordsEncrypted);
     }
 }

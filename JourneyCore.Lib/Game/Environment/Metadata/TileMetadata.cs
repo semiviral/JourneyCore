@@ -14,7 +14,8 @@ namespace JourneyCore.Lib.Game.Environment.Metadata
 
         public TileMetadata() { }
 
-        public TileMetadata(int gid, string type, IntRect textureRect, Color miniMapColor, List<CollisionBox> collidables) :
+        public TileMetadata(int gid, string type, IntRect textureRect, Color miniMapColor,
+            List<CollisionBox> collidables) :
             this(gid, type, textureRect, miniMapColor)
         {
             Collidables = collidables;

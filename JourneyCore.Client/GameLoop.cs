@@ -13,6 +13,7 @@ using JourneyCore.Lib.System.Components.Loaders;
 using JourneyCore.Lib.System.Event;
 using JourneyCore.Lib.System.Math;
 using JourneyCore.Lib.System.Net;
+using JourneyCore.Lib.System.Net.Security;
 using JourneyCore.Lib.System.Static;
 using Newtonsoft.Json;
 using Serilog;
@@ -27,9 +28,11 @@ namespace JourneyCore.Client
         private static Tuple<int, string> _FatalExit;
         private bool _IsFocused;
 
-        private bool IsFocused {
+        private bool IsFocused
+        {
             get => _IsFocused;
-            set {
+            set
+            {
                 _IsFocused = value;
                 Window.EnableInput = _IsFocused;
             }
@@ -207,7 +210,8 @@ namespace JourneyCore.Client
             };
 
             Window.DrawItem("menu", 10,
-                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null, new DrawObject(typeof(Button), testButton), RenderStates.Default));
+                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
+                    new DrawObject(typeof(Button), testButton), RenderStates.Default));
 
             Window.CreateDrawView("game", GameWindowLayer.Game,
                 new View(new FloatRect(0f, 0f, viewSizeY * GameWindow.WidescreenRatio, viewSizeY))
@@ -339,7 +343,11 @@ namespace JourneyCore.Client
             InputWatcher.AddWatchedInput(Keyboard.Key.E,
                 () => { Player.RotateEntity(Window.ElapsedTime, 180f, true); });
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.Escape, () => { DrawView drawView = Window.GetDrawView("menu"); drawView.Visible = !drawView.Visible; });
+            InputWatcher.AddWatchedInput(Keyboard.Key.Escape, () =>
+            {
+                DrawView drawView = Window.GetDrawView("menu");
+                drawView.Visible = !drawView.Visible;
+            });
         }
 
         private void SetupWatchedMouse()
@@ -402,29 +410,64 @@ namespace JourneyCore.Client
 
         #region CLIENT-TO-SERVER
 
-        private async Task<MapMetadata> RequestMapMetadata(string mapName)
-        {
-            string retVal = await NetManager.GetResponseAsync($"maps/{await NetManager.GetHtmlSafeEncryptedBase64(mapName)}/metadata?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.EncryptionService.PublicKeyString.HtmlEncodeBase64()}");
-            return JsonConvert.DeserializeObject<MapMetadata>(retVal);
-        }
-
         private async Task<byte[]> RequestImage(string imageName)
         {
-            string retVal = await NetManager.GetResponseAsync($"gameservice/images?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.EncryptionService.PublicKeyString.HtmlEncodeBase64()}&imageNameBase64={await NetManager.GetHtmlSafeEncryptedBase64(imageName)}");
-            return JsonConvert.DeserializeObject<byte[]>(retVal);
+            string retVal = await NetManager.GetResponseAsync(
+                $"gameservice/images?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.CryptoService.PublicKeyString.HtmlEncodeBase64()}&imageNameBase64={await NetManager.GetHtmlSafeEncryptedBase64(imageName)}");
+            DiffieHellmanMessagePackage messagePackage =
+                JsonConvert.DeserializeObject<DiffieHellmanMessagePackage>(retVal);
+
+            string serializedImageBytes =
+                await NetManager.CryptoService.DecryptAsync(messagePackage.RemotePublicKey,
+                    messagePackage.SecretMessage);
+            byte[] imageBytes = JsonConvert.DeserializeObject<byte[]>(serializedImageBytes);
+
+            return imageBytes;
+        }
+
+        private async Task<MapMetadata> RequestMapMetadata(string mapName)
+        {
+            string retVal = await NetManager.GetResponseAsync(
+                $"maps/{await NetManager.GetHtmlSafeEncryptedBase64(mapName)}/metadata?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.CryptoService.PublicKeyString.HtmlEncodeBase64()}");
+            DiffieHellmanMessagePackage messagePackage =
+                JsonConvert.DeserializeObject<DiffieHellmanMessagePackage>(retVal);
+
+            string serializedMapMetadata =
+                await NetManager.CryptoService.DecryptAsync(messagePackage.RemotePublicKey,
+                    messagePackage.SecretMessage);
+            MapMetadata mapMetadata = JsonConvert.DeserializeObject<MapMetadata>(serializedMapMetadata);
+
+            return mapMetadata;
         }
 
         private async Task<TileSetMetadata> RequestTileSetMetadata(string tileSetName)
         {
-            string retVal = await NetManager.GetResponseAsync($"gameservice/tilesets?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.EncryptionService.PublicKeyString.HtmlEncodeBase64()}&tileSetNameBase64={await NetManager.GetHtmlSafeEncryptedBase64(tileSetName)}");
-            return JsonConvert.DeserializeObject<TileSetMetadata>(retVal);
+            string retVal = await NetManager.GetResponseAsync(
+                $"gameservice/tilesets?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.CryptoService.PublicKeyString.HtmlEncodeBase64()}&tileSetNameBase64={await NetManager.GetHtmlSafeEncryptedBase64(tileSetName)}");
+            DiffieHellmanMessagePackage messagePackage =
+                JsonConvert.DeserializeObject<DiffieHellmanMessagePackage>(retVal);
+
+            string serializedTileSetMetadata =
+                await NetManager.CryptoService.DecryptAsync(messagePackage.RemotePublicKey,
+                    messagePackage.SecretMessage);
+            TileSetMetadata tileSetMetadata = JsonConvert.DeserializeObject<TileSetMetadata>(serializedTileSetMetadata);
+
+            return tileSetMetadata;
         }
 
         private async Task<Chunk[]> RequestChunk(Vector2i coords)
         {
-            string retVal = await NetManager.GetResponseAsync($"maps/{await NetManager.GetHtmlSafeEncryptedBase64(CurrentMap.Metadata.Name)}?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.EncryptionService.PublicKeyString.HtmlEncodeBase64()}&coordsBase64={await NetManager.GetHtmlSafeEncryptedBase64(JsonConvert.SerializeObject(coords))}");
+            string retVal = await NetManager.GetResponseAsync(
+                $"maps/{await NetManager.GetHtmlSafeEncryptedBase64(CurrentMap.Metadata.Name)}?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.CryptoService.PublicKeyString.HtmlEncodeBase64()}&coordsBase64={await NetManager.GetHtmlSafeEncryptedBase64(JsonConvert.SerializeObject(coords))}");
+            DiffieHellmanMessagePackage messagePackage =
+                JsonConvert.DeserializeObject<DiffieHellmanMessagePackage>(retVal);
 
-            return JsonConvert.DeserializeObject<Chunk[]>(retVal);
+            string serializedChunks =
+                await NetManager.CryptoService.DecryptAsync(messagePackage.RemotePublicKey,
+                    messagePackage.SecretMessage);
+            Chunk[] chunks = JsonConvert.DeserializeObject<Chunk[]>(serializedChunks);
+
+            return chunks;
         }
 
         #endregion

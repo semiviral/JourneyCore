@@ -71,9 +71,11 @@ namespace JourneyCore.Lib.Display
         public Vector2f ContentScale { get; set; }
         public Vector2f PositionScale { get; set; }
 
-        public int TargetFps {
+        public int TargetFps
+        {
             get => _TargetFps;
-            set {
+            set
+            {
                 // fps changed stuff
 
                 _TargetFps = value;
@@ -96,7 +98,8 @@ namespace JourneyCore.Lib.Display
             Window.DispatchEvents();
             Window.Clear();
 
-            foreach ((GameWindowLayer windowLayer, DrawView drawView) in DrawViews.Where(drawView => drawView.Value.Visible))
+            foreach ((GameWindowLayer windowLayer, DrawView drawView) in DrawViews.Where(drawView =>
+                drawView.Value.Visible))
             {
                 SetWindowView(drawView.Name, drawView.View);
 

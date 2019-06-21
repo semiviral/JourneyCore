@@ -12,7 +12,7 @@ namespace JourneyCore.Client.Net
 {
     public class GameServerConnection
     {
-        public DiffieHellman EncryptionService { get; }
+        public DiffieHellman CryptoService { get; }
         public string Guid { get; }
         public string ServerUrl { get; }
         public HubConnection Connection { get; private set; }
@@ -22,7 +22,7 @@ namespace JourneyCore.Client.Net
 
         public GameServerConnection(string serverUrl)
         {
-            EncryptionService = new DiffieHellman();
+            CryptoService = new DiffieHellman();
 
             Guid = System.Guid.NewGuid().ToString();
             ServerUrl = serverUrl;
@@ -40,7 +40,7 @@ namespace JourneyCore.Client.Net
 
         public async Task<string> GetHtmlSafeEncryptedBase64(string target)
         {
-            return Convert.ToBase64String(await EncryptionService.EncryptAsync(target)).HtmlEncodeBase64();
+            return Convert.ToBase64String(await CryptoService.EncryptAsync(target)).HtmlEncodeBase64();
         }
 
         #region EVENTS
@@ -120,13 +120,13 @@ namespace JourneyCore.Client.Net
             Log.Information("Handshaking with server...");
 
             string fullUrl =
-                $"gameservice/security/handshake?guid={Guid}&clientPublicKeyBase64={EncryptionService.PublicKeyString.HtmlEncodeBase64()}";
+                $"gameservice/security/handshake?guid={Guid}&clientPublicKeyBase64={CryptoService.PublicKeyString.HtmlEncodeBase64()}";
 
             // not using GetResponseAsync since we haven't
             // yet established the handshake
             string retVal = await GetResponseAsync(fullUrl);
-            DiffieHellmanKeyPackage keyPackage = JsonConvert.DeserializeObject<DiffieHellmanKeyPackage>(retVal);
-            EncryptionService.CalculateSharedKey(keyPackage);
+            DiffieHellmanAuthPackage authPackage = JsonConvert.DeserializeObject<DiffieHellmanAuthPackage>(retVal);
+            CryptoService.CalculateSharedKey(authPackage);
 
             IsHandshakeComplete = true;
 
