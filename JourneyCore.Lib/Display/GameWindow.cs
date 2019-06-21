@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.System.Time;
 using SFML.Graphics;
@@ -57,6 +58,13 @@ namespace JourneyCore.Lib.Display
             return Mouse.GetPosition(Window);
         }
 
+        public void AddDrawItem(string viewName, int layer, DrawItem drawItem)
+        {
+            DrawView drawView = DrawViews.SingleOrDefault(view => view.Value.Name.Equals(viewName)).Value;
+
+            drawView?.AddDrawItem(layer, drawItem);
+        }
+
 
         #region VARIABLES
 
@@ -91,6 +99,13 @@ namespace JourneyCore.Lib.Display
 
         #region RENDERING
 
+        private void ProcessDrawView(DrawView drawView)
+        {
+            SetWindowView(drawView.Name, drawView.View);
+
+            drawView.Draw(Window, ElapsedTime);
+        }
+
         public void UpdateWindow()
         {
             ElapsedTime = DeltaClock.GetDelta();
@@ -98,22 +113,12 @@ namespace JourneyCore.Lib.Display
             Window.DispatchEvents();
             Window.Clear();
 
-            foreach ((GameWindowLayer windowLayer, DrawView drawView) in DrawViews.Where(drawView =>
-                drawView.Value.Visible))
+            foreach ((GameWindowLayer layer, DrawView drawView) in DrawViews.Where(drawView => drawView.Value.Visible))
             {
-                SetWindowView(drawView.Name, drawView.View);
-
-                drawView.Draw(Window, ElapsedTime);
+                ProcessDrawView(drawView);
             }
 
             Window.Display();
-        }
-
-        public void DrawItem(string viewName, int layer, DrawItem drawItem)
-        {
-            DrawView drawView = DrawViews.SingleOrDefault(view => view.Value.Name.Equals(viewName)).Value;
-
-            drawView?.AddDrawItem(layer, drawItem);
         }
 
         #endregion

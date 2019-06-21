@@ -72,10 +72,10 @@ namespace JourneyCore.Client
             }
 #endif
 
-            Window.DrawItem("game", 0,
+            Window.AddDrawItem("game", 0,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
                     new DrawObject(typeof(VertexArray), CurrentMap.VArray), CurrentMap.RenderStates));
-            Window.DrawItem("minimap", 0,
+            Window.AddDrawItem("minimap", 0,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
                     new DrawObject(typeof(VertexArray), CurrentMap.Minimap.VArray), RenderStates.Default));
 
@@ -194,7 +194,7 @@ namespace JourneyCore.Client
             {
                 FillColor = new Color(0, 0, 0, 155)
             };
-            Window.DrawItem("menu", 0,
+            Window.AddDrawItem("menu", 0,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
                     new DrawObject(typeof(RectangleShape), shadowShape), RenderStates.Default));
 
@@ -210,10 +210,10 @@ namespace JourneyCore.Client
                 DefaultColor = Color.Cyan,
                 HoverColor = Color.Green,
                 PressedColor = Color.Red,
-                PressedAction = () => { CurrentMap.Minimap.VArray.ModifyOpacity(-25, 10); }
+                PressedAction = () => { CallFatality(""); }
             };
 
-            Window.DrawItem("menu", 10,
+            Window.AddDrawItem("menu", 10,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
                     new DrawObject(typeof(Button), testButton), RenderStates.Default));
 
@@ -261,7 +261,7 @@ namespace JourneyCore.Client
             Player.AnchorItem(Window.GetDrawView("game"));
             Player.AnchorItem(Window.GetDrawView("minimap"));
 
-            Window.DrawItem("game", 10,
+            Window.AddDrawItem("game", 10,
                 new DrawItem(Player.Guid, DateTime.MinValue, null,
                     new DrawObject(Player.Graphic.GetType(), Player.Graphic, Player.Graphic.GetVertices),
                     new RenderStates(Player.Graphic.Texture)));
@@ -378,7 +378,7 @@ namespace JourneyCore.Client
                     return;
                 }
 
-                Window.DrawItem("game", 20, projectileDrawItem);
+                Window.AddDrawItem("game", 20, projectileDrawItem);
             });
         }
 
@@ -407,7 +407,7 @@ namespace JourneyCore.Client
             DrawObject playerTileObj = new DrawObject(playerTile.GetType(), playerTile, playerTile.GetVertices);
             Player.AnchorItem(playerTileObj);
 
-            Window.DrawItem("minimap", 10,
+            Window.AddDrawItem("minimap", 10,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null, playerTileObj, RenderStates.Default));
         }
 
