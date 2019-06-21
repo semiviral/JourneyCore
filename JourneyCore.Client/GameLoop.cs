@@ -271,6 +271,8 @@ namespace JourneyCore.Client
 
             Vector2f movement = new Vector2f(0, 0);
 
+            InputWatcher.EnableInputFunc = () => true;
+
             InputWatcher.AddWatchedInput(Keyboard.Key.W, () =>
             {
                 movement = new Vector2f(
@@ -347,7 +349,7 @@ namespace JourneyCore.Client
             {
                 DrawView drawView = Window.GetDrawView("menu");
                 drawView.Visible = !drawView.Visible;
-            });
+            }, true);
         }
 
         private void SetupWatchedMouse()

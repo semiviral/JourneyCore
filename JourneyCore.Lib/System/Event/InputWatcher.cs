@@ -7,16 +7,16 @@ namespace JourneyCore.Lib.System.Event
 {
     public class InputWatcher
     {
-        private Dictionary<Keyboard.Key, List<Action>> WatchedKeys { get; }
-        private Dictionary<Mouse.Button, List<Action>> WatchedButtons { get; }
+        private Dictionary<Keyboard.Key, InputActionList> WatchedKeys { get; }
+        private Dictionary<Mouse.Button, InputActionList> WatchedButtons { get; }
 
         public Func<bool> EnableInputFunc { get; set; }
 
         public InputWatcher()
         {
             EnableInputFunc = () => true;
-            WatchedKeys = new Dictionary<Keyboard.Key, List<Action>>();
-            WatchedButtons = new Dictionary<Mouse.Button, List<Action>>();
+            WatchedKeys = new Dictionary<Keyboard.Key, InputActionList>();
+            WatchedButtons = new Dictionary<Mouse.Button, InputActionList>();
         }
 
         #region METHODS
@@ -25,20 +25,20 @@ namespace JourneyCore.Lib.System.Event
         {
             if (!GetWatchedKeys().Contains(key))
             {
-                WatchedKeys.Add(key, new List<Action>());
+                WatchedKeys.Add(key, new InputActionList(singlePress));
             }
 
-            WatchedKeys[key].Add(inputAction);
+            WatchedKeys[key].Actions.Add(inputAction);
         }
 
         public void AddWatchedInput(Mouse.Button button, Action inputAction, bool singlePress = false)
         {
             if (!GetWatchedButtons().Contains(button))
             {
-                WatchedButtons.Add(button, new List<Action>());
+                WatchedButtons.Add(button, new InputActionList(singlePress));
             }
 
-            WatchedButtons[button].Add(inputAction);
+            WatchedButtons[button].Actions.Add(inputAction);
         }
 
         public List<Keyboard.Key> GetWatchedKeys()
@@ -65,7 +65,7 @@ namespace JourneyCore.Lib.System.Event
 
         private void CheckAndExecuteWatchedInput(Keyboard.Key key)
         {
-            if (!Keyboard.IsKeyPressed(key))
+            if (!WatchedKeys[key].ActivatePress(Keyboard.IsKeyPressed(key)))
             {
                 return;
             }
@@ -75,7 +75,7 @@ namespace JourneyCore.Lib.System.Event
 
         private void CheckAndExecuteWatchedInput(Mouse.Button button)
         {
-            if (!Mouse.IsButtonPressed(button))
+            if (!WatchedButtons[button].ActivatePress(Mouse.IsButtonPressed(button)))
             {
                 return;
             }
@@ -85,12 +85,12 @@ namespace JourneyCore.Lib.System.Event
 
         private void InvokeInput(Keyboard.Key key)
         {
-            WatchedKeys[key].ForEach(action => action());
+            WatchedKeys[key].Actions.ForEach(action => action());
         }
 
         private void InvokeInput(Mouse.Button button)
         {
-            WatchedButtons[button].ForEach(action => action());
+            WatchedButtons[button].Actions.ForEach(action => action());
         }
 
         #endregion
