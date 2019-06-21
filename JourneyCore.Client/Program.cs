@@ -14,7 +14,7 @@ namespace JourneyCore.Client
                 InitialiseStaticLogger();
 
                 GLoop = new GameLoop(60);
-                GLoop.Initialise("http://localhost:5000", "GameService").Wait();
+                GLoop.Initialise("http://localhost:5000", "GameService");
                 GLoop.Start();
             }
             catch (Exception ex)

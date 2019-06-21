@@ -109,7 +109,12 @@ namespace JourneyCore.Client
 
         #region INITIALISATION
 
-        public async Task Initialise(string serverUrl, string servicePath)
+        public void Initialise(string serverUrl, string servicePath)
+        {
+            DoInitialise(serverUrl, servicePath).Wait();
+        }
+
+        private async Task DoInitialise(string serverUrl, string servicePath)
         {
             try
             {
