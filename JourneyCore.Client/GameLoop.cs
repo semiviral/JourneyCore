@@ -208,7 +208,7 @@ namespace JourneyCore.Client
                 DefaultColor = Color.Cyan,
                 HoverColor = Color.Green,
                 PressedColor = Color.Red,
-                PressedAction = () => { CallFatality(""); }
+                ReleasedAction = () => { CallFatality(""); }
             };
 
             Window.AddDrawItem("menu", 10,

@@ -21,6 +21,7 @@ namespace JourneyCore.Lib.Display.Component
         public Color PressedColor { get; set; }
 
         public Action PressedAction { get; set; }
+        public Action ReleasedAction { get; set; }
 
         public Button(GameWindow windowContext, Font defaultFont, string text)
         {
@@ -145,6 +146,8 @@ namespace JourneyCore.Lib.Display.Component
         private void OnReleased(object sender, MouseButtonEventArgs args)
         {
             FillColor = IsHovered ? HoverColor : DefaultColor;
+
+            ReleasedAction?.Invoke();
         }
 
         #endregion
