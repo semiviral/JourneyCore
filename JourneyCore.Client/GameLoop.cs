@@ -8,7 +8,6 @@ using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Object.Entity;
-using JourneyCore.Lib.System;
 using JourneyCore.Lib.System.Components.Loaders;
 using JourneyCore.Lib.System.Event;
 using JourneyCore.Lib.System.Math;
@@ -71,6 +70,12 @@ namespace JourneyCore.Client
             {
                 while (Window.IsActive)
                 {
+                    // ensures window runtime methods are only executed in main thread
+                    if (Thread.CurrentThread.ManagedThreadId != 1)
+                    {
+                        CallFatality("Window runtime attempting to execute outside of main thread. Exiting game.");
+                    }
+
                     InputWatcher.CheckWatchedInputs();
 
                     Window.UpdateWindow();
