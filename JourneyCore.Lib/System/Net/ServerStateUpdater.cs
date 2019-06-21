@@ -2,9 +2,8 @@
 using System.Diagnostics;
 using System.Threading;
 using JourneyCore.Lib.System.Event;
-using JourneyCore.Lib.System.Net;
 
-namespace JourneyCore.Client.Net
+namespace JourneyCore.Lib.System.Net
 {
     public class ServerStateUpdater
     {
@@ -20,9 +19,10 @@ namespace JourneyCore.Client.Net
         /// <param name="tickRate">Time interval in milliseconds to dequeue all state updates</param>
         public ServerStateUpdater(int tickRate)
         {
-            // todo move to a design whereby the server tells the client
+            // todo
+            //      move to a design whereby the server tells the client
             //      it is ready to receive updates
-            //      this will allow for automatic synchronisation.
+            //      this will allow for automatic synchronization.
             //      
             //      when the client receives the update callback,
             //      wait until the next frame update to begin sending them

@@ -34,7 +34,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\JourneyCore.Lib\JourneyCore.Lib.csproj" />
-    <ProjectReference Include="..\JourneyCore.Server\JourneyCore.Server.csproj" />
   </ItemGroup>
 
   <ItemGroup>

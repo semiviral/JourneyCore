@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
-using JourneyCore.Client.Net;
 using JourneyCore.Lib.Display;
 using JourneyCore.Lib.Display.Component;
 using JourneyCore.Lib.Display.Drawing;
@@ -152,6 +151,11 @@ namespace JourneyCore.Client
         private async Task ConnectGameServer(string serverUrl, string servicePath)
         {
             NetManager = new GameServerConnection(serverUrl);
+            NetManager.FatalExit += (sender, args) =>
+            {
+                CallFatality(args);
+                return Task.CompletedTask;
+            };
             await NetManager.InitialiseAsync(servicePath);
         }
 

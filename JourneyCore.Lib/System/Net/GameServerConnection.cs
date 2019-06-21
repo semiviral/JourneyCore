@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
 using JourneyCore.Lib.System.Event;
-using JourneyCore.Lib.System.Net;
 using JourneyCore.Lib.System.Net.Security;
 using JourneyCore.Lib.System.Static;
 using Microsoft.AspNetCore.SignalR.Client;
 using Newtonsoft.Json;
 using Serilog;
 
-namespace JourneyCore.Client.Net
+namespace JourneyCore.Lib.System.Net
 {
     public class GameServerConnection
     {
@@ -24,7 +23,7 @@ namespace JourneyCore.Client.Net
         {
             CryptoService = new DiffieHellman();
 
-            Guid = System.Guid.NewGuid().ToString();
+            Guid = global::System.Guid.NewGuid().ToString();
             ServerUrl = serverUrl;
             IsServerReady = false;
             IsHandshakeComplete = false;
@@ -45,7 +44,18 @@ namespace JourneyCore.Client.Net
 
         #region EVENTS
 
+        public event AsyncEventHandler<string> FatalExit; 
         public event AsyncEventHandler<Exception> Closed;
+
+        private async Task OnFatalExit(object sender, string fatalityDescription)
+        {
+            if (FatalExit == null)
+            {
+                return;
+            }
+
+            await FatalExit.Invoke(sender, fatalityDescription);
+        }
 
         private async Task OnClosed(object sender, Exception ex)
         {
@@ -100,7 +110,7 @@ namespace JourneyCore.Client.Net
 
                     if (tries > 4)
                     {
-                        GameLoop.CallFatality("Could not connect to server. Aborting game launch.");
+                        await OnFatalExit(this, "Could not connect to server. Aborting game launch.");
                     }
 
                     await Connection.StartAsync();
@@ -168,8 +178,7 @@ namespace JourneyCore.Client.Net
                 return tickRate;
             }
 
-            GameLoop.CallFatality(
-                "Request for server tick interval returned an illegal value. Aborting game launch.");
+            await OnFatalExit(this, "Request for server tick interval returned an illegal value. Aborting game launch.");
             return -1;
         }
 

@@ -19,8 +19,13 @@ namespace JourneyCore.Server.Net.Services
 
         DiffieHellmanAuthPackage RegisterDiffieHellman(string guid, byte[] clientPublicKey);
         Task<DiffieHellmanMessagePackage> GetImage(string guid, byte[] remotePublicKey, byte[] textureNameEncrypted);
-        Task<DiffieHellmanMessagePackage> GetTileSetMetadata(string guid, byte[] remotePublicKey, byte[] tileSetNameEncrypted);
+
+        Task<DiffieHellmanMessagePackage> GetTileSetMetadata(string guid, byte[] remotePublicKey,
+            byte[] tileSetNameEncrypted);
+
         Task<DiffieHellmanMessagePackage> GetMapMetadata(string guid, byte[] remotePublicKey, byte[] mapNameEncrypted);
-        Task<DiffieHellmanMessagePackage> GetChunk(string guid, byte[] remotePublicKey, byte[] mapNameEncrypted, byte[] coordsEncrypted);
+
+        Task<DiffieHellmanMessagePackage> GetChunk(string guid, byte[] remotePublicKey, byte[] mapNameEncrypted,
+            byte[] coordsEncrypted);
     }
 }
