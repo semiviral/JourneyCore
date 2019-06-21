@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.System.Time;
+using Serilog;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -23,7 +24,7 @@ namespace JourneyCore.Lib.Display
         public const float WidescreenRatio = 16f / 9f;
         public const float LetterboxRatio = 4f / 3f;
 
-        public GameWindow(string windowTitle, VideoMode videoMode, int targetFps, Vector2f contentScale,
+        public GameWindow(string windowTitle, VideoMode videoMode, uint targetFps, Vector2f contentScale,
             float positionScale)
         {
             ContentScale = contentScale;
@@ -38,13 +39,11 @@ namespace JourneyCore.Lib.Display
             Window.MouseMoved += OnMouseMoved;
             Window.MouseButtonPressed += OnMouseButtonPressed;
             Window.MouseButtonReleased += OnMouseButtonReleased;
-            Window.SetFramerateLimit((uint)TargetFps);
+            Window.SetFramerateLimit(TargetFps);
 
             DrawViews = new SortedList<GameWindowLayer, DrawView>();
             DeltaClock = new Delta();
-
-            Window.SetActive(false);
-        }
+            }
 
         public RenderWindow SetActive(bool activeState)
         {
@@ -71,7 +70,7 @@ namespace JourneyCore.Lib.Display
         private RenderWindow Window { get; }
         private static Delta DeltaClock { get; set; }
         private SortedList<GameWindowLayer, DrawView> DrawViews { get; }
-        private static int _TargetFps;
+        private static uint _TargetFps;
 
         public Vector2u Size => Window.Size;
         public bool EnableInput { get; set; }
@@ -79,7 +78,7 @@ namespace JourneyCore.Lib.Display
         public Vector2f ContentScale { get; set; }
         public Vector2f PositionScale { get; set; }
 
-        public int TargetFps
+        public uint TargetFps
         {
             get => _TargetFps;
             set

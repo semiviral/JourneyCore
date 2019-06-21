@@ -50,28 +50,13 @@ namespace JourneyCore.Client
             ConManager = new ConsoleManager();
             ConManager.Hide(false);
 
-            InitialiseStaticLogger();
-
             Log.Information("Game loop started.");
 
             InputWatcher = new InputWatcher();
         }
 
-        public async Task StartAsync()
+        public void Start()
         {
-#if DEBUG
-            for (int x = 0; x < CurrentMap.Metadata.Width / MapLoader.ChunkSize; x++)
-            {
-                for (int y = 0; y < CurrentMap.Metadata.Height / MapLoader.ChunkSize; y++)
-                {
-                    foreach (Chunk chunk in await RequestChunk(new Vector2i(x, y)))
-                    {
-                        CurrentMap.LoadChunk(chunk);
-                    }
-                }
-            }
-#endif
-
             Window.AddDrawItem("game", 0,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
                     new DrawObject(typeof(VertexArray), CurrentMap.VArray), CurrentMap.RenderStates));
@@ -85,6 +70,11 @@ namespace JourneyCore.Client
             {
                 while (Window.IsActive)
                 {
+                    if (Thread.CurrentThread.ManagedThreadId != 1)
+                    {
+                        CallFatality("Runtime code not executing in main thread. Exiting game.");
+                    }
+
                     InputWatcher.CheckWatchedInputs();
 
                     Window.UpdateWindow();
@@ -118,12 +108,7 @@ namespace JourneyCore.Client
 
         #region INITIALISATION
 
-        private void InitialiseStaticLogger()
-        {
-            Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-        }
-
-        public async Task Initialise(string serverUrl, string servicePath, int maximumFrameRate)
+        public async Task Initialise(string serverUrl, string servicePath, uint maximumFrameRate)
         {
             try
             {
@@ -136,6 +121,19 @@ namespace JourneyCore.Client
                 SetupWatchedMouse();
                 await CreateUserInterface();
                 SetupMinimap();
+
+#if DEBUG
+                for (int x = 0; x < CurrentMap.Metadata.Width / MapLoader.ChunkSize; x++)
+                {
+                    for (int y = 0; y < CurrentMap.Metadata.Height / MapLoader.ChunkSize; y++)
+                    {
+                        foreach (Chunk chunk in await RequestChunk(new Vector2i(x, y)))
+                        {
+                            CurrentMap.LoadChunk(chunk);
+                        }
+                    }
+                }
+#endif
 
                 InputWatcher.EnableInputFunc = () => Window.EnableInput;
 
@@ -159,7 +157,7 @@ namespace JourneyCore.Client
             await NetManager.InitialiseAsync(servicePath);
         }
 
-        private void CreateGameWindow(int maximumFrameRate)
+        private void CreateGameWindow(uint maximumFrameRate)
         {
             Log.Information("Initialising game window...");
 
