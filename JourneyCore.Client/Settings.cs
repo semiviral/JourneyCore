@@ -27,6 +27,7 @@ namespace JourneyCore.Client
             Window.CreateDrawView(DrawViewLayer.Settings,
                 new View(new FloatRect(0f, 0f, Window.Size.X, Window.Size.Y))
                     { Viewport = new FloatRect(0f, 0f, 1f, 1f) }, true);
+            Window.GetDrawView(DrawViewLayer.Settings).Visible = false;
         }
 
         private void PopulateSettingsView()
@@ -51,7 +52,7 @@ namespace JourneyCore.Client
         {
             Font defaultFont =
                 new Font(
-                    @"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\Assets\Fonts\Courier New.ttf");
+                    @"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\Assets\Fonts\Avara.ttf");
 
             DrawView settingsDrawView = Window.GetDrawView(DrawViewLayer.Settings);
 
@@ -69,7 +70,7 @@ namespace JourneyCore.Client
             };
             exitButton.MouseExited += (sender, args) =>
             {
-                if (exitButton.IsHovered && !exitButton.IsPressed)
+                if (!exitButton.IsPressed)
                 {
                     exitButton.ForegroundColor = Color.White;
                 }
@@ -80,6 +81,7 @@ namespace JourneyCore.Client
                 exitButton.ForegroundColor = exitButton.IsHovered ? Color.Cyan : Color.White;
             };
             exitButton.Released += (sender, args) => { GameLoop.CallFatality("Game exited."); };
+            exitButton.Activated = () => settingsDrawView.Visible;
 
             return exitButton;
         }

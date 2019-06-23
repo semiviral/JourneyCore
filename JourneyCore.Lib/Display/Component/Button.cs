@@ -32,6 +32,8 @@ namespace JourneyCore.Lib.Display.Component
         public bool IsPressed { get; set; }
         public bool IsHovered { get; set; }
 
+        public Func<bool> Activated { get; set; }
+
         public Button(Font defaultFont, string displayedText)
         {
             BackgroundSprite = new Sprite();
@@ -49,6 +51,8 @@ namespace JourneyCore.Lib.Display.Component
 
             DefaultFont = defaultFont;
             DisplayedText = displayedText;
+
+            Activated = () => true;
         }
 
         public void SubscribeObject(RenderWindow window)
@@ -85,6 +89,11 @@ namespace JourneyCore.Lib.Display.Component
 
         private void OnMouseMoved(object sender, MouseMoveEventArgs args)
         {
+            if (!Activated())
+            {
+                return;
+            }
+
             if (BackgroundShape.GetGlobalBounds().Contains(args.X, args.Y))
             {
                 IsHovered = true;
@@ -106,6 +115,11 @@ namespace JourneyCore.Lib.Display.Component
 
         private void OnMouseButtonPressed(object sender, MouseButtonEventArgs args)
         {
+            if (!Activated())
+            {
+                return;
+            }
+
             if (!IsHovered)
             {
                 return;
@@ -118,6 +132,11 @@ namespace JourneyCore.Lib.Display.Component
 
         private void OnMouseButtonReleased(object sender, MouseButtonEventArgs args)
         {
+            if (!Activated())
+            {
+                return;
+            }
+
             if (!IsPressed)
             {
                 return;
