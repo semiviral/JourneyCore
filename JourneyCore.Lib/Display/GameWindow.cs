@@ -32,6 +32,7 @@ namespace JourneyCore.Lib.Display
 
             Window = new RenderWindow(videoMode, windowTitle);
             Window.Closed += OnClose;
+            Window.Resized += OnResized;
             Window.GainedFocus += OnGainedFocus;
             Window.LostFocus += OnLostFocus;
             Window.MouseWheelScrolled += OnMouseWheelScrolled;
@@ -129,6 +130,7 @@ namespace JourneyCore.Lib.Display
         #region EVENTS
 
         public event EventHandler Closed;
+        public event EventHandler<SizeEventArgs> Resized;
         public event EventHandler GainedFocus;
         public event EventHandler LostFocus;
         public event EventHandler<MouseWheelScrollEventArgs> MouseWheelScrolled;
@@ -142,6 +144,11 @@ namespace JourneyCore.Lib.Display
 
             RenderWindow window = (RenderWindow)sender;
             window.Close();
+        }
+
+        private void OnResized(object sender, SizeEventArgs args)
+        {
+            Resized?.Invoke(sender, args);
         }
 
         public void OnGainedFocus(object sender, EventArgs args)

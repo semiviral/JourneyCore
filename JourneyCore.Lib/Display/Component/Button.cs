@@ -7,6 +7,8 @@ namespace JourneyCore.Lib.Display.Component
 {
     public class Button : Drawable
     {
+        private Vector2f ResizeFactor { get; set; }
+
         private Vector2f _Origin;
         private Vector2f _Position;
         private Vector2f _Size;
@@ -36,6 +38,7 @@ namespace JourneyCore.Lib.Display.Component
 
         public Button(Font defaultFont, string displayedText)
         {
+            ResizeFactor = new Vector2f(0f, 0f);
             BackgroundSprite = new Sprite();
             BackgroundShape = new RectangleShape();
             _TextObject = new Text();
