@@ -44,7 +44,7 @@ namespace JourneyCore.Lib.System.Net
 
         #region EVENTS
 
-        public event AsyncEventHandler<string> FatalExit; 
+        public event AsyncEventHandler<string> FatalExit;
         public event AsyncEventHandler<Exception> Closed;
 
         private async Task OnFatalExit(object sender, string fatalityDescription)
@@ -178,7 +178,8 @@ namespace JourneyCore.Lib.System.Net
                 return tickRate;
             }
 
-            await OnFatalExit(this, "Request for server tick interval returned an illegal value. Aborting game launch.");
+            await OnFatalExit(this,
+                "Request for server tick interval returned an illegal value. Aborting game launch.");
             return -1;
         }
 

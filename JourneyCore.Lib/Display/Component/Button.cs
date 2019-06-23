@@ -32,12 +32,8 @@ namespace JourneyCore.Lib.Display.Component
         public bool IsPressed { get; set; }
         public bool IsHovered { get; set; }
 
-        public Button(GameWindow windowContext, Font defaultFont, string displayedText)
+        public Button(Font defaultFont, string displayedText)
         {
-            windowContext.MouseMoved += OnMouseMoved;
-            windowContext.MouseButtonPressed += OnMouseButtonPressed;
-            windowContext.MouseButtonReleased += OnMouseButtonReleased;
-
             BackgroundSprite = new Sprite();
             BackgroundShape = new RectangleShape();
             _TextObject = new Text();
@@ -53,6 +49,13 @@ namespace JourneyCore.Lib.Display.Component
 
             DefaultFont = defaultFont;
             DisplayedText = displayedText;
+        }
+
+        public void SubscribeObject(RenderWindow window)
+        {
+            window.MouseMoved += OnMouseMoved;
+            window.MouseButtonPressed += OnMouseButtonPressed;
+            window.MouseButtonReleased += OnMouseButtonReleased;
         }
 
         public void Draw(RenderTarget target, RenderStates states)

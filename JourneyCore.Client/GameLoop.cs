@@ -25,17 +25,8 @@ namespace JourneyCore.Client
     public class GameLoop : Context
     {
         private static Tuple<int, string> _fatalExit;
-        private bool _isFocused;
 
-        private bool IsFocused
-        {
-            get => _isFocused;
-            set
-            {
-                _isFocused = value;
-                Window.EnableInput = _isFocused;
-            }
-        }
+        private bool IsFocused { get; set; }
 
         private GameServerConnection NetManager { get; set; }
         private ConsoleManager ConManager { get; }
@@ -47,6 +38,7 @@ namespace JourneyCore.Client
 
         public GameLoop(uint maximumFrameRate)
         {
+            IsFocused = true;
             ConManager = new ConsoleManager();
             ConManager.Hide(false);
 
@@ -59,10 +51,10 @@ namespace JourneyCore.Client
 
         public void Start()
         {
-            Window.AddDrawItem("game", 0,
+            Window.AddDrawItem(DrawViewLayer.Game, 0,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
                     new DrawObject(typeof(VertexArray), CurrentMap.VArray), CurrentMap.RenderStates));
-            Window.AddDrawItem("minimap", 0,
+            Window.AddDrawItem(DrawViewLayer.Minimap, 0,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
                     new DrawObject(typeof(VertexArray), CurrentMap.Minimap.VArray), RenderStates.Default));
 
@@ -87,7 +79,7 @@ namespace JourneyCore.Client
                 ExitWithFatality();
             }
         }
-        
+
         public static void CallFatality(string error, int exitCode = -1)
         {
             _fatalExit = new Tuple<int, string>(exitCode, error);
@@ -124,6 +116,9 @@ namespace JourneyCore.Client
                 SetupWatchedMouse();
                 await CreateUserInterface();
                 SetupMinimap();
+
+                Settings settings = new Settings(Window);
+                settings.Initialise();
 
 #if DEBUG
                 for (int x = 0; x < CurrentMap.Metadata.Width / MapLoader.ChunkSize; x++)
@@ -172,7 +167,7 @@ namespace JourneyCore.Client
             };
             Window.MouseWheelScrolled += (sender, args) =>
             {
-                Window.GetDrawView("minimap").ZoomFactor += args.Delta * -1f;
+                Window.GetDrawView(DrawViewLayer.Minimap).ZoomFactor += args.Delta * -1f;
             };
 
             Log.Information("Game window initialised.");
@@ -183,69 +178,19 @@ namespace JourneyCore.Client
             const float viewSizeY = 200f;
             const float minimapSizeX = 0.2f;
 
-            Window.CreateDrawView("menu", GameWindowLayer.Menu,
-                new View(new FloatRect(0f, 0f, Window.Size.X, Window.Size.Y))
-                {
-                    Viewport = new FloatRect(0f, 0f, 1f, 1f)
-                }, true);
-
-            RectangleShape shadowShape = new RectangleShape((Vector2f)Window.Size)
-            {
-                FillColor = new Color(0, 0, 0, 155)
-            };
-            Window.AddDrawItem("menu", 0,
-                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
-                    new DrawObject(typeof(RectangleShape), shadowShape), RenderStates.Default));
-
-            Font defaultFont =
-                new Font(
-                    @"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\Assets\Fonts\Courier New.ttf");
-
-            DrawView menuDrawView = Window.GetDrawView("menu");
-
-            Button testButton = new Button(Window, defaultFont, "Exit")
-            {
-                Position = new Vector2f(menuDrawView.View.Size.X / 2f, menuDrawView.View.Size.Y / 2f),
-                Size = new Vector2f(100f, 100f),
-                BackgroundColor = Color.Cyan,
-            };
-            testButton.Origin = testButton.Size / 2f;
-            testButton.BackgroundColor = Color.Transparent;
-            testButton.MouseEntered += (sender, args) =>
-            {
-                testButton.ForegroundColor = testButton.IsPressed ? Color.Red : Color.Cyan;
-            };
-            testButton.MouseExited += (sender, args) =>
-            {
-                if (testButton.IsHovered && !testButton.IsPressed)
-                {
-                    testButton.ForegroundColor = Color.White;
-                }
-            };
-            testButton.Pressed += (sender, args) => { testButton.ForegroundColor = Color.Red; };
-            testButton.Released += (sender, args) =>
-            {
-                testButton.ForegroundColor = testButton.IsHovered ? Color.Cyan : Color.White;
-            };
-            testButton.Released += (sender, args) => { CallFatality("Game exited."); };
-
-            Window.AddDrawItem("menu", 10,
-                new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
-                    new DrawObject(typeof(Button), testButton), RenderStates.Default));
-
-            Window.CreateDrawView("game", GameWindowLayer.Game,
+            Window.CreateDrawView(DrawViewLayer.Game,
                 new View(new FloatRect(0f, 0f, viewSizeY * GameWindow.WidescreenRatio, viewSizeY))
                 {
                     Viewport = new FloatRect(0f, 0f, 1f, 1f)
                 }, true);
 
-            Window.CreateDrawView("ui", GameWindowLayer.UI,
+            Window.CreateDrawView(DrawViewLayer.UI,
                 new View(new FloatRect(0f, 0f, 200f, 600f))
                 {
                     Viewport = new FloatRect(0.8f, 0.3f, 0.2f, 0.7f)
                 }, true);
 
-            Window.CreateDrawView("minimap", GameWindowLayer.Minimap,
+            Window.CreateDrawView(DrawViewLayer.Minimap,
                 new View(new FloatRect(0f, 0f, viewSizeY * GameWindow.WidescreenRatio, viewSizeY))
                 {
                     Viewport = new FloatRect(0.8f, 0f, minimapSizeX, minimapSizeX * GameWindow.LetterboxRatio)
@@ -274,10 +219,10 @@ namespace JourneyCore.Client
             Player.PositionChanged += PlayerPositionChanged;
             Player.RotationChanged += PlayerRotationChanged;
 
-            Player.AnchorItem(Window.GetDrawView("game"));
-            Player.AnchorItem(Window.GetDrawView("minimap"));
+            Player.AnchorItem(Window.GetDrawView(DrawViewLayer.Game));
+            Player.AnchorItem(Window.GetDrawView(DrawViewLayer.Minimap));
 
-            Window.AddDrawItem("game", 10,
+            Window.AddDrawItem(DrawViewLayer.Game, 10,
                 new DrawItem(Player.Guid, DateTime.MinValue, null,
                     new DrawObject(Player.Graphic.GetType(), Player.Graphic, Player.Graphic.GetVertices),
                     new RenderStates(Player.Graphic.Texture)));
@@ -290,7 +235,7 @@ namespace JourneyCore.Client
             Log.Information("Creating input watch events...");
 
             Vector2f movement = new Vector2f(0, 0);
-            
+
             InputWatcher.AddWatchedInput(Keyboard.Key.W, () =>
             {
                 movement = new Vector2f(
@@ -353,9 +298,11 @@ namespace JourneyCore.Client
                 Player.MoveEntity(movement, MapLoader.TilePixelSize, Window.ElapsedTime);
             }, () => IsFocused);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.G, () => { CurrentMap.Minimap.VArray.ModifyOpacity(-25, 10); }, () => IsFocused);
+            InputWatcher.AddWatchedInput(Keyboard.Key.G, () => { CurrentMap.Minimap.VArray.ModifyOpacity(-25, 10); },
+                () => IsFocused);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.H, () => { CurrentMap.Minimap.VArray.ModifyOpacity(25); }, () => IsFocused);
+            InputWatcher.AddWatchedInput(Keyboard.Key.H, () => { CurrentMap.Minimap.VArray.ModifyOpacity(25); },
+                () => IsFocused);
 
             InputWatcher.AddWatchedInput(Keyboard.Key.Q,
                 () => { Player.RotateEntity(Window.ElapsedTime, 180f, false); }, () => IsFocused);
@@ -365,7 +312,7 @@ namespace JourneyCore.Client
 
             InputWatcher.AddWatchedInput(Keyboard.Key.Escape, () =>
             {
-                DrawView drawView = Window.GetDrawView("menu");
+                DrawView drawView = Window.GetDrawView(DrawViewLayer.Settings);
                 drawView.Visible = !drawView.Visible;
             }, () => true, true);
         }
@@ -375,7 +322,7 @@ namespace JourneyCore.Client
             InputWatcher.AddWatchedInput(Mouse.Button.Left, () =>
             {
                 Vector2i mousePosition = Window.GetRelativeMousePosition();
-                View gameView = Window.GetDrawView("game").View;
+                View gameView = Window.GetDrawView(DrawViewLayer.Game).View;
 
                 double relativeMouseX =
                     gameView.Size.X * (mousePosition.X / (Window.Size.X * gameView.Viewport.Width)) -
@@ -392,7 +339,7 @@ namespace JourneyCore.Client
                     return;
                 }
 
-                Window.AddDrawItem("game", 20, projectileDrawItem);
+                Window.AddDrawItem(DrawViewLayer.Game, 20, projectileDrawItem);
             });
         }
 
@@ -421,7 +368,7 @@ namespace JourneyCore.Client
             DrawObject playerTileObj = new DrawObject(playerTile.GetType(), playerTile, playerTile.GetVertices);
             Player.AnchorItem(playerTileObj);
 
-            Window.AddDrawItem("minimap", 10,
+            Window.AddDrawItem(DrawViewLayer.Minimap, 10,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null, playerTileObj, RenderStates.Default));
         }
 

@@ -6,7 +6,7 @@ namespace JourneyCore.Client
     public class Program
     {
         public static GameLoop GLoop { get; private set; }
-        
+
         private static void Main()
         {
             try

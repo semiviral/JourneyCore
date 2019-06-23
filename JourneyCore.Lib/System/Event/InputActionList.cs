@@ -5,19 +5,18 @@ namespace JourneyCore.Lib.System.Event
 {
     public class InputActionList
     {
-        public InputActionList(Func<bool> enabledCheck, bool singlePress)
-        {
-            _SinglePress = singlePress;
-
-            EnabledCheck = enabledCheck;
-            Actions = new List<Action>();
-            HasReleased = true;
-        }
-
         private bool _SinglePress { get; }
         private List<Action> Actions { get; }
         private Func<bool> EnabledCheck { get; }
         private bool HasReleased { get; set; }
+
+        public InputActionList(Func<bool> enabledCheck, bool singlePress)
+        {
+            _SinglePress = singlePress;
+            EnabledCheck = enabledCheck ?? (() => true);
+            Actions = new List<Action>();
+            HasReleased = true;
+        }
 
         public void AddInputAction(Action inputAction)
         {
@@ -26,7 +25,10 @@ namespace JourneyCore.Lib.System.Event
 
         public bool ActivatePress(bool pressed)
         {
-            if (!CheckActivationRequirements(pressed)) return false;
+            if (!CheckActivationRequirements(pressed))
+            {
+                return false;
+            }
 
             IterateActions();
 
@@ -35,11 +37,17 @@ namespace JourneyCore.Lib.System.Event
 
         private bool CheckActivationRequirements(bool pressed)
         {
-            if (EnabledCheck == null || !EnabledCheck()) return false;
+            if (EnabledCheck == null || !EnabledCheck())
+            {
+                return false;
+            }
 
             bool invokePress = pressed && HasReleased;
 
-            if (_SinglePress) HasReleased = !pressed;
+            if (_SinglePress)
+            {
+                HasReleased = !pressed;
+            }
 
             return invokePress;
         }

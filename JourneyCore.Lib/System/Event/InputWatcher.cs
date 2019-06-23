@@ -7,21 +7,24 @@ namespace JourneyCore.Lib.System.Event
 {
     public class InputWatcher
     {
+        private Dictionary<Keyboard.Key, InputActionList> WatchedKeys { get; }
+        private Dictionary<Mouse.Button, InputActionList> WatchedButtons { get; }
+
         public InputWatcher()
         {
             WatchedKeys = new Dictionary<Keyboard.Key, InputActionList>();
             WatchedButtons = new Dictionary<Mouse.Button, InputActionList>();
         }
 
-        private Dictionary<Keyboard.Key, InputActionList> WatchedKeys { get; }
-        private Dictionary<Mouse.Button, InputActionList> WatchedButtons { get; }
-
         #region METHODS
 
         public void AddWatchedInput(Keyboard.Key key, Action inputAction, Func<bool> enabledCheck = null,
             bool singlePress = false)
         {
-            if (!GetWatchedKeys().Contains(key)) WatchedKeys.Add(key, new InputActionList(enabledCheck, singlePress));
+            if (!GetWatchedKeys().Contains(key))
+            {
+                WatchedKeys.Add(key, new InputActionList(enabledCheck, singlePress));
+            }
 
             WatchedKeys[key].AddInputAction(inputAction);
         }
@@ -30,7 +33,9 @@ namespace JourneyCore.Lib.System.Event
             bool singlePress = false)
         {
             if (!GetWatchedButtons().Contains(button))
+            {
                 WatchedButtons.Add(button, new InputActionList(enabledCheck, singlePress));
+            }
 
             WatchedButtons[button].AddInputAction(inputAction);
         }

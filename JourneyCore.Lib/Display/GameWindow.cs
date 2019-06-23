@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using JourneyCore.Lib.Display.Component;
 using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.System.Time;
-using Serilog;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
 namespace JourneyCore.Lib.Display
 {
-    public enum GameWindowLayer
+    public enum DrawViewLayer
     {
         Game,
         Minimap,
         UI,
-        Menu
+        Settings
     }
 
     public class GameWindow
@@ -41,9 +40,14 @@ namespace JourneyCore.Lib.Display
             Window.MouseButtonReleased += OnMouseButtonReleased;
             Window.SetFramerateLimit(TargetFps);
 
-            DrawViews = new SortedList<GameWindowLayer, DrawView>();
+            DrawViews = new SortedList<DrawViewLayer, DrawView>();
             DeltaClock = new Delta();
-            }
+        }
+
+        public void SubscribeUIObject(Button uiButton)
+        {
+            uiButton.SubscribeObject(Window);
+        }
 
         public RenderWindow SetActive(bool activeState)
         {
@@ -57,11 +61,11 @@ namespace JourneyCore.Lib.Display
             return Mouse.GetPosition(Window);
         }
 
-        public void AddDrawItem(string viewName, int layer, DrawItem drawItem)
+        public void AddDrawItem(DrawViewLayer layer, int internalLayer, DrawItem drawItem)
         {
-            DrawView drawView = DrawViews.SingleOrDefault(view => view.Value.Name.Equals(viewName)).Value;
+            DrawView drawView = DrawViews.SingleOrDefault(view => view.Value.Layer.Equals(layer)).Value;
 
-            drawView?.AddDrawItem(layer, drawItem);
+            drawView?.AddDrawItem(internalLayer, drawItem);
         }
 
 
@@ -69,11 +73,10 @@ namespace JourneyCore.Lib.Display
 
         private RenderWindow Window { get; }
         private static Delta DeltaClock { get; set; }
-        private SortedList<GameWindowLayer, DrawView> DrawViews { get; }
+        private SortedList<DrawViewLayer, DrawView> DrawViews { get; }
         private static uint _TargetFps;
 
         public Vector2u Size => Window.Size;
-        public bool EnableInput { get; set; }
         public bool IsActive => Window.IsOpen;
         public Vector2f ContentScale { get; set; }
         public Vector2f PositionScale { get; set; }
@@ -100,7 +103,7 @@ namespace JourneyCore.Lib.Display
 
         private void ProcessDrawView(DrawView drawView)
         {
-            SetWindowView(drawView.Name, drawView.View);
+            SetWindowView(drawView.Layer, drawView.View);
 
             drawView.Draw(Window, ElapsedTime);
         }
@@ -112,7 +115,7 @@ namespace JourneyCore.Lib.Display
             Window.DispatchEvents();
             Window.Clear();
 
-            foreach ((GameWindowLayer layer, DrawView drawView) in DrawViews.Where(drawView => drawView.Value.Visible))
+            foreach ((DrawViewLayer layer, DrawView drawView) in DrawViews.Where(drawView => drawView.Value.Visible))
             {
                 ProcessDrawView(drawView);
             }
@@ -176,14 +179,14 @@ namespace JourneyCore.Lib.Display
 
         #region VIEW
 
-        public DrawView CreateDrawView(string viewName, GameWindowLayer layer, View defaultView, bool visible = false)
+        public DrawView CreateDrawView(DrawViewLayer layer, View defaultView, bool visible = false)
         {
-            return CreateDrawView(new DrawView(viewName, layer, defaultView, visible));
+            return CreateDrawView(new DrawView(layer, defaultView, visible));
         }
 
         public DrawView CreateDrawView(DrawView drawView)
         {
-            if (DrawViews.Any(dView => dView.Value.Name.Equals(drawView.Name)))
+            if (DrawViews.Any(dView => dView.Value.Layer.Equals(drawView.Layer)))
             {
                 return null;
             }
@@ -193,47 +196,47 @@ namespace JourneyCore.Lib.Display
             return drawView;
         }
 
-        public View SetWindowView(string name, View view)
+        public View SetWindowView(DrawViewLayer layer, View view)
         {
             Window.SetView(view);
 
-            return GetDrawView(name)?.View;
+            return GetDrawView(layer)?.View;
         }
 
-        public DrawView GetDrawView(string name)
+        public DrawView GetDrawView(DrawViewLayer layer)
         {
-            return DrawViews.SingleOrDefault(view => view.Value.Name.Equals(name)).Value;
+            return DrawViews.SingleOrDefault(view => view.Value.Layer.Equals(layer)).Value;
         }
 
-        public DrawView SetViewport(string name, FloatRect viewport)
+        public DrawView SetViewport(DrawViewLayer layer, FloatRect viewport)
         {
-            DrawView drawView = GetDrawView(name);
+            DrawView drawView = GetDrawView(layer);
 
             drawView.View.Viewport = viewport;
 
-            SetWindowView(name, drawView.View);
+            SetWindowView(layer, drawView.View);
 
             return drawView;
         }
 
-        public DrawView MoveView(string name, Vector2f position)
+        public DrawView MoveView(DrawViewLayer layer, Vector2f position)
         {
-            DrawView drawView = GetDrawView(name);
+            DrawView drawView = GetDrawView(layer);
 
             drawView.Position = position;
 
-            SetWindowView(name, drawView.View);
+            SetWindowView(layer, drawView.View);
 
             return drawView;
         }
 
-        public DrawView RotateView(string name, float rotation)
+        public DrawView RotateView(DrawViewLayer layer, float rotation)
         {
-            DrawView drawView = GetDrawView(name);
+            DrawView drawView = GetDrawView(layer);
 
             drawView.Rotation = rotation;
 
-            SetWindowView(name, drawView.View);
+            SetWindowView(layer, drawView.View);
 
             return drawView;
         }

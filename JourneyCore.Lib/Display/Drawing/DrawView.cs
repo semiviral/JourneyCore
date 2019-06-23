@@ -11,14 +11,9 @@ namespace JourneyCore.Lib.Display.Drawing
     public class DrawView : IAnchorable
     {
         public const float DefaultPlayerViewRotation = 180f;
-
-        // todo define this non-arbitrarily
-        public const float DefaultZoomIncrement = 01.05f;
-
         private float _ZoomFactor = 1.0f;
 
-        public string Name { get; }
-        public GameWindowLayer Layer { get; }
+        public DrawViewLayer Layer { get; }
         public View View { get; }
         public bool Visible { get; set; }
 
@@ -36,9 +31,8 @@ namespace JourneyCore.Lib.Display.Drawing
             }
         }
 
-        public DrawView(string name, GameWindowLayer layer, View view, bool visible = false)
+        public DrawView(DrawViewLayer layer, View view, bool visible = false)
         {
-            Name = name;
             Layer = layer;
             View = view;
             Visible = visible;
