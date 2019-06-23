@@ -14,7 +14,7 @@ namespace JourneyCore.Lib.Display
     {
         Game,
         Minimap,
-        UI,
+        Ui,
         Settings
     }
 
@@ -45,7 +45,7 @@ namespace JourneyCore.Lib.Display
             DeltaClock = new Delta();
         }
 
-        public void SubscribeUIObject(Button uiButton)
+        public void SubscribeUiObject(Button uiButton)
         {
             uiButton.SubscribeObject(this);
         }

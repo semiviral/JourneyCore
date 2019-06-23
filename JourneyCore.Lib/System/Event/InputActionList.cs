@@ -5,14 +5,14 @@ namespace JourneyCore.Lib.System.Event
 {
     public class InputActionList
     {
-        private bool _SinglePress { get; }
+        private bool SinglePress { get; }
         private List<Action> Actions { get; }
         private Func<bool> EnabledCheck { get; }
         private bool HasReleased { get; set; }
 
         public InputActionList(Func<bool> enabledCheck, bool singlePress)
         {
-            _SinglePress = singlePress;
+            SinglePress = singlePress;
             EnabledCheck = enabledCheck ?? (() => true);
             Actions = new List<Action>();
             HasReleased = true;
@@ -44,7 +44,7 @@ namespace JourneyCore.Lib.System.Event
 
             bool invokePress = pressed && HasReleased;
 
-            if (_SinglePress)
+            if (SinglePress)
             {
                 HasReleased = !pressed;
             }

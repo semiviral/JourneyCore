@@ -24,7 +24,7 @@ namespace JourneyCore.Client
 {
     public class GameLoop : Context
     {
-        private static Tuple<int, string> _fatalExit;
+        private static Tuple<int, string> _FatalExit;
 
         private bool IsFocused { get; set; }
 
@@ -82,7 +82,7 @@ namespace JourneyCore.Client
 
         public static void CallFatality(string error, int exitCode = -1)
         {
-            _fatalExit = new Tuple<int, string>(exitCode, error);
+            _FatalExit = new Tuple<int, string>(exitCode, error);
             ExitWithFatality();
         }
 
@@ -90,9 +90,9 @@ namespace JourneyCore.Client
         {
             ThreadPool.QueueUserWorkItem(callback =>
             {
-                Log.Fatal(_fatalExit.Item2);
+                Log.Fatal(_FatalExit.Item2);
 
-                Environment.Exit(_fatalExit.Item1);
+                Environment.Exit(_FatalExit.Item1);
             });
         }
 
@@ -184,7 +184,7 @@ namespace JourneyCore.Client
                     Viewport = new FloatRect(0f, 0f, 1f, 1f)
                 }, true);
 
-            Window.CreateDrawView(DrawViewLayer.UI,
+            Window.CreateDrawView(DrawViewLayer.Ui,
                 new View(new FloatRect(0f, 0f, 200f, 600f))
                 {
                     Viewport = new FloatRect(0.8f, 0.3f, 0.2f, 0.7f)
