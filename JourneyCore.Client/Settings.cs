@@ -64,11 +64,11 @@ namespace JourneyCore.Client
             };
             exitButton.Origin = exitButton.Size / 2f;
             exitButton.BackgroundColor = Color.Transparent;
-            exitButton.MouseEntered += (sender, args) =>
+            exitButton.Entered += (sender, args) =>
             {
                 exitButton.ForegroundColor = exitButton.IsPressed ? Color.Red : Color.Cyan;
             };
-            exitButton.MouseExited += (sender, args) =>
+            exitButton.Exited += (sender, args) =>
             {
                 if (!exitButton.IsPressed)
                 {

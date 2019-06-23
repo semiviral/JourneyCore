@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -7,7 +6,7 @@ using Color = SFML.Graphics.Color;
 
 namespace JourneyCore.Lib.Display.Component
 {
-    public class Button : Drawable
+    public class Button : IHoverable, IPressable, Drawable
     {
         private Vector2f OriginalWindowSize { get; set; }
         private Vector2f ResizeFactor { get; set; }
@@ -95,8 +94,8 @@ namespace JourneyCore.Lib.Display.Component
             ResizeFactor = new Vector2f(args.Width / OriginalWindowSize.X, args.Height / OriginalWindowSize.Y);
         }
 
-        public event EventHandler<MouseMoveEventArgs> MouseEntered;
-        public event EventHandler<MouseMoveEventArgs> MouseExited;
+        public event EventHandler<MouseMoveEventArgs> Entered;
+        public event EventHandler<MouseMoveEventArgs> Exited;
         public event EventHandler<MouseButtonEventArgs> Pressed;
         public event EventHandler<MouseButtonEventArgs> Released;
 
@@ -115,7 +114,7 @@ namespace JourneyCore.Lib.Display.Component
             {
                 IsHovered = true;
 
-                MouseEntered?.Invoke(sender, args);
+                Entered?.Invoke(sender, args);
             }
             else
             {
@@ -126,7 +125,7 @@ namespace JourneyCore.Lib.Display.Component
 
                 IsHovered = false;
 
-                MouseExited?.Invoke(sender, args);
+                Exited?.Invoke(sender, args);
             }
         }
 
