@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Drawing;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using Color = SFML.Graphics.Color;
 
 namespace JourneyCore.Lib.Display.Component
 {
     public class Button : Drawable
     {
+        private Vector2f OriginalWindowSize { get; set; }
         private Vector2f ResizeFactor { get; set; }
 
         private Vector2f _Origin;
@@ -38,7 +41,7 @@ namespace JourneyCore.Lib.Display.Component
 
         public Button(Font defaultFont, string displayedText)
         {
-            ResizeFactor = new Vector2f(0f, 0f);
+            ResizeFactor = new Vector2f(1f, 1f);
             BackgroundSprite = new Sprite();
             BackgroundShape = new RectangleShape();
             _TextObject = new Text();
@@ -58,8 +61,10 @@ namespace JourneyCore.Lib.Display.Component
             Activated = () => true;
         }
 
-        public void SubscribeObject(RenderWindow window)
+        public void SubscribeObject(GameWindow window)
         {
+            OriginalWindowSize = new Vector2f(window.Size.X, window.Size.Y);
+            window.Resized += OnResized;
             window.MouseMoved += OnMouseMoved;
             window.MouseButtonPressed += OnMouseButtonPressed;
             window.MouseButtonReleased += OnMouseButtonReleased;
@@ -85,6 +90,11 @@ namespace JourneyCore.Lib.Display.Component
 
         #region EVENTS
 
+        private void OnResized(object sender, SizeEventArgs args)
+        {
+            ResizeFactor = new Vector2f(args.Width / OriginalWindowSize.X, args.Height / OriginalWindowSize.Y);
+        }
+
         public event EventHandler<MouseMoveEventArgs> MouseEntered;
         public event EventHandler<MouseMoveEventArgs> MouseExited;
         public event EventHandler<MouseButtonEventArgs> Pressed;
@@ -97,7 +107,11 @@ namespace JourneyCore.Lib.Display.Component
                 return;
             }
 
-            if (BackgroundShape.GetGlobalBounds().Contains(args.X, args.Y))
+            FloatRect globalBounds = BackgroundShape.GetGlobalBounds();
+            globalBounds.Left *= ResizeFactor.X;
+            globalBounds.Top *= ResizeFactor.Y;
+
+            if (globalBounds.Contains(args.X, args.Y))
             {
                 IsHovered = true;
 

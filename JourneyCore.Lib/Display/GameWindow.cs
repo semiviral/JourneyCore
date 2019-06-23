@@ -47,7 +47,7 @@ namespace JourneyCore.Lib.Display
 
         public void SubscribeUIObject(Button uiButton)
         {
-            uiButton.SubscribeObject(Window);
+            uiButton.SubscribeObject(this);
         }
 
         public RenderWindow SetActive(bool activeState)
