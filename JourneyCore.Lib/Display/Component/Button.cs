@@ -7,65 +7,78 @@ namespace JourneyCore.Lib.Display.Component
 {
     public class Button : Drawable
     {
-        private Vector2f _ParsedPosition;
-        private Vector2f _ParsedSize;
+        private Vector2f _Origin;
+        private Vector2f _Position;
+        private Vector2f _Size;
 
-        public Vector2f Position { get; set; }
-        public Vector2f Size { get; set; }
+        public Vector2f Size
+        {
+            get => _Size;
+            set => SetSize(value);
+        }
+
+        public Vector2f Position
+        {
+            get => _Position;
+            set => SetPosition(value);
+        }
+
+        public Vector2f Origin
+        {
+            get => _Origin;
+            set => SetOrigin(value);
+        }
 
         public bool IsPressed { get; set; }
         public bool IsHovered { get; set; }
 
-        public Color DefaultColor { get; set; }
-        public Color HoverColor { get; set; }
-        public Color PressedColor { get; set; }
-
-        public Action PressedAction { get; set; }
-        public Action ReleasedAction { get; set; }
-
-        public Button(GameWindow windowContext, Font defaultFont, string text)
+        public Button(GameWindow windowContext, Font defaultFont, string displayedText)
         {
             windowContext.MouseMoved += OnMouseMoved;
             windowContext.MouseButtonPressed += OnMouseButtonPressed;
             windowContext.MouseButtonReleased += OnMouseButtonReleased;
 
-            MouseEntered += OnMouseEntered;
-            MouseExited += OnMouseExited;
-            Pressed += OnPressed;
-            Released += OnReleased;
+            BackgroundSprite = new Sprite();
+            BackgroundShape = new RectangleShape();
+            _TextObject = new Text();
 
-            Position = new Vector2f(0f, 0f);
             Size = new Vector2f(10f, 10f);
+            Position = new Vector2f(0f, 0f);
+            Origin = new Vector2f(0f, 0f);
 
             IsHovered = false;
             IsPressed = false;
 
-            BackgroundSprite = new Sprite();
-            BackgroundShape = new RectangleShape(Size);
-            FillColor = Color.Transparent;
+            BackgroundColor = Color.Transparent;
 
             DefaultFont = defaultFont;
-            Text = text;
-            FloatRect localBounds = _TextObject.GetLocalBounds();
-            _TextObject.Origin = new Vector2f(localBounds.Width / 2f, localBounds.Height / 2f);
+            DisplayedText = displayedText;
         }
 
         public void Draw(RenderTarget target, RenderStates states)
         {
-            if (_ParsedSize != Size)
-            {
-                SizeChanged();
-            }
-
-            if (_ParsedPosition != Position)
-            {
-                PositionChanged();
-            }
-
             BackgroundShape.Draw(target, states);
             BackgroundSprite.Draw(target, states);
             _TextObject.Draw(target, states);
         }
+
+        private void UpdateTextObject(string newDisplayedText)
+        {
+            Text newText = new Text(newDisplayedText, DefaultFont);
+
+            FloatRect localBounds = newText.GetLocalBounds();
+            newText.Origin = new Vector2f(localBounds.Width / 2f + localBounds.Left,
+                localBounds.Height / 2f + localBounds.Top);
+
+            _TextObject = newText;
+        }
+
+        #region EVENTS
+
+        public event EventHandler<MouseMoveEventArgs> MouseEntered;
+        public event EventHandler<MouseMoveEventArgs> MouseExited;
+        public event EventHandler<MouseButtonEventArgs> Pressed;
+        public event EventHandler<MouseButtonEventArgs> Released;
 
         private void OnMouseMoved(object sender, MouseMoveEventArgs args)
         {
@@ -77,12 +90,14 @@ namespace JourneyCore.Lib.Display.Component
             }
             else
             {
-                if (IsHovered)
+                if (!IsHovered)
                 {
-                    MouseExited?.Invoke(sender, args);
+                    return;
                 }
 
                 IsHovered = false;
+
+                MouseExited?.Invoke(sender, args);
             }
         }
 
@@ -94,8 +109,6 @@ namespace JourneyCore.Lib.Display.Component
             }
 
             IsPressed = true;
-
-            FillColor = PressedColor;
 
             Pressed?.Invoke(sender, args);
         }
@@ -112,66 +125,34 @@ namespace JourneyCore.Lib.Display.Component
             Released?.Invoke(sender, args);
         }
 
-        #region EVENTS
-
-        public event EventHandler<MouseMoveEventArgs> MouseEntered;
-        public event EventHandler<MouseMoveEventArgs> MouseExited;
-        public event EventHandler<MouseButtonEventArgs> Pressed;
-        public event EventHandler<MouseButtonEventArgs> Released;
-
-        #endregion
-
-        #region AUTO-COLORING
-
-        private void OnMouseEntered(object sender, MouseMoveEventArgs args)
-        {
-            FillColor = IsPressed ? PressedColor : HoverColor;
-        }
-
-        private void OnMouseExited(object sender, MouseMoveEventArgs args)
-        {
-            if (IsHovered && !IsPressed)
-            {
-                FillColor = DefaultColor;
-            }
-        }
-
-        private void OnPressed(object sender, MouseButtonEventArgs args)
-        {
-            FillColor = PressedColor;
-
-            PressedAction?.Invoke();
-        }
-
-        private void OnReleased(object sender, MouseButtonEventArgs args)
-        {
-            FillColor = IsHovered ? HoverColor : DefaultColor;
-
-            ReleasedAction?.Invoke();
-        }
-
         #endregion
 
         #region POSITIONING / SIZING
 
-        private void SizeChanged()
+        private void SetSize(Vector2f size)
         {
-            BackgroundSprite.Scale = new Vector2f(Size.X / BackgroundSprite.TextureRect.Width,
-                Size.Y / BackgroundSprite.TextureRect.Height);
-            BackgroundShape.Size = Size;
+            BackgroundSprite.Scale = new Vector2f(size.X / BackgroundSprite.TextureRect.Width,
+                size.Y / BackgroundSprite.TextureRect.Height);
+            BackgroundShape.Size = size;
 
-            _ParsedSize = Size;
+            _Size = size;
         }
 
-        private void PositionChanged()
+        private void SetPosition(Vector2f position)
         {
-            BackgroundShape.Position = Position;
-            BackgroundSprite.Position = Position;
+            BackgroundShape.Position = position;
+            BackgroundSprite.Position = position;
+            _TextObject.Position = position + Size / 2f;
 
-            // todo figure out text centering
-            _TextObject.Position = Position + Size / 2f;
+            _Position = position;
+        }
 
-            _ParsedPosition = Position;
+        private void SetOrigin(Vector2f origin)
+        {
+            BackgroundSprite.Origin = origin;
+            BackgroundShape.Origin = origin;
+
+            _Origin = origin;
         }
 
         #endregion
@@ -181,7 +162,7 @@ namespace JourneyCore.Lib.Display.Component
 
         private RectangleShape BackgroundShape { get; }
 
-        public Color FillColor
+        public Color BackgroundColor
         {
             get => BackgroundShape.FillColor;
             set => BackgroundShape.FillColor = value;
@@ -195,12 +176,18 @@ namespace JourneyCore.Lib.Display.Component
         #region VARIABLES - TEXT
 
         private Text _TextObject;
-        public Font DefaultFont { get; }
+        public Font DefaultFont { get; set; }
 
-        public string Text
+        public string DisplayedText
         {
             get => _TextObject.DisplayedString;
-            set => _TextObject = new Text(value, DefaultFont);
+            set => UpdateTextObject(value);
+        }
+
+        public Color ForegroundColor
+        {
+            get => _TextObject.FillColor;
+            set => _TextObject.FillColor = value;
         }
 
         #endregion

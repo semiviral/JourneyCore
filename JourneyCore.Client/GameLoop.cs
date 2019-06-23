@@ -8,8 +8,8 @@ using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Object.Entity;
-using JourneyCore.Lib.System.Components.Loaders;
 using JourneyCore.Lib.System.Event;
+using JourneyCore.Lib.System.Loaders;
 using JourneyCore.Lib.System.Math;
 using JourneyCore.Lib.System.Net;
 using JourneyCore.Lib.System.Net.Security;
@@ -24,16 +24,16 @@ namespace JourneyCore.Client
 {
     public class GameLoop : Context
     {
-        private static Tuple<int, string> _FatalExit;
-        private bool _IsFocused;
+        private static Tuple<int, string> _fatalExit;
+        private bool _isFocused;
 
         private bool IsFocused
         {
-            get => _IsFocused;
+            get => _isFocused;
             set
             {
-                _IsFocused = value;
-                Window.EnableInput = _IsFocused;
+                _isFocused = value;
+                Window.EnableInput = _isFocused;
             }
         }
 
@@ -51,7 +51,7 @@ namespace JourneyCore.Client
             ConManager.Hide(false);
 
             CreateGameWindow(maximumFrameRate);
-            
+
             Log.Information("Game loop started.");
 
             InputWatcher = new InputWatcher();
@@ -65,7 +65,7 @@ namespace JourneyCore.Client
             Window.AddDrawItem("minimap", 0,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
                     new DrawObject(typeof(VertexArray), CurrentMap.Minimap.VArray), RenderStates.Default));
-            
+
             try
             {
                 while (Window.IsActive)
@@ -87,12 +87,10 @@ namespace JourneyCore.Client
                 ExitWithFatality();
             }
         }
-
-        // todo fix exiting to not block threads
-
+        
         public static void CallFatality(string error, int exitCode = -1)
         {
-            _FatalExit = new Tuple<int, string>(exitCode, error);
+            _fatalExit = new Tuple<int, string>(exitCode, error);
             ExitWithFatality();
         }
 
@@ -100,9 +98,9 @@ namespace JourneyCore.Client
         {
             ThreadPool.QueueUserWorkItem(callback =>
             {
-                Log.Fatal(_FatalExit.Item2);
+                Log.Fatal(_fatalExit.Item2);
 
-                Environment.Exit(_FatalExit.Item1);
+                Environment.Exit(_fatalExit.Item1);
             });
         }
 
@@ -139,8 +137,6 @@ namespace JourneyCore.Client
                     }
                 }
 #endif
-
-                InputWatcher.EnableInputFunc = () => Window.EnableInput;
 
                 Window.GainedFocus += (sender, args) => { IsFocused = true; };
                 Window.LostFocus += (sender, args) => { IsFocused = false; };
@@ -205,16 +201,33 @@ namespace JourneyCore.Client
                 new Font(
                     @"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\Assets\Fonts\Courier New.ttf");
 
-            Button testButton = new Button(Window, defaultFont, "Test")
+            DrawView menuDrawView = Window.GetDrawView("menu");
+
+            Button testButton = new Button(Window, defaultFont, "Exit")
             {
+                Position = new Vector2f(menuDrawView.View.Size.X / 2f, menuDrawView.View.Size.Y / 2f),
                 Size = new Vector2f(100f, 100f),
-                FillColor = Color.Cyan,
-                Position = new Vector2f(100f, 100f),
-                DefaultColor = Color.Cyan,
-                HoverColor = Color.Green,
-                PressedColor = Color.Red,
-                ReleasedAction = () => { CallFatality(""); }
+                BackgroundColor = Color.Cyan,
             };
+            testButton.Origin = testButton.Size / 2f;
+            testButton.BackgroundColor = Color.Transparent;
+            testButton.MouseEntered += (sender, args) =>
+            {
+                testButton.ForegroundColor = testButton.IsPressed ? Color.Red : Color.Cyan;
+            };
+            testButton.MouseExited += (sender, args) =>
+            {
+                if (testButton.IsHovered && !testButton.IsPressed)
+                {
+                    testButton.ForegroundColor = Color.White;
+                }
+            };
+            testButton.Pressed += (sender, args) => { testButton.ForegroundColor = Color.Red; };
+            testButton.Released += (sender, args) =>
+            {
+                testButton.ForegroundColor = testButton.IsHovered ? Color.Cyan : Color.White;
+            };
+            testButton.Released += (sender, args) => { CallFatality("Game exited."); };
 
             Window.AddDrawItem("menu", 10,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
@@ -252,11 +265,11 @@ namespace JourneyCore.Client
         {
             Log.Information("Initialising player...");
 
-            Texture humanTexture = new Texture(await RequestImage("human"));
+            Texture humanTexture = new Texture(await RequestImage("avatar"));
             Texture projectilesTexture = new Texture(await RequestImage("projectiles"));
 
-
-            Player = new Player(new Sprite(humanTexture), projectilesTexture, 0);
+            // todo no hard coding for player texture size
+            Player = new Player(new Sprite(humanTexture, new IntRect(3 * 32, 1 * 32, 32, 32)), projectilesTexture, 0);
             Player.PropertyChanged += PlayerPropertyChanged;
             Player.PositionChanged += PlayerPositionChanged;
             Player.RotationChanged += PlayerRotationChanged;
@@ -277,9 +290,7 @@ namespace JourneyCore.Client
             Log.Information("Creating input watch events...");
 
             Vector2f movement = new Vector2f(0, 0);
-
-            InputWatcher.EnableInputFunc = () => true;
-
+            
             InputWatcher.AddWatchedInput(Keyboard.Key.W, () =>
             {
                 movement = new Vector2f(
@@ -292,8 +303,8 @@ namespace JourneyCore.Client
                     movement *= 0.5f;
                 }
 
-                Player.MoveEntity(movement, MapLoader.TilePixelSize * MapLoader.Scale, Window.ElapsedTime);
-            });
+                Player.MoveEntity(movement, MapLoader.TilePixelSize, Window.ElapsedTime);
+            }, () => IsFocused);
 
             InputWatcher.AddWatchedInput(Keyboard.Key.A, () =>
             {
@@ -308,8 +319,8 @@ namespace JourneyCore.Client
                     movement *= 0.5f;
                 }
 
-                Player.MoveEntity(movement, MapLoader.TilePixelSize * MapLoader.Scale, Window.ElapsedTime);
-            });
+                Player.MoveEntity(movement, MapLoader.TilePixelSize, Window.ElapsedTime);
+            }, () => IsFocused);
 
             InputWatcher.AddWatchedInput(Keyboard.Key.S, () =>
             {
@@ -324,8 +335,8 @@ namespace JourneyCore.Client
                     movement *= 0.5f;
                 }
 
-                Player.MoveEntity(movement, MapLoader.TilePixelSize * MapLoader.Scale, Window.ElapsedTime);
-            });
+                Player.MoveEntity(movement, MapLoader.TilePixelSize, Window.ElapsedTime);
+            }, () => IsFocused);
 
             InputWatcher.AddWatchedInput(Keyboard.Key.D, () =>
             {
@@ -339,24 +350,24 @@ namespace JourneyCore.Client
                     movement *= 0.5f;
                 }
 
-                Player.MoveEntity(movement, MapLoader.TilePixelSize * MapLoader.Scale, Window.ElapsedTime);
-            });
+                Player.MoveEntity(movement, MapLoader.TilePixelSize, Window.ElapsedTime);
+            }, () => IsFocused);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.G, () => { CurrentMap.Minimap.VArray.ModifyOpacity(-25, 10); });
+            InputWatcher.AddWatchedInput(Keyboard.Key.G, () => { CurrentMap.Minimap.VArray.ModifyOpacity(-25, 10); }, () => IsFocused);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.H, () => { CurrentMap.Minimap.VArray.ModifyOpacity(25); });
+            InputWatcher.AddWatchedInput(Keyboard.Key.H, () => { CurrentMap.Minimap.VArray.ModifyOpacity(25); }, () => IsFocused);
 
             InputWatcher.AddWatchedInput(Keyboard.Key.Q,
-                () => { Player.RotateEntity(Window.ElapsedTime, 180f, false); });
+                () => { Player.RotateEntity(Window.ElapsedTime, 180f, false); }, () => IsFocused);
 
             InputWatcher.AddWatchedInput(Keyboard.Key.E,
-                () => { Player.RotateEntity(Window.ElapsedTime, 180f, true); });
+                () => { Player.RotateEntity(Window.ElapsedTime, 180f, true); }, () => IsFocused);
 
             InputWatcher.AddWatchedInput(Keyboard.Key.Escape, () =>
             {
                 DrawView drawView = Window.GetDrawView("menu");
                 drawView.Visible = !drawView.Visible;
-            }, true);
+            }, () => true, true);
         }
 
         private void SetupWatchedMouse()

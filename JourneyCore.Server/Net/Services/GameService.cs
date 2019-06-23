@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Tiling;
 using JourneyCore.Lib.Game.Object.Entity;
-using JourneyCore.Lib.System.Components.Loaders;
+using JourneyCore.Lib.System.Loaders;
 using JourneyCore.Lib.System.Net;
 using JourneyCore.Lib.System.Net.Security;
 using JourneyCore.Server.Net.SignalR.Contexts;

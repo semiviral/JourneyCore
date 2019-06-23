@@ -5,29 +5,48 @@ namespace JourneyCore.Lib.System.Event
 {
     public class InputActionList
     {
-        private bool _SinglePress { get; }
-
-        public List<Action> Actions { get; }
-        public bool ReadyToPress { get; private set; }
-
-        public InputActionList(bool singlePress)
+        public InputActionList(Func<bool> enabledCheck, bool singlePress)
         {
             _SinglePress = singlePress;
 
-            ReadyToPress = true;
+            EnabledCheck = enabledCheck;
             Actions = new List<Action>();
+            HasReleased = true;
+        }
+
+        private bool _SinglePress { get; }
+        private List<Action> Actions { get; }
+        private Func<bool> EnabledCheck { get; }
+        private bool HasReleased { get; set; }
+
+        public void AddInputAction(Action inputAction)
+        {
+            Actions.Add(inputAction);
         }
 
         public bool ActivatePress(bool pressed)
         {
-            bool invokePress = pressed && ReadyToPress;
+            if (!CheckActivationRequirements(pressed)) return false;
 
-            if (_SinglePress)
-            {
-                ReadyToPress = !pressed;
-            }
+            IterateActions();
+
+            return true;
+        }
+
+        private bool CheckActivationRequirements(bool pressed)
+        {
+            if (EnabledCheck == null || !EnabledCheck()) return false;
+
+            bool invokePress = pressed && HasReleased;
+
+            if (_SinglePress) HasReleased = !pressed;
 
             return invokePress;
+        }
+
+        private void IterateActions()
+        {
+            Actions.ForEach(action => action());
         }
     }
 }

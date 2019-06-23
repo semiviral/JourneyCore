@@ -1,5 +1,5 @@
 ﻿using JourneyCore.Lib.Game.Environment.Tiling;
-using JourneyCore.Lib.System.Components.Loaders;
+using JourneyCore.Lib.System.Loaders;
 
 namespace JourneyCore.Lib.Game.Environment.Mapping
 {

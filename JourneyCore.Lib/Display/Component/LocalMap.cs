@@ -5,7 +5,7 @@ using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
 using JourneyCore.Lib.Game.Object;
-using JourneyCore.Lib.System.Components.Loaders;
+using JourneyCore.Lib.System.Loaders;
 using JourneyCore.Lib.System.Math;
 using SFML.Graphics;
 using SFML.System;

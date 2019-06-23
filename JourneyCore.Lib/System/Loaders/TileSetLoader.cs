@@ -4,7 +4,7 @@ using JourneyCore.Lib.Game.Environment.Tiling;
 using Newtonsoft.Json;
 using SFML.Graphics;
 
-namespace JourneyCore.Lib.System.Components.Loaders
+namespace JourneyCore.Lib.System.Loaders
 {
     public class TileSetLoader
     {

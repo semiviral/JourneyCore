@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
-using JourneyCore.Lib.System.Components.Loaders;
+using JourneyCore.Lib.System.Loaders;
 
 namespace JourneyCore.Lib.Game.Environment.Mapping
 {

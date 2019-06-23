@@ -3,7 +3,7 @@ using System.Text;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using Newtonsoft.Json;
 
-namespace JourneyCore.Lib.System.Components.Loaders
+namespace JourneyCore.Lib.System.Loaders
 {
     public static class MapLoader
     {
@@ -13,11 +13,17 @@ namespace JourneyCore.Lib.System.Components.Loaders
         public static int Scale = 1;
         public static int TileSize = 16;
 
-        public static int TilePixelSize => Scale * TileSize;
+        public static int TilePixelSize { get; private set; }
+
+        static MapLoader()
+        {
+            TilePixelSize = TileSize * Scale;
+        }
 
         public static Map LoadMap(string mapPath, short tileScale)
         {
             Scale = tileScale;
+            TilePixelSize = TileSize * Scale;
 
             using (StreamReader reader = new StreamReader(mapPath, Encoding.UTF8))
             {
