@@ -51,6 +51,7 @@ namespace JourneyCore.Lib.System.Math
 
         public static bool CircleIntersect(Vector2f circleCenter, IntRect bounds)
         {
+            // todo implement this
             return false;
         }
     }

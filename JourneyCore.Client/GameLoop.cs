@@ -117,8 +117,8 @@ namespace JourneyCore.Client
                 await CreateUserInterface();
                 SetupMinimap();
 
-                Settings settings = new Settings(Window);
-                settings.Initialise();
+                EscapeMenu escapeMenu = new EscapeMenu(Window);
+                escapeMenu.Initialise();
 
 #if DEBUG
                 for (int x = 0; x < CurrentMap.Metadata.Width / MapLoader.ChunkSize; x++)
@@ -312,7 +312,7 @@ namespace JourneyCore.Client
 
             InputWatcher.AddWatchedInput(Keyboard.Key.Escape, () =>
             {
-                DrawView drawView = Window.GetDrawView(DrawViewLayer.Settings);
+                DrawView drawView = Window.GetDrawView(DrawViewLayer.EscapeMenu);
                 drawView.Visible = !drawView.Visible;
             }, () => true, true);
         }

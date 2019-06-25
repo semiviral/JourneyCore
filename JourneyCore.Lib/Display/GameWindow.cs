@@ -15,7 +15,7 @@ namespace JourneyCore.Lib.Display
         Game,
         Minimap,
         Ui,
-        Settings
+        EscapeMenu
     }
 
     public class GameWindow
