@@ -45,11 +45,6 @@ namespace JourneyCore.Lib.Display
             DeltaClock = new Delta();
         }
 
-        public void SubscribeUiObject(Button uiButton)
-        {
-            uiButton.SubscribeObject(this);
-        }
-
         public RenderWindow SetActive(bool activeState)
         {
             Window.SetActive(activeState);
@@ -69,6 +64,43 @@ namespace JourneyCore.Lib.Display
             drawView?.AddDrawItem(internalLayer, drawItem);
         }
 
+
+        #region UI OBJECTS
+
+        private SortedList<int, IUIObject> UIObjects { get; }
+
+        public void SubscribeUiObject(DrawViewLayer layer, int internalLayer, object uiObject)
+        {
+            if (!(uiObject is IUIObject))
+            {
+                return;
+            }
+
+            Resized += ((IUIObject)uiObject).OnWindowResized;
+
+            if (uiObject is IHoverable hoverableUiObject)
+            {
+                SubscribeIHoverable(hoverableUiObject);
+            }
+
+            if (uiObject is IPressable pressableUiObject)
+            {
+                SubscribeIPressable(pressableUiObject);
+            }
+        }
+
+        private void SubscribeIHoverable(IHoverable hoverable)
+        {
+            MouseMoved += hoverable.OnMouseMoved;
+        }
+
+        private void SubscribeIPressable(IPressable pressable)
+        {
+            MouseButtonPressed += pressable.OnMousePressed;
+            MouseButtonReleased += pressable.OnMouseReleased;
+        }
+
+        #endregion
 
         #region VARIABLES
 

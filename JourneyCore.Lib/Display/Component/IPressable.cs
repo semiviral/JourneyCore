@@ -7,5 +7,8 @@ namespace JourneyCore.Lib.Display.Component
     {
         event EventHandler<MouseButtonEventArgs> Pressed;
         event EventHandler<MouseButtonEventArgs> Released;
+
+        void OnMousePressed(object sender, MouseButtonEventArgs args);
+        void OnMouseReleased(object sender, MouseButtonEventArgs args);
     }
 }

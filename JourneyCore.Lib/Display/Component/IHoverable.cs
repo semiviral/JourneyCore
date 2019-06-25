@@ -7,5 +7,7 @@ namespace JourneyCore.Lib.Display.Component
     {
         event EventHandler<MouseMoveEventArgs> Entered;
         event EventHandler<MouseMoveEventArgs> Exited;
+
+        void OnMouseMoved(object sender, MouseMoveEventArgs args);
     }
 }

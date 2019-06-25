@@ -6,7 +6,7 @@ using Color = SFML.Graphics.Color;
 
 namespace JourneyCore.Lib.Display.Component
 {
-    public class Button : IHoverable, IPressable, Drawable
+    public class Button : IUIObject, IHoverable, IPressable, Drawable
     {
         private Vector2f OriginalWindowSize { get; set; }
         private Vector2f ResizeFactor { get; set; }
@@ -63,10 +63,10 @@ namespace JourneyCore.Lib.Display.Component
         public void SubscribeObject(GameWindow window)
         {
             OriginalWindowSize = new Vector2f(window.Size.X, window.Size.Y);
-            window.Resized += OnResized;
+            window.Resized += OnWindowResized;
             window.MouseMoved += OnMouseMoved;
-            window.MouseButtonPressed += OnMouseButtonPressed;
-            window.MouseButtonReleased += OnMouseButtonReleased;
+            window.MouseButtonPressed += OnMousePressed;
+            window.MouseButtonReleased += OnMouseReleased;
         }
 
         public void Draw(RenderTarget target, RenderStates states)
@@ -89,7 +89,7 @@ namespace JourneyCore.Lib.Display.Component
 
         #region EVENTS
 
-        private void OnResized(object sender, SizeEventArgs args)
+        public void OnWindowResized(object sender, SizeEventArgs args)
         {
             ResizeFactor = new Vector2f(args.Width / OriginalWindowSize.X, args.Height / OriginalWindowSize.Y);
         }
@@ -99,7 +99,7 @@ namespace JourneyCore.Lib.Display.Component
         public event EventHandler<MouseButtonEventArgs> Pressed;
         public event EventHandler<MouseButtonEventArgs> Released;
 
-        private void OnMouseMoved(object sender, MouseMoveEventArgs args)
+        public void OnMouseMoved(object sender, MouseMoveEventArgs args)
         {
             if (!Activated())
             {
@@ -129,7 +129,7 @@ namespace JourneyCore.Lib.Display.Component
             }
         }
 
-        private void OnMouseButtonPressed(object sender, MouseButtonEventArgs args)
+        public void OnMousePressed(object sender, MouseButtonEventArgs args)
         {
             if (!Activated())
             {
@@ -146,7 +146,7 @@ namespace JourneyCore.Lib.Display.Component
             Pressed?.Invoke(sender, args);
         }
 
-        private void OnMouseButtonReleased(object sender, MouseButtonEventArgs args)
+        public void OnMouseReleased(object sender, MouseButtonEventArgs args)
         {
             if (!Activated())
             {

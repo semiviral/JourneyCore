@@ -40,7 +40,7 @@ namespace JourneyCore.Client
                     RenderStates.Default));
 
             Button exitButton = CreateExitButton();
-            Window.SubscribeUiObject(exitButton);
+            Window.SubscribeUiObject(DrawViewLayer.Settings, 0, exitButton);
             Window.AddDrawItem(DrawViewLayer.Settings, 10,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
                     new DrawObject(typeof(Button), exitButton), RenderStates.Default));
