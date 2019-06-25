@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using JourneyCore.Client.DrawViews;
 using JourneyCore.Lib.Display;
 using JourneyCore.Lib.Display.Component;
 using JourneyCore.Lib.Display.Drawing;
@@ -178,23 +179,23 @@ namespace JourneyCore.Client
             const float viewSizeY = 200f;
             const float minimapSizeX = 0.2f;
 
-            Window.CreateDrawView(DrawViewLayer.Game,
+            Window.CreateDrawView(new DrawView(DrawViewLayer.Game,
                 new View(new FloatRect(0f, 0f, viewSizeY * GameWindow.WidescreenRatio, viewSizeY))
                 {
                     Viewport = new FloatRect(0f, 0f, 1f, 1f)
-                }, true);
+                }, true));
 
-            Window.CreateDrawView(DrawViewLayer.Ui,
+            Window.CreateDrawView(new DrawView(DrawViewLayer.Ui,
                 new View(new FloatRect(0f, 0f, 200f, 600f))
                 {
                     Viewport = new FloatRect(0.8f, 0.3f, 0.2f, 0.7f)
-                }, true);
+                }, true));
 
-            Window.CreateDrawView(DrawViewLayer.Minimap,
+            Window.CreateDrawView(new DrawView(DrawViewLayer.Minimap,
                 new View(new FloatRect(0f, 0f, viewSizeY * GameWindow.WidescreenRatio, viewSizeY))
                 {
                     Viewport = new FloatRect(0.8f, 0f, minimapSizeX, minimapSizeX * GameWindow.LetterboxRatio)
-                }, true);
+                }, true));
         }
 
         private async Task CreateLocalMap()

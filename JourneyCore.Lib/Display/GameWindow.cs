@@ -15,7 +15,8 @@ namespace JourneyCore.Lib.Display
         Game,
         Minimap,
         Ui,
-        EscapeMenu
+        EscapeMenu,
+        Settings
     }
 
     public class GameWindow
@@ -217,12 +218,7 @@ namespace JourneyCore.Lib.Display
 
 
         #region VIEW
-
-        public DrawView CreateDrawView(DrawViewLayer layer, View defaultView, bool visible = false)
-        {
-            return CreateDrawView(new DrawView(layer, defaultView, visible));
-        }
-
+        
         public DrawView CreateDrawView(DrawView drawView)
         {
             if (DrawViews.Any(dView => dView.Value.Layer.Equals(drawView.Layer)))

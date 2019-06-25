@@ -5,43 +5,42 @@ using JourneyCore.Lib.Display.Drawing;
 using SFML.Graphics;
 using SFML.System;
 
-namespace JourneyCore.Client
+namespace JourneyCore.Client.DrawViews
 {
     public class EscapeMenu
     {
-        private GameWindow Window { get; }
+        private GameWindow GameWindow { get; }
 
-        public EscapeMenu(GameWindow window)
+        public EscapeMenu(GameWindow gameWindow)
         {
-            Window = window;
+            GameWindow = gameWindow;
         }
 
         public void Initialise()
         {
-            CreateSettingsView();
-            PopulateSettingsView();
+            CreateEscapeMenuView();
+            PopulateEscapeMenuView();
         }
 
-        private void CreateSettingsView()
+        private void CreateEscapeMenuView()
         {
-            Window.CreateDrawView(DrawViewLayer.EscapeMenu,
-                new View(new FloatRect(0f, 0f, Window.Size.X, Window.Size.Y))
-                    { Viewport = new FloatRect(0f, 0f, 1f, 1f) }, true);
-            Window.GetDrawView(DrawViewLayer.EscapeMenu).Visible = false;
+            GameWindow.CreateDrawView(new DrawView(DrawViewLayer.EscapeMenu,
+                new View(new FloatRect(0f, 0f, GameWindow.Size.X, GameWindow.Size.Y))
+                    { Viewport = new FloatRect(0f, 0f, 1f, 1f) }));
         }
 
-        private void PopulateSettingsView()
+        private void PopulateEscapeMenuView()
         {
             // semi-transparent background rectangle
-            Window.AddDrawItem(DrawViewLayer.EscapeMenu, 0,
+            GameWindow.AddDrawItem(DrawViewLayer.EscapeMenu, 0,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
                     new DrawObject(typeof(RectangleShape),
-                        new RectangleShape((Vector2f)Window.Size) { FillColor = new Color(0, 0, 0, 155) }),
+                        new RectangleShape((Vector2f)GameWindow.Size) { FillColor = new Color(0, 0, 0, 155) }),
                     RenderStates.Default));
 
             Button exitButton = CreateExitButton();
-            Window.SubscribeUiObject(DrawViewLayer.EscapeMenu, 0, exitButton);
-            Window.AddDrawItem(DrawViewLayer.EscapeMenu, 10,
+            GameWindow.SubscribeUiObject(DrawViewLayer.EscapeMenu, 0, exitButton);
+            GameWindow.AddDrawItem(DrawViewLayer.EscapeMenu, 10,
                 new DrawItem(Guid.NewGuid().ToString(), DateTime.MinValue, null,
                     new DrawObject(typeof(Button), exitButton), RenderStates.Default));
         }
@@ -54,7 +53,7 @@ namespace JourneyCore.Client
                 new Font(
                     @"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\Assets\Fonts\Avara.ttf");
 
-            DrawView settingsDrawView = Window.GetDrawView(DrawViewLayer.EscapeMenu);
+            DrawView settingsDrawView = GameWindow.GetDrawView(DrawViewLayer.EscapeMenu);
 
             Button exitButton = new Button(defaultFont, "Exit")
             {
