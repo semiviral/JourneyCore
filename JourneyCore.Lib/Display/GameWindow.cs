@@ -68,7 +68,7 @@ namespace JourneyCore.Lib.Display
 
         #region UI OBJECTS
 
-        private SortedList<int, IUIObject> UIObjects { get; }
+        private List<IUIObject> UIObjects { get; }
 
         public void SubscribeUiObject(DrawViewLayer layer, int internalLayer, object uiObject)
         {
@@ -76,8 +76,11 @@ namespace JourneyCore.Lib.Display
             {
                 return;
             }
-
-            Resized += ((IUIObject)uiObject).OnWindowResized;
+            
+            if (uiObject is IResizeResponsive resizeResponsiveUiObject)
+            {
+                SubscribeIResizeResponsive(resizeResponsiveUiObject);
+            }
 
             if (uiObject is IHoverable hoverableUiObject)
             {
@@ -88,6 +91,16 @@ namespace JourneyCore.Lib.Display
             {
                 SubscribeIPressable(pressableUiObject);
             }
+
+            if (uiObject is IScrollable scrollableUiObject)
+            {
+                SubscribeIScrollable(scrollableUiObject);
+            }
+        }
+
+        private void SubscribeIResizeResponsive(IResizeResponsive resizeResponsive)
+        {
+            Resized += resizeResponsive.OnParentResized;
         }
 
         private void SubscribeIHoverable(IHoverable hoverable)
@@ -99,6 +112,11 @@ namespace JourneyCore.Lib.Display
         {
             MouseButtonPressed += pressable.OnMousePressed;
             MouseButtonReleased += pressable.OnMouseReleased;
+        }
+
+        private void SubscribeIScrollable(IScrollable scrollable)
+        {
+            MouseWheelScrolled += scrollable.OnMouseScrolled;
         }
 
         #endregion

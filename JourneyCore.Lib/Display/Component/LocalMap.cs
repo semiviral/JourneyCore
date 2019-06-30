@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using JourneyCore.Lib.Game.Environment.Mapping;
@@ -9,6 +10,7 @@ using JourneyCore.Lib.System.Loaders;
 using JourneyCore.Lib.System.Math;
 using SFML.Graphics;
 using SFML.System;
+using SFML.Window;
 
 namespace JourneyCore.Lib.Display.Component
 {
@@ -46,6 +48,8 @@ namespace JourneyCore.Lib.Display.Component
         }
 
         public List<CollisionBox> CollisionObjects { get; }
+
+        public bool IsHovered { get; private set; }
 
         public LocalMap(byte[] mapImage)
         {
@@ -209,5 +213,23 @@ namespace JourneyCore.Lib.Display.Component
         }
 
         #endregion
+
+        public void OnParentResized(object sender, SizeEventArgs args)
+        {
+            throw new NotImplementedException();
+        }
+
+        public event EventHandler<MouseMoveEventArgs> Entered;
+        public event EventHandler<MouseMoveEventArgs> Exited;
+        public void OnMouseMoved(object sender, MouseMoveEventArgs args)
+        {
+            return;
+        }
+
+        public event EventHandler<MouseWheelScrollEventArgs> Scrolled;
+        public void OnMouseScrolled(object sender, MouseWheelScrollEventArgs args)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

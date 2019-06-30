@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using JourneyCore.Lib.Display.Drawing;
 using SFML.Graphics;
+using SFML.Window;
 
 namespace JourneyCore.Lib.Display.Component
 {
-    public class Minimap
+    public class Minimap : IUIObject, IHoverable, IScrollable
     {
         public VertexArray VArray { get; }
         public Dictionary<uint, DrawObject> MinimapObjects { get; }
@@ -19,7 +20,7 @@ namespace JourneyCore.Lib.Display.Component
 
         public void AddMinimapEntity(DrawObject drawObj)
         {
-            if (!drawObj.Batchable || drawObj.ObjectType != typeof(RectangleShape))
+            if (!drawObj.Batchable || !(drawObj.Object is RectangleShape))
             {
                 return;
             }
@@ -41,10 +42,10 @@ namespace JourneyCore.Lib.Display.Component
             drawObj.StartIndex = drawObj.StartIndex == 0 ? startIndex : drawObj.StartIndex;
             MinimapObjects.Add(startIndex, drawObj);
 
-            CalculateVerticesByIndex(startIndex);
+            CalculateVerticesAtIndex(startIndex);
         }
 
-        public void CalculateVerticesByIndex(uint startIndex)
+        public void CalculateVerticesAtIndex(uint startIndex)
         {
             if (!MinimapObjects.Keys.Contains(startIndex))
             {
@@ -61,7 +62,26 @@ namespace JourneyCore.Lib.Display.Component
 
         public void OnMinimapEntityVerticesUpdated(object sender, uint startIndex)
         {
-            CalculateVerticesByIndex(startIndex);
+            CalculateVerticesAtIndex(startIndex);
+        }
+
+        public void OnParentResized(object sender, SizeEventArgs args)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsHovered { get; private set; }
+        public event EventHandler<MouseMoveEventArgs> Entered;
+        public event EventHandler<MouseMoveEventArgs> Exited;
+        public void OnMouseMoved(object sender, MouseMoveEventArgs args)
+        {
+            throw new NotImplementedException();
+        }
+
+        public event EventHandler<MouseWheelScrollEventArgs> Scrolled;
+        public void OnMouseScrolled(object sender, MouseWheelScrollEventArgs args)
+        {
+            throw new NotImplementedException();
         }
     }
 }

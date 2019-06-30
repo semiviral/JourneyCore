@@ -2,18 +2,16 @@
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using Color = SFML.Graphics.Color;
 
 namespace JourneyCore.Lib.Display.Component
 {
-    public class Button : IUIObject, IHoverable, IPressable, Drawable
+    public class Button : IUIObject, IHoverable, IPressable, IResizeResponsive, Drawable
     {
-        private Vector2f OriginalWindowSize { get; set; }
-        private Vector2f ResizeFactor { get; set; }
-
         private Vector2f _Origin;
         private Vector2f _Position;
         private Vector2f _Size;
+        private Vector2f OriginalWindowSize { get; set; }
+        private Vector2f ResizeFactor { get; set; }
 
         public Vector2f Size
         {
@@ -33,19 +31,21 @@ namespace JourneyCore.Lib.Display.Component
             set => SetOrigin(value);
         }
 
+        public bool AutoSize { get; set; }
         public bool IsPressed { get; set; }
-        public bool IsHovered { get; set; }
 
         public Func<bool> Activated { get; set; }
 
-        public Button(Font defaultFont, string displayedText)
+        public Button(Font defaultFont, string displayedText, bool autoSize)
         {
+            AutoSize = autoSize;
+
             ResizeFactor = new Vector2f(1f, 1f);
             BackgroundSprite = new Sprite();
             BackgroundShape = new RectangleShape();
             _TextObject = new Text();
 
-            Size = new Vector2f(10f, 10f);
+            Size = new Vector2f(0f, 0f);
             Position = new Vector2f(0f, 0f);
             Origin = new Vector2f(0f, 0f);
 
@@ -60,20 +60,22 @@ namespace JourneyCore.Lib.Display.Component
             Activated = () => true;
         }
 
-        public void SubscribeObject(GameWindow window)
-        {
-            OriginalWindowSize = new Vector2f(window.Size.X, window.Size.Y);
-            window.Resized += OnWindowResized;
-            window.MouseMoved += OnMouseMoved;
-            window.MouseButtonPressed += OnMousePressed;
-            window.MouseButtonReleased += OnMouseReleased;
-        }
-
         public void Draw(RenderTarget target, RenderStates states)
         {
             BackgroundShape.Draw(target, states);
             BackgroundSprite.Draw(target, states);
             _TextObject.Draw(target, states);
+        }
+
+        public bool IsHovered { get; set; }
+
+        public void SubscribeObject(GameWindow window)
+        {
+            OriginalWindowSize = new Vector2f(window.Size.X, window.Size.Y);
+            window.Resized += OnParentResized;
+            window.MouseMoved += OnMouseMoved;
+            window.MouseButtonPressed += OnMousePressed;
+            window.MouseButtonReleased += OnMouseReleased;
         }
 
         private void UpdateTextObject(string newDisplayedText)
@@ -89,15 +91,18 @@ namespace JourneyCore.Lib.Display.Component
 
         #region EVENTS
 
-        public void OnWindowResized(object sender, SizeEventArgs args)
-        {
-            ResizeFactor = new Vector2f(args.Width / OriginalWindowSize.X, args.Height / OriginalWindowSize.Y);
-        }
-
+        public event EventHandler<SizeEventArgs> ParentResized;
         public event EventHandler<MouseMoveEventArgs> Entered;
         public event EventHandler<MouseMoveEventArgs> Exited;
         public event EventHandler<MouseButtonEventArgs> Pressed;
         public event EventHandler<MouseButtonEventArgs> Released;
+
+        public void OnParentResized(object sender, SizeEventArgs args)
+        {
+            ResizeFactor = new Vector2f(args.Width / OriginalWindowSize.X, args.Height / OriginalWindowSize.Y);
+
+            ParentResized?.Invoke(sender, args);
+        }
 
         public void OnMouseMoved(object sender, MouseMoveEventArgs args)
         {
@@ -106,7 +111,7 @@ namespace JourneyCore.Lib.Display.Component
                 return;
             }
 
-            FloatRect globalBounds = BackgroundShape.GetGlobalBounds();
+            FloatRect globalBounds = AutoSize ? _TextObject.GetGlobalBounds() : BackgroundShape.GetGlobalBounds();
             globalBounds.Left *= ResizeFactor.X;
             globalBounds.Top *= ResizeFactor.Y;
 

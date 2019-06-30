@@ -16,7 +16,7 @@ namespace JourneyCore.Lib.Display.Drawing
         public DrawViewLayer Layer { get; }
         public View View { get; }
         public bool Visible { get; set; }
-
+        
         private SortedList<int, List<DrawItem>> DrawQueue { get; }
         private Vector2f DefaultSize { get; }
 
@@ -51,6 +51,17 @@ namespace JourneyCore.Lib.Display.Drawing
         {
             get => View.Rotation;
             set => View.Rotation = value + DefaultPlayerViewRotation % 360;
+        }
+
+        public void ModifyOpacity(sbyte alphaModifier)
+        {
+            foreach ((int layer, List<DrawItem> drawItems) in DrawQueue)
+            {
+                foreach (DrawItem drawItem in drawItems)
+                {
+                    drawItem.DrawSubject.ModifyOpacity?.Invoke(alphaModifier);
+                }
+            }
         }
 
         public void AddDrawItem(int layer, DrawItem drawItem)

@@ -49,13 +49,13 @@ namespace JourneyCore.Lib.Game.Object.Entity
             projectile.Graphic.Rotation = (float)angle + 180f % 360;
             projectile.Graphic.Scale = new Vector2f(0.35f, 0.35f);
 
-            DrawItem projectileDrawItem = new DrawItem(projectile.Guid, projectile.TriggerAlive(), frameTime =>
+            DrawItem projectileDrawItem = new DrawItem(projectile.TriggerAlive(), frameTime =>
                 {
                     Vector2f movement = new Vector2f((float)GraphMath.SinFromDegrees(angle),
                         (float)GraphMath.CosFromDegrees(angle) * -1f);
 
                     projectile.MoveEntity(movement, tileWidth, frameTime);
-                }, new DrawObject(projectile.Graphic.GetType(), projectile.Graphic, projectile.Graphic.GetVertices),
+                }, new DrawObject(projectile.Graphic, projectile.Graphic.GetVertices),
                 ProjectileRenderStates);
 
             return projectileDrawItem;

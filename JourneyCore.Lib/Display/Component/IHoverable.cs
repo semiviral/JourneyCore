@@ -5,6 +5,8 @@ namespace JourneyCore.Lib.Display.Component
 {
     public interface IHoverable
     {
+        bool IsHovered { get; }
+
         event EventHandler<MouseMoveEventArgs> Entered;
         event EventHandler<MouseMoveEventArgs> Exited;
 

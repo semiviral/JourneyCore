@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using SFML.Window;
+﻿using SFML.Window;
 
 namespace JourneyCore.Lib.Display.Component
 {
     public interface IUIObject
     {
-        void OnWindowResized(object sender, SizeEventArgs args);
+        void OnParentResized(object sender, SizeEventArgs args);
     }
 }

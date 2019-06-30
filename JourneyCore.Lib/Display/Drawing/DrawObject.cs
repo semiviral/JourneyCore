@@ -1,5 +1,6 @@
 ﻿using System;
 using JourneyCore.Lib.Game.Object;
+using JourneyCore.Lib.System.Static;
 using SFML.Graphics;
 using SFML.System;
 
@@ -10,24 +11,25 @@ namespace JourneyCore.Lib.Display.Drawing
         public uint StartIndex { get; set; }
         public bool Batchable { get; set; }
 
-        public Type ObjectType { get; }
         public object Object { get; }
         public Func<Vertex[]> GetVertices { get; }
+
+        public Action<sbyte> ModifyOpacity { get; set; }
 
         public Drawable Drawable => (Drawable)Object;
         public Transformable Transformable => (Transformable)Object;
 
-        public DrawObject(uint startIndex, Type entityObjType, object entityObj, Func<Vertex[]> getVertices = null) :
-            this(entityObjType, entityObj, getVertices)
+        public DrawObject(uint startIndex, object entityObj, Func<Vertex[]> getVertices = null) :
+            this(entityObj, getVertices)
         {
             StartIndex = startIndex;
         }
 
-        public DrawObject(Type objectType, object obj, Func<Vertex[]> getVertices = null)
+        public DrawObject(object obj, Func<Vertex[]> getVertices = null)
         {
-            ObjectTypeChecks(objectType, obj);
+            ObjectTypeChecks(obj);
+            AssignSetOpacityMethod(obj);
 
-            ObjectType = objectType;
             Object = obj;
 
             if (getVertices == null)
@@ -62,17 +64,68 @@ namespace JourneyCore.Lib.Display.Drawing
             }
         }
 
-        private static void ObjectTypeChecks(Type entityObjType, object entityObj)
+
+        private void AssignSetOpacityMethod(object obj)
         {
-            if (!(entityObj is Drawable))
+            if (obj is VertexArray vArrayObj)
+            {
+                ModifyOpacity = arg1 => { vArrayObj.ModifyOpacity(arg1, 10); };
+            }
+            else if (obj is Shape shapeObj)
+            {
+                ModifyOpacity = arg1 =>
+                {
+                    Color modifiedColor = shapeObj.FillColor;
+
+                    if (modifiedColor.A + arg1 < 10)
+                    {
+                        modifiedColor.A = 10;
+                    }
+                    else if (modifiedColor.A + arg1 > 255)
+                    {
+                        modifiedColor.A = 255;
+                    }
+                    else
+                    {
+                        modifiedColor.A = (byte)(modifiedColor.A + arg1);
+                    }
+
+                    shapeObj.FillColor = modifiedColor;
+                };
+            }
+            else if (obj is Sprite spriteObj)
+            {
+                ModifyOpacity = arg1 =>
+                {
+                    Color modifiedColor = spriteObj.Color;
+
+                    if (modifiedColor.A + arg1 < 10)
+                    {
+                        modifiedColor.A = 10;
+                    }
+                    else if (modifiedColor.A + arg1 > 255)
+                    {
+                        modifiedColor.A = 255;
+                    }
+                    else
+                    {
+                        modifiedColor.A = (byte)(modifiedColor.A + arg1);
+                    }
+
+                    spriteObj.Color = modifiedColor;
+                };
+            }
+        }
+
+        private static void ObjectTypeChecks(object obj)
+        {
+            if (!(obj is Drawable))
             {
                 throw new InvalidCastException(
                     "Provided object is not safely castable to required type (Drawable).");
             }
-
-            // test if type is assignable to object
-            Convert.ChangeType(entityObj, entityObjType);
         }
+
 
         #region EVENTS
 
