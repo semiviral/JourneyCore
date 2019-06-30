@@ -7,11 +7,10 @@ namespace JourneyCore.Lib.Display.Component
 {
     public class Button : IUIObject, IHoverable, IPressable, IResizeResponsive, Drawable
     {
-        private Vector2f _Origin;
-        private Vector2f _Position;
-        private Vector2f _Size;
-        private Vector2f OriginalWindowSize { get; set; }
-        private Vector2f ResizeFactor { get; set; }
+        protected Vector2f _Origin;
+        protected Vector2f _Position;
+        protected Vector2f _Size;
+        protected Vector2f ResizeFactor { get; set; }
 
         public Vector2f Size
         {
@@ -31,6 +30,7 @@ namespace JourneyCore.Lib.Display.Component
             set => SetOrigin(value);
         }
 
+        public Vector2u OriginalWindowSize { get; set; }
         public bool AutoSize { get; set; }
         public bool IsPressed { get; set; }
 
@@ -69,16 +69,7 @@ namespace JourneyCore.Lib.Display.Component
 
         public bool IsHovered { get; set; }
 
-        public void SubscribeObject(GameWindow window)
-        {
-            OriginalWindowSize = new Vector2f(window.Size.X, window.Size.Y);
-            window.Resized += OnParentResized;
-            window.MouseMoved += OnMouseMoved;
-            window.MouseButtonPressed += OnMousePressed;
-            window.MouseButtonReleased += OnMouseReleased;
-        }
-
-        private void UpdateTextObject(string newDisplayedText)
+        protected void UpdateTextObject(string newDisplayedText)
         {
             Text newText = new Text(newDisplayedText, DefaultFont);
 
@@ -87,11 +78,16 @@ namespace JourneyCore.Lib.Display.Component
                 localBounds.Height / 2f + localBounds.Top);
 
             _TextObject = newText;
+
+            if (AutoSize)
+            {
+                SetSize(new Vector2f(localBounds.Width, localBounds.Height));
+            }
         }
+
 
         #region EVENTS
 
-        public event EventHandler<SizeEventArgs> ParentResized;
         public event EventHandler<MouseMoveEventArgs> Entered;
         public event EventHandler<MouseMoveEventArgs> Exited;
         public event EventHandler<MouseButtonEventArgs> Pressed;
@@ -99,9 +95,7 @@ namespace JourneyCore.Lib.Display.Component
 
         public void OnParentResized(object sender, SizeEventArgs args)
         {
-            ResizeFactor = new Vector2f(args.Width / OriginalWindowSize.X, args.Height / OriginalWindowSize.Y);
-
-            ParentResized?.Invoke(sender, args);
+            ResizeFactor = new Vector2f((float)args.Width / OriginalWindowSize.X, (float)args.Height / OriginalWindowSize.Y);
         }
 
         public void OnMouseMoved(object sender, MouseMoveEventArgs args)
@@ -170,9 +164,10 @@ namespace JourneyCore.Lib.Display.Component
 
         #endregion
 
+
         #region POSITIONING / SIZING
 
-        private void SetSize(Vector2f size)
+        protected void SetSize(Vector2f size)
         {
             BackgroundSprite.Scale = new Vector2f(size.X / BackgroundSprite.TextureRect.Width,
                 size.Y / BackgroundSprite.TextureRect.Height);
@@ -181,7 +176,7 @@ namespace JourneyCore.Lib.Display.Component
             _Size = size;
         }
 
-        private void SetPosition(Vector2f position)
+        protected void SetPosition(Vector2f position)
         {
             BackgroundShape.Position = position;
             BackgroundSprite.Position = position;
@@ -190,7 +185,7 @@ namespace JourneyCore.Lib.Display.Component
             _Position = position;
         }
 
-        private void SetOrigin(Vector2f origin)
+        protected void SetOrigin(Vector2f origin)
         {
             BackgroundSprite.Origin = origin;
             BackgroundShape.Origin = origin;
@@ -203,7 +198,7 @@ namespace JourneyCore.Lib.Display.Component
 
         #region VARIABLES - BACKGROUND
 
-        private RectangleShape BackgroundShape { get; }
+        protected RectangleShape BackgroundShape { get; }
 
         public Color BackgroundColor
         {
@@ -218,7 +213,7 @@ namespace JourneyCore.Lib.Display.Component
 
         #region VARIABLES - TEXT
 
-        private Text _TextObject;
+        protected Text _TextObject;
         public Font DefaultFont { get; set; }
 
         public string DisplayedText

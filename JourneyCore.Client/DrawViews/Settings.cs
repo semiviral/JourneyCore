@@ -4,7 +4,6 @@ using JourneyCore.Lib.Display.Component;
 using JourneyCore.Lib.Display.Drawing;
 using SFML.Graphics;
 using SFML.System;
-using SFML.Window;
 
 namespace JourneyCore.Client.DrawViews
 {

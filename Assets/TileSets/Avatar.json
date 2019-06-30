@@ -1,14 +1,20 @@
 { "columns":6,
+ "grid":
+    {
+     "height":32,
+     "orientation":"orthogonal",
+     "width":32
+    },
  "image":"..\/Images\/Sprites\/Avatar.png",
- "imageheight":64,
- "imagewidth":192,
+ "imageheight":128,
+ "imagewidth":384,
  "margin":0,
  "name":"JourneyCore-Avatar",
  "spacing":0,
  "tilecount":12,
  "tiledversion":"1.2.4",
- "tileheight":32,
- "tilewidth":32,
+ "tileheight":64,
+ "tilewidth":64,
  "type":"tileset",
  "version":1.2
 }

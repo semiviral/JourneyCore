@@ -33,13 +33,6 @@ namespace JourneyCore.Client.DrawViews
 
         private void PopulateEscapeMenuView()
         {
-            // semi-transparent background rectangle
-            GameWindow.AddDrawItem(DrawViewLayer.EscapeMenu, 0,
-                new DrawItem(DateTime.MinValue, null,
-                    new DrawObject(
-                        new RectangleShape((Vector2f)GameWindow.Size) { FillColor = new Color(0, 0, 0, 155) }),
-                    RenderStates.Default));
-
             Button exitButton = CreateExitButton();
             GameWindow.SubscribeUiObject(DrawViewLayer.EscapeMenu, 0, exitButton);
             GameWindow.AddDrawItem(DrawViewLayer.EscapeMenu, 10,
@@ -57,10 +50,9 @@ namespace JourneyCore.Client.DrawViews
 
         private Button CreateExitButton()
         {
-            GameMenuButton exitButton = new GameMenuButton(GameLoop.DefaultFont, "Exit", true)
-            {
-                Position = new Vector2f(AppliedDrawView.View.Size.X / 2f, AppliedDrawView.View.Size.Y / 2f + 50f)
-            };
+            GameMenuButton exitButton = new GameMenuButton(GameLoop.DefaultFont, "Exit", true);
+            exitButton.Position = new Vector2f(AppliedDrawView.View.Size.X - exitButton.Size.X - 10f,
+                AppliedDrawView.View.Size.Y - exitButton.Size.Y / 2f - 20f);
             exitButton.Released += (sender, args) => { GameLoop.CallFatality("Game exited."); };
             exitButton.Activated = () => AppliedDrawView.Visible;
 
@@ -69,10 +61,9 @@ namespace JourneyCore.Client.DrawViews
 
         private Button CreateSettingsButton()
         {
-            GameMenuButton settingsButton = new GameMenuButton(GameLoop.DefaultFont, "Settings", true)
-            {
-                Position = new Vector2f(AppliedDrawView.View.Size.X / 2f, AppliedDrawView.View.Size.Y / 2f)
-            };
+            GameMenuButton settingsButton = new GameMenuButton(GameLoop.DefaultFont, "Settings", true);
+            settingsButton.Position = new Vector2f(AppliedDrawView.View.Size.X - settingsButton.Size.X - 10f,
+                AppliedDrawView.View.Size.Y - settingsButton.Size.Y * 1.5f - 20f);
             settingsButton.Released += (sender, args) =>
             {
                 AppliedDrawView.Visible = false;

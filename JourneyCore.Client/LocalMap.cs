@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using JourneyCore.Lib.Display;
+using JourneyCore.Lib.Display.Component;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
@@ -12,7 +14,7 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 
-namespace JourneyCore.Lib.Display.Component
+namespace JourneyCore.Client
 {
     public class LocalMap
     {
@@ -93,6 +95,18 @@ namespace JourneyCore.Lib.Display.Component
                 AllocateTileToVArray(chunk[x][y], tileCoords, chunk.Layer);
             }
         }
+
+        #region EVENTS
+
+        public event EventHandler<MouseMoveEventArgs> Entered;
+        public event EventHandler<MouseMoveEventArgs> Exited;
+        public event EventHandler<MouseWheelScrollEventArgs> Scrolled;
+
+        public void OnParentResized(object sender, SizeEventArgs args) { }
+        public void OnMouseMoved(object sender, MouseMoveEventArgs args) { }
+        public void OnMouseScrolled(object sender, MouseWheelScrollEventArgs args) { }
+
+        #endregion
 
 
         #region MAP BUILDING
@@ -213,23 +227,5 @@ namespace JourneyCore.Lib.Display.Component
         }
 
         #endregion
-
-        public void OnParentResized(object sender, SizeEventArgs args)
-        {
-            throw new NotImplementedException();
-        }
-
-        public event EventHandler<MouseMoveEventArgs> Entered;
-        public event EventHandler<MouseMoveEventArgs> Exited;
-        public void OnMouseMoved(object sender, MouseMoveEventArgs args)
-        {
-            return;
-        }
-
-        public event EventHandler<MouseWheelScrollEventArgs> Scrolled;
-        public void OnMouseScrolled(object sender, MouseWheelScrollEventArgs args)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

@@ -18,6 +18,27 @@ namespace JourneyCore.Lib.Display.Component
             MinimapObjects = new Dictionary<uint, DrawObject>();
         }
 
+        public bool IsHovered { get; private set; }
+        public event EventHandler<MouseMoveEventArgs> Entered;
+        public event EventHandler<MouseMoveEventArgs> Exited;
+
+        public void OnMouseMoved(object sender, MouseMoveEventArgs args)
+        {
+            throw new NotImplementedException();
+        }
+
+        public event EventHandler<MouseWheelScrollEventArgs> Scrolled;
+
+        public void OnMouseScrolled(object sender, MouseWheelScrollEventArgs args)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnParentResized(object sender, SizeEventArgs args)
+        {
+            throw new NotImplementedException();
+        }
+
         public void AddMinimapEntity(DrawObject drawObj)
         {
             if (!drawObj.Batchable || !(drawObj.Object is RectangleShape))
@@ -63,25 +84,6 @@ namespace JourneyCore.Lib.Display.Component
         public void OnMinimapEntityVerticesUpdated(object sender, uint startIndex)
         {
             CalculateVerticesAtIndex(startIndex);
-        }
-
-        public void OnParentResized(object sender, SizeEventArgs args)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsHovered { get; private set; }
-        public event EventHandler<MouseMoveEventArgs> Entered;
-        public event EventHandler<MouseMoveEventArgs> Exited;
-        public void OnMouseMoved(object sender, MouseMoveEventArgs args)
-        {
-            throw new NotImplementedException();
-        }
-
-        public event EventHandler<MouseWheelScrollEventArgs> Scrolled;
-        public void OnMouseScrolled(object sender, MouseWheelScrollEventArgs args)
-        {
-            throw new NotImplementedException();
         }
     }
 }

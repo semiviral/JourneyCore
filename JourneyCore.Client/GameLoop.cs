@@ -41,11 +41,17 @@ namespace JourneyCore.Client
 
         public GameLoop(uint maximumFrameRate)
         {
-            DefaultFont = new Font(@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\Assets\Fonts\Avara.ttf");
+            DefaultFont =
+                new Font(@"C:\Users\semiv\OneDrive\Documents\Programming\CSharp\JourneyCore\Assets\Fonts\Avara.ttf");
 
             IsFocused = true;
             ConManager = new ConsoleManager();
+
+#if DEBUG
             ConManager.Hide(false);
+#else
+            ConManager.Hide(true);
+#endif
 
             CreateGameWindow(maximumFrameRate);
 
@@ -67,7 +73,6 @@ namespace JourneyCore.Client
             {
                 while (GameWindow.IsActive)
                 {
-                    // ensures window runtime methods are only executed in main thread
                     if (Thread.CurrentThread.ManagedThreadId != 1)
                     {
                         CallFatality("Window runtime attempting to execute outside of main thread. Exiting game.");
@@ -102,7 +107,7 @@ namespace JourneyCore.Client
         }
 
 
-        #region INITIALISATION
+#region INITIALISATION
 
         public void Initialise(string serverUrl, string servicePath)
         {
@@ -163,7 +168,7 @@ namespace JourneyCore.Client
 
         private void CreateGameWindow(uint maximumFrameRate)
         {
-            Log.Information("Initialising game window...");
+            Log.Information("Initializing game window...");
 
             GameWindow = new GameWindow("Journey to the Core", new VideoMode(1280, 720, 8), maximumFrameRate,
                 new Vector2f(2f, 2f),
@@ -178,7 +183,7 @@ namespace JourneyCore.Client
                 GameWindow.GetDrawView(DrawViewLayer.Minimap).ZoomFactor += args.Delta * -1f;
             };
 
-            Log.Information("Game window initialised.");
+            Log.Information("Game window initialized.");
         }
 
         private void CreateDrawViews()
@@ -216,13 +221,16 @@ namespace JourneyCore.Client
 
         private async Task SetupPlayer()
         {
-            Log.Information("Initialising player...");
+            Log.Information("Initializing player...");
 
             Texture humanTexture = new Texture(await RequestImage("avatar"));
             Texture projectilesTexture = new Texture(await RequestImage("projectiles"));
 
             // todo no hard coding for player texture size
-            Player = new Player(new Sprite(humanTexture, new IntRect(3 * 32, 1 * 32, 32, 32)), projectilesTexture, 0);
+            Player = new Player(new Sprite(humanTexture, new IntRect(3 * 64, 1 * 64, 64, 64)), projectilesTexture, 0)
+            {
+                Graphic = { Scale = new Vector2f(0.5f, 0.5f) }
+            };
             Player.PropertyChanged += PlayerPropertyChanged;
             Player.PositionChanged += PlayerPositionChanged;
             Player.RotationChanged += PlayerRotationChanged;
@@ -235,7 +243,7 @@ namespace JourneyCore.Client
                     new DrawObject(Player.Graphic, Player.Graphic.GetVertices),
                     new RenderStates(Player.Graphic.Texture)));
 
-            Log.Information("Player intiailised.");
+            Log.Information("Player initialized.");
         }
 
         private void SetupWatchedKeys()
@@ -306,10 +314,12 @@ namespace JourneyCore.Client
                 Player.MoveEntity(movement, MapLoader.TilePixelSize, GameWindow.ElapsedTime);
             }, () => IsFocused);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.G, () => { GameWindow.GetDrawView(DrawViewLayer.Minimap).ModifyOpacity(-25); },
+            InputWatcher.AddWatchedInput(Keyboard.Key.G,
+                () => { GameWindow.GetDrawView(DrawViewLayer.Minimap).ModifyOpacity(-25); },
                 () => IsFocused);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.H, () => { GameWindow.GetDrawView(DrawViewLayer.Minimap).ModifyOpacity(25); },
+            InputWatcher.AddWatchedInput(Keyboard.Key.H,
+                () => { GameWindow.GetDrawView(DrawViewLayer.Minimap).ModifyOpacity(25); },
                 () => IsFocused);
 
             InputWatcher.AddWatchedInput(Keyboard.Key.Q,
@@ -382,10 +392,10 @@ namespace JourneyCore.Client
                 new DrawItem(DateTime.MinValue, null, playerTileObj, RenderStates.Default));
         }
 
-        #endregion
+#endregion
 
 
-        #region CLIENT-TO-SERVER
+#region CLIENT-TO-SERVER
 
         private async Task<byte[]> RequestImage(string imageName)
         {
@@ -447,10 +457,10 @@ namespace JourneyCore.Client
             return chunks;
         }
 
-        #endregion
+#endregion
 
 
-        #region EVENT
+#region EVENT
 
         private void PlayerPositionChanged(object sender, Vector2f position)
         {
@@ -472,6 +482,6 @@ namespace JourneyCore.Client
             }
         }
 
-        #endregion
+#endregion
     }
 }

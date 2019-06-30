@@ -76,9 +76,10 @@ namespace JourneyCore.Lib.Display
             {
                 return;
             }
-            
+
             if (uiObject is IResizeResponsive resizeResponsiveUiObject)
             {
+                resizeResponsiveUiObject.OriginalWindowSize = Window.Size;
                 SubscribeIResizeResponsive(resizeResponsiveUiObject);
             }
 
@@ -236,7 +237,7 @@ namespace JourneyCore.Lib.Display
 
 
         #region VIEW
-        
+
         public DrawView CreateDrawView(DrawView drawView)
         {
             if (DrawViews.Any(dView => dView.Value.Layer.Equals(drawView.Layer)))

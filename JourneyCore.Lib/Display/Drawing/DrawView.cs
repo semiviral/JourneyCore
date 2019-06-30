@@ -16,7 +16,7 @@ namespace JourneyCore.Lib.Display.Drawing
         public DrawViewLayer Layer { get; }
         public View View { get; }
         public bool Visible { get; set; }
-        
+
         private SortedList<int, List<DrawItem>> DrawQueue { get; }
         private Vector2f DefaultSize { get; }
 
