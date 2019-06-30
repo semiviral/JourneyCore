@@ -8,8 +8,8 @@ namespace JourneyCore.Client
         public GameMenuButton(Font defaultFont, string displayedText, bool autoSize) : base(defaultFont,
             displayedText, autoSize)
         {
-            _TextObject.OutlineColor = Color.Black;
-            _TextObject.OutlineThickness = 2f;
+            ForegroundOutlineColor = Color.Black;
+            ForegroundOutlineThickness = 2f;
 
             Origin = Size / 2f;
             BackgroundColor = Color.Transparent;

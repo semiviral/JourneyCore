@@ -30,7 +30,6 @@ namespace JourneyCore.Lib.Display.Component
             set => SetOrigin(value);
         }
 
-        public Vector2u OriginalWindowSize { get; set; }
         public bool AutoSize { get; set; }
         public bool IsPressed { get; set; }
 
@@ -69,6 +68,8 @@ namespace JourneyCore.Lib.Display.Component
 
         public bool IsHovered { get; set; }
 
+        public Vector2u OriginalWindowSize { get; set; }
+
         protected void UpdateTextObject(string newDisplayedText)
         {
             Text newText = new Text(newDisplayedText, DefaultFont);
@@ -95,7 +96,8 @@ namespace JourneyCore.Lib.Display.Component
 
         public void OnParentResized(object sender, SizeEventArgs args)
         {
-            ResizeFactor = new Vector2f((float)args.Width / OriginalWindowSize.X, (float)args.Height / OriginalWindowSize.Y);
+            ResizeFactor = new Vector2f((float)args.Width / OriginalWindowSize.X,
+                (float)args.Height / OriginalWindowSize.Y);
         }
 
         public void OnMouseMoved(object sender, MouseMoveEventArgs args)
@@ -215,6 +217,18 @@ namespace JourneyCore.Lib.Display.Component
 
         protected Text _TextObject;
         public Font DefaultFont { get; set; }
+
+        public Color ForegroundOutlineColor
+        {
+            get => _TextObject.OutlineColor;
+            set => _TextObject.OutlineColor = value;
+        }
+
+        public float ForegroundOutlineThickness
+        {
+            get => _TextObject.OutlineThickness;
+            set => _TextObject.OutlineThickness = value;
+        }
 
         public string DisplayedText
         {
