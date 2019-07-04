@@ -79,7 +79,6 @@ namespace JourneyCore.Lib.Display
 
             if (uiObject is IResizeResponsive resizeResponsiveUiObject)
             {
-                resizeResponsiveUiObject.OriginalWindowSize = Window.Size;
                 SubscribeIResizeResponsive(resizeResponsiveUiObject);
             }
 
@@ -101,6 +100,7 @@ namespace JourneyCore.Lib.Display
 
         private void SubscribeIResizeResponsive(IResizeResponsive resizeResponsive)
         {
+            resizeResponsive.OriginalWindowSize = Window.Size;
             Resized += resizeResponsive.OnParentResized;
         }
 

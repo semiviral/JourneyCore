@@ -133,18 +133,15 @@ namespace JourneyCore.Client
                 Settings settings = new Settings(GameWindow);
                 settings.Initialise();
 
-#if DEBUG
-                for (int x = 0; x < ActivateMap.Metadata.Width / MapLoader.ChunkSize; x++)
+                Vector2f currentChunk = new Vector2f(0, 0);
+
+                Player.PositionChanged += (sender, args) =>
                 {
-                    for (int y = 0; y < ActivateMap.Metadata.Height / MapLoader.ChunkSize; y++)
+                    foreach (Chunk chunk in RequestChunk(new Vector2i(x, y)))
                     {
-                        foreach (Chunk chunk in await RequestChunk(new Vector2i(x, y)))
-                        {
-                            ActivateMap.LoadChunk(chunk);
-                        }
+                        ActivateMap.LoadChunk(chunk);
                     }
-                }
-#endif
+                };
 
                 GameWindow.GainedFocus += (sender, args) => { IsFocused = true; };
                 GameWindow.LostFocus += (sender, args) => { IsFocused = false; };

@@ -26,6 +26,7 @@ namespace JourneyCore.Client
         public byte[] Image { get; }
         public RenderStates RenderStates { get; }
         public MapMetadata Metadata { get; private set; }
+        public List<Vector2f> LoadedChunks { get; }
 
         public VertexArray VArray
         {
@@ -63,6 +64,7 @@ namespace JourneyCore.Client
             _VArray = new VertexArray(PrimitiveType.Quads);
             _Minimap = new Minimap();
             CollisionObjects = new List<CollisionBox>();
+            LoadedChunks = new List<Vector2f>();
         }
 
         public void Update(MapMetadata mapMetadata)
@@ -80,6 +82,8 @@ namespace JourneyCore.Client
         {
             Thread chunkLoadingThread = new Thread(() => LoadChunkThreaded(chunk));
             chunkLoadingThread.Start();
+
+            LoadedChunks.Add(new Vector2f(chunk.Left, chunk.Top));
         }
 
         private void LoadChunkThreaded(Chunk chunk)
@@ -93,6 +97,36 @@ namespace JourneyCore.Client
                 ProcessCollisions(chunk[x][y], tileCoords);
 
                 AllocateTileToVArray(chunk[x][y], tileCoords, chunk.Layer);
+            }
+        }
+
+        public void UnloadChunk(Vector2f coordinates)
+        {
+            Thread chunkUnloadingThread = new Thread(() => UnloadChunkThreaded(coordinates));
+            chunkUnloadingThread.Start();
+
+            LoadedChunks.RemoveAll(coords => Math.Abs(coords.X - coordinates.X) < 1 && Math.Abs(coords.Y - coordinates.Y) < 1);
+        }
+
+        private void UnloadChunkThreaded(Vector2f coordinates)
+        {
+            coordinates *= MapLoader.ChunkSize;
+
+            for (int layer = 0; layer < Metadata.LayerCount; layer++)
+            {
+                for (int x = 0; x < MapLoader.ChunkSize; x++)
+                {
+                    for (int y = 0; y < MapLoader.ChunkSize; y++)
+                    {
+                        uint index = (uint)(((coordinates.Y + y) * Metadata.Width + (coordinates.X + x)) * 4 +
+                                            layer * (VArray.VertexCount / Metadata.LayerCount));
+
+                        VArray[index + 0] = new Vertex();
+                        VArray[index + 1] = new Vertex();
+                        VArray[index + 2] = new Vertex();
+                        VArray[index + 3] = new Vertex();
+                    }
+                }
             }
         }
 
