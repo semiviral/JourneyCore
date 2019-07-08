@@ -94,9 +94,11 @@ namespace JourneyCore.Lib.Game.Object.Entity
             }
         }
 
-        public float Rotation {
+        public float Rotation
+        {
             get => Graphic.Rotation;
-            set {
+            set
+            {
                 if (Math.Abs(Graphic.Rotation - value) < 0.0001)
                 {
                     return;

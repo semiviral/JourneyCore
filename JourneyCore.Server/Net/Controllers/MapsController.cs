@@ -28,7 +28,8 @@ namespace JourneyCore.Server.Net.Controllers
 
             try
             {
-                encryptedMessagePackage = await GameService.GetChunk(guid, remotePublicKey, mapNameEncrypted, coordsEncrypted);
+                encryptedMessagePackage =
+                    await GameService.GetChunk(guid, remotePublicKey, mapNameEncrypted, coordsEncrypted);
             }
             catch (Exception ex)
             {

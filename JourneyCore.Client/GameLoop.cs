@@ -9,8 +9,6 @@ using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Object.Entity;
-using JourneyCore.Lib.System.Event;
-using JourneyCore.Lib.System.Event.Input;
 using JourneyCore.Lib.System.Loaders;
 using JourneyCore.Lib.System.Math;
 using JourneyCore.Lib.System.Net;
@@ -63,14 +61,15 @@ namespace JourneyCore.Client
         private async Task<List<Chunk>> LoadChunksAroundArea(Vector2f area)
         {
             List<Chunk> chunksToLoad = new List<Chunk>();
-            
+
             Vector2f iterationStartPoint = new Vector2f(area.X - 1f, area.Y - 1f);
 
             for (int i = 0; i < 3; i++)
             {
                 for (int j = 0; j < 3; j++)
                 {
-                    List<Chunk> requestedChunks = await RequestChunk(new Vector2f(iterationStartPoint.X + i, iterationStartPoint.Y + j));
+                    List<Chunk> requestedChunks =
+                        await RequestChunk(new Vector2f(iterationStartPoint.X + i, iterationStartPoint.Y + j));
 
                     if (requestedChunks != null)
                     {
@@ -128,7 +127,7 @@ namespace JourneyCore.Client
         }
 
 
-#region INITIALISATION
+        #region INITIALISATION
 
         public void Initialise(string serverUrl, string servicePath)
         {
@@ -418,10 +417,10 @@ namespace JourneyCore.Client
                 new DrawItem(DateTime.MinValue, null, playerTileObj, RenderStates.Default));
         }
 
-#endregion
+        #endregion
 
 
-#region CLIENT-TO-SERVER
+        #region CLIENT-TO-SERVER
 
         private async Task<byte[]> RequestImage(string imageName)
         {
@@ -498,10 +497,10 @@ namespace JourneyCore.Client
             return chunks ?? new List<Chunk>();
         }
 
-#endregion
+        #endregion
 
 
-#region EVENT
+        #region EVENT
 
         private void PlayerPositionChanged(object sender, Vector2f position)
         {
@@ -523,6 +522,6 @@ namespace JourneyCore.Client
             }
         }
 
-#endregion
+        #endregion
     }
 }

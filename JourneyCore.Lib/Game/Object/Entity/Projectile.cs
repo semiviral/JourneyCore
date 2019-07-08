@@ -24,9 +24,11 @@ namespace JourneyCore.Lib.Game.Object.Entity
         public Sprite Graphic { get; }
         public long Lifetime { get; }
 
-        public Vector2f Position {
+        public Vector2f Position
+        {
             get => Graphic.Position;
-            set {
+            set
+            {
                 if (Graphic.Position == value)
                 {
                     return;
@@ -38,9 +40,11 @@ namespace JourneyCore.Lib.Game.Object.Entity
             }
         }
 
-        public float Rotation {
+        public float Rotation
+        {
             get => Graphic.Rotation;
-            set {
+            set
+            {
                 if (Math.Abs(Graphic.Rotation - value) < 0.0001)
                 {
                     return;
@@ -61,7 +65,7 @@ namespace JourneyCore.Lib.Game.Object.Entity
 
         public void RotateEntity(float elapsedTime, float rotation, bool isClockwise)
         {
-           Rotation = Graphic.TryRotation(rotation, elapsedTime, isClockwise);
+            Rotation = Graphic.TryRotation(rotation, elapsedTime, isClockwise);
         }
 
         public void NotifyPropertyChanged([CallerMemberName] string propertyName = "")

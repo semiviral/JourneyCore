@@ -337,7 +337,8 @@ namespace JourneyCore.Lib.Display
             ContinuousInputWatcher.AddWatchedInput(key, inputAction, enabledCheck, singlePress);
         }
 
-        public void AddWatchedInput(Mouse.Button button, Action inputAction, bool respectsCapture, Func<bool> enabledCheck = null,
+        public void AddWatchedInput(Mouse.Button button, Action inputAction, bool respectsCapture,
+            Func<bool> enabledCheck = null,
             bool singlePress = false)
         {
             ContinuousInputWatcher.AddWatchedInput(button, () =>
