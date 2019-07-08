@@ -9,6 +9,8 @@ namespace JourneyCore.Client.DrawViews
 {
     public class EscapeMenu
     {
+        private const int UI_OBJECT_COUNT = 2;
+
         private GameWindow GameWindow { get; }
         private DrawView AppliedDrawView { get; set; }
 
@@ -33,13 +35,17 @@ namespace JourneyCore.Client.DrawViews
 
         private void PopulateEscapeMenuView()
         {
+            float pixelSpacing = GameWindow.Size.X / (UI_OBJECT_COUNT + 1f);
+
             Button exitButton = CreateExitButton();
+            exitButton.Position = new Vector2f(pixelSpacing * 2f, exitButton.Position.Y);
             GameWindow.SubscribeUiObject(DrawViewLayer.EscapeMenu, 0, exitButton);
             GameWindow.AddDrawItem(DrawViewLayer.EscapeMenu, 10,
                 new DrawItem(DateTime.MinValue, null,
                     new DrawObject(exitButton), RenderStates.Default));
 
             Button settingsButton = CreateSettingsButton();
+            settingsButton.Position = new Vector2f(pixelSpacing, settingsButton.Position.Y);
             GameWindow.SubscribeUiObject(DrawViewLayer.EscapeMenu, 0, settingsButton);
             GameWindow.AddDrawItem(DrawViewLayer.EscapeMenu, 10,
                 new DrawItem(DateTime.MinValue, null, new DrawObject(settingsButton),
@@ -50,7 +56,7 @@ namespace JourneyCore.Client.DrawViews
 
         private Button CreateExitButton()
         {
-            GameMenuButton exitButton = new GameMenuButton(GameLoop.DefaultFont, "Exit", true);
+            GameMenuButton exitButton = new GameMenuButton(GameLoop.DefaultFont, "Exit", true, true);
             exitButton.Position = new Vector2f(AppliedDrawView.View.Size.X - exitButton.Size.X - 10f,
                 AppliedDrawView.View.Size.Y - exitButton.Size.Y / 2f - 20f);
             exitButton.Released += (sender, args) => { GameLoop.CallFatality("Game exited."); };
@@ -61,9 +67,9 @@ namespace JourneyCore.Client.DrawViews
 
         private Button CreateSettingsButton()
         {
-            GameMenuButton settingsButton = new GameMenuButton(GameLoop.DefaultFont, "Settings", true);
+            GameMenuButton settingsButton = new GameMenuButton(GameLoop.DefaultFont, "Settings", true, true);
             settingsButton.Position = new Vector2f(AppliedDrawView.View.Size.X - settingsButton.Size.X - 10f,
-                AppliedDrawView.View.Size.Y - settingsButton.Size.Y * 1.5f - 20f);
+                AppliedDrawView.View.Size.Y - settingsButton.Size.Y / 2f - 20f);
             settingsButton.Released += (sender, args) =>
             {
                 AppliedDrawView.Visible = false;

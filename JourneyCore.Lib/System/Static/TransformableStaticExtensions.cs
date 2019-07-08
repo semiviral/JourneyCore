@@ -10,6 +10,16 @@ namespace JourneyCore.Lib.System.Static
             return vector * (speed / 10f);
         }
 
+        public static Vector2f TryMovement(this Transformable transformable, Vector2f direction, int speed,
+            int mapTileSize, float elapsedFrameTime)
+        {
+            Vector2f position = transformable.Position;
+
+            position += GetSpeedModifiedVector(direction, speed) * mapTileSize * elapsedFrameTime;
+
+            return position;
+        }
+
         public static Transformable Move(this Transformable transformable, Vector2f direction, int speed,
             int mapTileSize, float elapsedFrameTime)
         {
@@ -18,20 +28,27 @@ namespace JourneyCore.Lib.System.Static
             return transformable;
         }
 
-        // move for having max tile distance
-        public static Transformable Move(this Transformable transformable)
-        {
-            return transformable;
-        }
-
-        public static Transformable Rotate(this Transformable transformable, float elapsedTime, float rotation,
+        public static float TryRotation(this Transformable transformable, float rotation, float elapsedFrameTime,
             bool isClockwise)
         {
-            rotation *= elapsedTime;
+            rotation *= elapsedFrameTime;
 
             if (!isClockwise)
             {
-                rotation *= -1;
+                rotation *= -1f;
+            }
+
+            return (transformable.Rotation + rotation) % 360;
+        }
+
+        public static Transformable Rotate(this Transformable transformable, float rotation, float elapsedFrameTime,
+            bool isClockwise)
+        {
+            rotation *= elapsedFrameTime;
+
+            if (!isClockwise)
+            {
+                rotation *= -1f;
             }
 
             transformable.Rotation += rotation % 360f;

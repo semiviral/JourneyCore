@@ -5,8 +5,9 @@ namespace JourneyCore.Client
 {
     public class GameMenuButton : Button
     {
-        public GameMenuButton(Font defaultFont, string displayedText, bool autoSize) : base(defaultFont,
-            displayedText, autoSize)
+        public GameMenuButton(Font defaultFont, string displayedText, bool autoSize, bool respectsCapture) : base(
+            defaultFont,
+            displayedText, autoSize, respectsCapture)
         {
             ForegroundOutlineColor = Color.Black;
             ForegroundOutlineThickness = 2f;

@@ -40,6 +40,17 @@
  "nextlayerid":4,
  "nextobjectid":1,
  "orientation":"orthogonal",
+ "properties":[
+        {
+         "name":"SpawnPointX",
+         "type":"float",
+         "value":50
+        }, 
+        {
+         "name":"SpawnPointY",
+         "type":"float",
+         "value":50
+        }],
  "renderorder":"left-down",
  "tiledversion":"1.2.4",
  "tileheight":16,

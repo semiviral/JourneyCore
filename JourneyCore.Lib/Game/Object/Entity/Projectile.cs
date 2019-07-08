@@ -24,16 +24,44 @@ namespace JourneyCore.Lib.Game.Object.Entity
         public Sprite Graphic { get; }
         public long Lifetime { get; }
 
+        public Vector2f Position {
+            get => Graphic.Position;
+            set {
+                if (Graphic.Position == value)
+                {
+                    return;
+                }
+
+                Graphic.Position = value;
+
+                NotifyPropertyChanged();
+            }
+        }
+
+        public float Rotation {
+            get => Graphic.Rotation;
+            set {
+                if (Math.Abs(Graphic.Rotation - value) < 0.0001)
+                {
+                    return;
+                }
+
+                Graphic.Rotation = value;
+
+                NotifyPropertyChanged();
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public void MoveEntity(Vector2f direction, int mapTileSize, float elapsedFrameTime)
         {
-            Graphic.Move(direction, Speed, mapTileSize, elapsedFrameTime);
+            Position = Graphic.TryMovement(direction, Speed, mapTileSize, elapsedFrameTime);
         }
 
         public void RotateEntity(float elapsedTime, float rotation, bool isClockwise)
         {
-            Graphic.Rotate(rotation, elapsedTime, isClockwise);
+           Rotation = Graphic.TryRotation(rotation, elapsedTime, isClockwise);
         }
 
         public void NotifyPropertyChanged([CallerMemberName] string propertyName = "")

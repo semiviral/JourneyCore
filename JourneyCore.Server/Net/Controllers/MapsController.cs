@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using JourneyCore.Lib.System.Net.Security;
 using JourneyCore.Lib.System.Static;
 using JourneyCore.Server.Net.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +24,18 @@ namespace JourneyCore.Server.Net.Controllers
             byte[] mapNameEncrypted = Convert.FromBase64String(mapNameBase64.HtmlDecodeBase64());
             byte[] coordsEncrypted = Convert.FromBase64String(coordsBase64.HtmlDecodeBase64());
 
-            return new JsonResult(await GameService.GetChunk(guid, remotePublicKey, mapNameEncrypted, coordsEncrypted));
+            DiffieHellmanMessagePackage encryptedMessagePackage;
+
+            try
+            {
+                encryptedMessagePackage = await GameService.GetChunk(guid, remotePublicKey, mapNameEncrypted, coordsEncrypted);
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(ex);
+            }
+
+            return new JsonResult(encryptedMessagePackage);
         }
 
         [HttpGet("/maps/{mapNameBase64}/metadata")]

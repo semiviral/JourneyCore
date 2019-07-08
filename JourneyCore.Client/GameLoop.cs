@@ -1,15 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using JourneyCore.Client.DrawViews;
 using JourneyCore.Lib.Display;
-using JourneyCore.Lib.Display.Component;
 using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System.Event;
+using JourneyCore.Lib.System.Event.Input;
 using JourneyCore.Lib.System.Loaders;
 using JourneyCore.Lib.System.Math;
 using JourneyCore.Lib.System.Net;
@@ -35,7 +36,7 @@ namespace JourneyCore.Client
         private Ui UserInterface { get; set; }
         private LocalMap ActivateMap { get; set; }
         private Player Player { get; set; }
-        private InputWatcher InputWatcher { get; }
+
 
         public static Font DefaultFont { get; set; }
 
@@ -56,9 +57,31 @@ namespace JourneyCore.Client
             CreateGameWindow(maximumFrameRate);
 
             Log.Information("Game loop started.");
-
-            InputWatcher = new InputWatcher();
         }
+
+        // todo make this not in the wrong place
+        private async Task<List<Chunk>> LoadChunksAroundArea(Vector2f area)
+        {
+            List<Chunk> chunksToLoad = new List<Chunk>();
+            
+            Vector2f iterationStartPoint = new Vector2f(area.X - 1f, area.Y - 1f);
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    List<Chunk> requestedChunks = await RequestChunk(new Vector2f(iterationStartPoint.X + i, iterationStartPoint.Y + j));
+
+                    if (requestedChunks != null)
+                    {
+                        chunksToLoad.AddRange(requestedChunks);
+                    }
+                }
+            }
+
+            return chunksToLoad;
+        }
+
 
         public void Start()
         {
@@ -77,8 +100,6 @@ namespace JourneyCore.Client
                     {
                         CallFatality("Window runtime attempting to execute outside of main thread. Exiting game.");
                     }
-
-                    InputWatcher.CheckWatchedInputs();
 
                     GameWindow.UpdateWindow();
                 }
@@ -133,15 +154,18 @@ namespace JourneyCore.Client
                 Settings settings = new Settings(GameWindow);
                 settings.Initialise();
 
-                Vector2f currentChunk = new Vector2f(0, 0);
-
-                Player.PositionChanged += (sender, args) =>
+                for (int x = 0; x < ActivateMap.Metadata.Width / MapLoader.ChunkSize; x++)
                 {
-                    foreach (Chunk chunk in RequestChunk(new Vector2i(x, y)))
+                    for (int y = 0; y < ActivateMap.Metadata.Height / MapLoader.ChunkSize; y++)
                     {
-                        ActivateMap.LoadChunk(chunk);
+                        foreach (Chunk chunk in await RequestChunk(new Vector2i(x, y)))
+                        {
+                            ActivateMap.LoadChunk(chunk);
+                        }
                     }
-                };
+                }
+
+                Player.Position = new Vector2f(ActivateMap.Metadata.SpawnPointX, ActivateMap.Metadata.SpawnPointY);
 
                 GameWindow.GainedFocus += (sender, args) => { IsFocused = true; };
                 GameWindow.LostFocus += (sender, args) => { IsFocused = false; };
@@ -249,7 +273,7 @@ namespace JourneyCore.Client
 
             Vector2f movement = new Vector2f(0, 0);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.W, () =>
+            GameWindow.AddWatchedInput(Keyboard.Key.W, () =>
             {
                 movement = new Vector2f(
                     (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360),
@@ -264,7 +288,7 @@ namespace JourneyCore.Client
                 Player.MoveEntity(movement, MapLoader.TilePixelSize, GameWindow.ElapsedTime);
             }, () => IsFocused);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.A, () =>
+            GameWindow.AddWatchedInput(Keyboard.Key.A, () =>
             {
                 movement = new Vector2f(
                     (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation +
@@ -280,7 +304,7 @@ namespace JourneyCore.Client
                 Player.MoveEntity(movement, MapLoader.TilePixelSize, GameWindow.ElapsedTime);
             }, () => IsFocused);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.S, () =>
+            GameWindow.AddWatchedInput(Keyboard.Key.S, () =>
             {
                 movement = new Vector2f(
                     (float)GraphMath.SinFromDegrees(Player.Graphic.Rotation +
@@ -296,7 +320,7 @@ namespace JourneyCore.Client
                 Player.MoveEntity(movement, MapLoader.TilePixelSize, GameWindow.ElapsedTime);
             }, () => IsFocused);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.D, () =>
+            GameWindow.AddWatchedInput(Keyboard.Key.D, () =>
             {
                 movement = new Vector2f(
                     (float)GraphMath.CosFromDegrees(Player.Graphic.Rotation + DrawView.DefaultPlayerViewRotation % 360),
@@ -311,21 +335,21 @@ namespace JourneyCore.Client
                 Player.MoveEntity(movement, MapLoader.TilePixelSize, GameWindow.ElapsedTime);
             }, () => IsFocused);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.G,
+            GameWindow.AddWatchedInput(Keyboard.Key.G,
                 () => { GameWindow.GetDrawView(DrawViewLayer.Minimap).ModifyOpacity(-25); },
                 () => IsFocused);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.H,
+            GameWindow.AddWatchedInput(Keyboard.Key.H,
                 () => { GameWindow.GetDrawView(DrawViewLayer.Minimap).ModifyOpacity(25); },
                 () => IsFocused);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.Q,
+            GameWindow.AddWatchedInput(Keyboard.Key.Q,
                 () => { Player.RotateEntity(GameWindow.ElapsedTime, 180f, false); }, () => IsFocused);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.E,
+            GameWindow.AddWatchedInput(Keyboard.Key.E,
                 () => { Player.RotateEntity(GameWindow.ElapsedTime, 180f, true); }, () => IsFocused);
 
-            InputWatcher.AddWatchedInput(Keyboard.Key.Escape, () =>
+            GameWindow.AddWatchedInput(Keyboard.Key.Escape, () =>
             {
                 GameWindow.GetDrawView(DrawViewLayer.Settings).Visible = false;
 
@@ -336,8 +360,13 @@ namespace JourneyCore.Client
 
         private void SetupWatchedMouse()
         {
-            InputWatcher.AddWatchedInput(Mouse.Button.Left, () =>
+            GameWindow.AddWatchedInput(Mouse.Button.Left, () =>
             {
+                if (GameWindow.PressCaptured)
+                {
+                    return;
+                }
+
                 Vector2i mousePosition = GameWindow.GetRelativeMousePosition();
                 View gameView = GameWindow.GetDrawView(DrawViewLayer.Game).View;
 
@@ -357,7 +386,7 @@ namespace JourneyCore.Client
                 }
 
                 GameWindow.AddDrawItem(DrawViewLayer.Game, 20, projectileDrawItem);
-            });
+            }, true);
         }
 
         private async Task CreateUserInterface()
@@ -439,19 +468,34 @@ namespace JourneyCore.Client
             return tileSetMetadata;
         }
 
-        private async Task<Chunk[]> RequestChunk(Vector2i coords)
+        private async Task<List<Chunk>> RequestChunk(Vector2f coords)
+        {
+            return await RequestChunk((Vector2i)coords);
+        }
+
+        private async Task<List<Chunk>> RequestChunk(Vector2i coords)
         {
             string retVal = await NetManager.GetResponseAsync(
                 $"maps/{await NetManager.GetHtmlSafeEncryptedBase64(ActivateMap.Metadata.Name)}?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.CryptoService.PublicKeyString.HtmlEncodeBase64()}&coordsBase64={await NetManager.GetHtmlSafeEncryptedBase64(JsonConvert.SerializeObject(coords))}");
             DiffieHellmanMessagePackage messagePackage =
                 JsonConvert.DeserializeObject<DiffieHellmanMessagePackage>(retVal);
 
-            string serializedChunks =
+            string serializedString =
                 await NetManager.CryptoService.DecryptAsync(messagePackage.RemotePublicKey,
                     messagePackage.SecretMessage);
-            Chunk[] chunks = JsonConvert.DeserializeObject<Chunk[]>(serializedChunks);
 
-            return chunks;
+            List<Chunk> chunks = null;
+
+            try
+            {
+                chunks = JsonConvert.DeserializeObject<List<Chunk>>(serializedString);
+            }
+            catch
+            {
+                // ignored
+            }
+
+            return chunks ?? new List<Chunk>();
         }
 
 #endregion

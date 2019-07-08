@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using JourneyCore.Lib.System.Loaders;
 
 namespace JourneyCore.Lib.Game.Environment.Metadata
 {
@@ -11,11 +12,13 @@ namespace JourneyCore.Lib.Game.Environment.Metadata
         public List<TileSetMetadata> TileSets { get; set; }
         public int TileWidth { get; set; }
         public int TileHeight { get; set; }
+        public float SpawnPointX { get; set; }
+        public float SpawnPointY { get; set; }
 
         public MapMetadata() { }
 
         public MapMetadata(string name, int width, int height, int layerCount, List<TileSetMetadata> tileSets,
-            int tileWidth, int tileHeight)
+            int tileWidth, int tileHeight, float spawnPointX, float spawnPointY)
         {
             Name = name;
             Width = width;
@@ -24,6 +27,8 @@ namespace JourneyCore.Lib.Game.Environment.Metadata
             TileSets = tileSets;
             TileWidth = tileWidth;
             TileHeight = tileHeight;
+            SpawnPointX = spawnPointX * MapLoader.TileSize;
+            SpawnPointY = spawnPointY * MapLoader.TileSize;
         }
     }
 }

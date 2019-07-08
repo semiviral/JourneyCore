@@ -54,7 +54,7 @@ namespace JourneyCore.Client.DrawViews
 
         private Button CreateBrightnessIncreaseButton()
         {
-            GameMenuButton increaseBrightness = new GameMenuButton(GameLoop.DefaultFont, "Brightness +", true)
+            GameMenuButton increaseBrightness = new GameMenuButton(GameLoop.DefaultFont, "Brightness +", true, true)
             {
                 Position = new Vector2f(AppliedDrawView.View.Size.X / 2f, AppliedDrawView.View.Size.Y / 2f)
             };
@@ -68,7 +68,7 @@ namespace JourneyCore.Client.DrawViews
 
         private Button CreateBrightnessDecreaseButton()
         {
-            GameMenuButton decreaseBrightness = new GameMenuButton(GameLoop.DefaultFont, "Brightness -", true)
+            GameMenuButton decreaseBrightness = new GameMenuButton(GameLoop.DefaultFont, "Brightness -", true, true)
             {
                 Position = new Vector2f(AppliedDrawView.View.Size.X / 2f, AppliedDrawView.View.Size.Y / 2f + 50f)
             };

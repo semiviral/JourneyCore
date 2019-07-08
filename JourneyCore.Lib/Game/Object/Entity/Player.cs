@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.System.Event;
+using JourneyCore.Lib.System.Loaders;
 using JourneyCore.Lib.System.Math;
 using JourneyCore.Lib.System.Static;
 using SFML.Graphics;
@@ -19,6 +20,7 @@ namespace JourneyCore.Lib.Game.Object.Entity
             Lifetime = lifetime;
             ProjectileCooldown = DateTime.MinValue;
             ProjectileRenderStates = new RenderStates(projectilesTexture);
+            CurrentChunk = new Vector2f(0f, 0f);
 
             InitialiseSprite(graphic);
             InitialiseDefaultAttributes();
@@ -26,6 +28,8 @@ namespace JourneyCore.Lib.Game.Object.Entity
             // todo set up inventory stat stuff
 
             AttackCooldownValue = 100;
+
+            PositionChanged += CheckChunkChanged;
         }
 
         public DrawItem FireProjectile(double centerRelativeMouseX, double centerRelativeMouseY, int tileWidth)
@@ -71,6 +75,39 @@ namespace JourneyCore.Lib.Game.Object.Entity
         public int AttackCooldownValue { get; }
         public bool CanAttack => ProjectileCooldown < DateTime.Now;
         public RenderStates ProjectileRenderStates { get; }
+        public Vector2f CurrentChunk { get; set; }
+
+        public Vector2f Position
+        {
+            get => Graphic.Position;
+            set
+            {
+                if (Graphic.Position == value)
+                {
+                    return;
+                }
+
+                Graphic.Position = value;
+
+                NotifyPropertyChanged();
+                PositionChanged?.Invoke(this, Graphic.Position);
+            }
+        }
+
+        public float Rotation {
+            get => Graphic.Rotation;
+            set {
+                if (Math.Abs(Graphic.Rotation - value) < 0.0001)
+                {
+                    return;
+                }
+
+                Graphic.Rotation = value;
+
+                NotifyPropertyChanged();
+                RotationChanged?.Invoke(this, Graphic.Rotation);
+            }
+        }
 
         #endregion
 
@@ -128,10 +165,27 @@ namespace JourneyCore.Lib.Game.Object.Entity
         public event PropertyChangedEventHandler PropertyChanged;
         public event EventHandler<Vector2f> PositionChanged;
         public event EventHandler<float> RotationChanged;
+        public event EventHandler<Vector2f> ChunkChanged;
 
         public void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new StatedObjectPropertyChangedEventArgs(Guid, propertyName));
+        }
+
+        private void CheckChunkChanged(object sender, Vector2f newPosition)
+        {
+            Vector2f chunkPosition = new Vector2f((int)newPosition.X / MapLoader.ChunkSize,
+                (int)newPosition.Y / MapLoader.ChunkSize);
+
+            if (!(Math.Abs(CurrentChunk.X - chunkPosition.X) > 1) && !(Math.Abs(CurrentChunk.Y - chunkPosition.Y) > 1))
+            {
+                return;
+            }
+
+            // rounds float values towards zero, ensuring remainders are dropped
+            CurrentChunk = new Vector2f((int)chunkPosition.X, (int)chunkPosition.Y);
+
+            ChunkChanged?.Invoke(sender, CurrentChunk);
         }
 
         #endregion
@@ -165,16 +219,12 @@ namespace JourneyCore.Lib.Game.Object.Entity
 
         public void MoveEntity(Vector2f direction, int mapTileSize, float elapsedFrameTime)
         {
-            Graphic.Move(direction, Speed, mapTileSize, elapsedFrameTime);
-
-            PositionChanged?.Invoke(this, Graphic.Position);
+            Position = Graphic.TryMovement(direction, Speed, mapTileSize, elapsedFrameTime);
         }
 
         public void RotateEntity(float rotation, float elapsedTime, bool isClockwise)
         {
-            Graphic.Rotate(rotation, elapsedTime, isClockwise);
-
-            RotationChanged?.Invoke(this, Graphic.Rotation);
+            Rotation = Graphic.TryRotation(rotation, elapsedTime, isClockwise);
         }
 
         public void AnchorItem(IAnchorable anchorableItem)

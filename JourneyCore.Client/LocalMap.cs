@@ -10,6 +10,7 @@ using JourneyCore.Lib.Game.Environment.Tiling;
 using JourneyCore.Lib.Game.Object;
 using JourneyCore.Lib.System.Loaders;
 using JourneyCore.Lib.System.Math;
+using JourneyCore.Lib.System.Static;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -26,7 +27,6 @@ namespace JourneyCore.Client
         public byte[] Image { get; }
         public RenderStates RenderStates { get; }
         public MapMetadata Metadata { get; private set; }
-        public List<Vector2f> LoadedChunks { get; }
 
         public VertexArray VArray
         {
@@ -64,7 +64,6 @@ namespace JourneyCore.Client
             _VArray = new VertexArray(PrimitiveType.Quads);
             _Minimap = new Minimap();
             CollisionObjects = new List<CollisionBox>();
-            LoadedChunks = new List<Vector2f>();
         }
 
         public void Update(MapMetadata mapMetadata)
@@ -80,13 +79,10 @@ namespace JourneyCore.Client
 
         public void LoadChunk(Chunk chunk)
         {
-            Thread chunkLoadingThread = new Thread(() => LoadChunkThreaded(chunk));
-            chunkLoadingThread.Start();
-
-            LoadedChunks.Add(new Vector2f(chunk.Left, chunk.Top));
+            ThreadPool.QueueUserWorkItem(state => LoadChunkTask(chunk));
         }
 
-        private void LoadChunkThreaded(Chunk chunk)
+        private void LoadChunkTask(Chunk chunk)
         {
             for (int x = 0; x < chunk.Length; x++)
             for (int y = 0; y < chunk[0].Length; y++)
@@ -102,13 +98,10 @@ namespace JourneyCore.Client
 
         public void UnloadChunk(Vector2f coordinates)
         {
-            Thread chunkUnloadingThread = new Thread(() => UnloadChunkThreaded(coordinates));
-            chunkUnloadingThread.Start();
-
-            LoadedChunks.RemoveAll(coords => Math.Abs(coords.X - coordinates.X) < 1 && Math.Abs(coords.Y - coordinates.Y) < 1);
+            ThreadPool.QueueUserWorkItem(state => UnloadChunkTask(coordinates));
         }
 
-        private void UnloadChunkThreaded(Vector2f coordinates)
+        private void UnloadChunkTask(Vector2f coordinates)
         {
             coordinates *= MapLoader.ChunkSize;
 
@@ -118,7 +111,7 @@ namespace JourneyCore.Client
                 {
                     for (int y = 0; y < MapLoader.ChunkSize; y++)
                     {
-                        uint index = (uint)(((coordinates.Y + y) * Metadata.Width + (coordinates.X + x)) * 4 +
+                        uint index = (uint)((((int)coordinates.Y + y) * Metadata.Width + (int)coordinates.X + x) * 4 +
                                             layer * (VArray.VertexCount / Metadata.LayerCount));
 
                         VArray[index + 0] = new Vertex();
@@ -191,10 +184,10 @@ namespace JourneyCore.Client
             uint index = (uint)((tileCoords.Y * Metadata.Width + tileCoords.X) * 4 +
                                 (drawLayer - 1) * (VArray.VertexCount / Metadata.LayerCount));
 
-            VArray[index + 0] = new Vertex(topLeft, textureCoords.TopLeft);
-            VArray[index + 1] = new Vertex(topRight, textureCoords.TopRight);
-            VArray[index + 2] = new Vertex(bottomRight, textureCoords.BottomRight);
-            VArray[index + 3] = new Vertex(bottomLeft, textureCoords.BottomLeft);
+            VArray[index + 0] = new Vertex(topLeft.ZeroPointRound(), textureCoords.TopLeft);
+            VArray[index + 1] = new Vertex(topRight.ZeroPointRound(), textureCoords.TopRight);
+            VArray[index + 2] = new Vertex(bottomRight.ZeroPointRound(), textureCoords.BottomRight);
+            VArray[index + 3] = new Vertex(bottomLeft.ZeroPointRound(), textureCoords.BottomLeft);
 
             Minimap.VArray[index + 0] = new Vertex(topLeft, tileMetadata.MiniMapColor);
             Minimap.VArray[index + 1] = new Vertex(topRight, tileMetadata.MiniMapColor);

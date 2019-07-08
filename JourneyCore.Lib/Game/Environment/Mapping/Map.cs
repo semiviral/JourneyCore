@@ -18,6 +18,9 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
         public int PixelTileHeight { get; set; }
         public TileSetSource[] TileSets { get; set; }
         public string Name { get; set; }
+        public List<CustomProperty> Properties { get; set; }
+        public float SpawnPointX { get; private set;}
+        public float SpawnPointY { get; private set; }
         public List<TileSet> UsedTileSets { get; }
 
         public Map()
@@ -40,7 +43,7 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
         public MapMetadata GetMetadata()
         {
             return new MapMetadata(Name, Width, Height, Layers.Count,
-                UsedTileSets.Select(tileSet => tileSet.GetMetadata()).ToList(), PixelTileWidth, PixelTileHeight);
+                UsedTileSets.Select(tileSet => tileSet.GetMetadata()).ToList(), PixelTileWidth, PixelTileHeight, SpawnPointX, SpawnPointY);
         }
 
 
@@ -94,6 +97,36 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
             }
 
             return Layers;
+        }
+
+        public void ApplyProperties()
+        {
+            {
+                CustomProperty spawnPointX = GetProperty("SpawnPointX");
+                CustomProperty spawnPointY = GetProperty("SpawnPointY");
+                
+                if (spawnPointX != null)
+                {
+                    SpawnPointX = float.Parse(spawnPointX.Value);
+                }
+
+                if (spawnPointY != null)
+                {
+                    SpawnPointY = float.Parse(spawnPointY.Value);
+                }
+            }
+        }
+
+        private CustomProperty GetProperty(string propertyName)
+        {
+            if (Properties == null)
+            {
+                return null;
+            }
+
+            return !Properties.Any(property => property.Name.Equals(propertyName))
+                ? null
+                : Properties.Single(property => property.Name.Equals(propertyName));
         }
 
         #endregion

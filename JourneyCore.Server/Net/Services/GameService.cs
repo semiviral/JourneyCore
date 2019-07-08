@@ -161,6 +161,15 @@ namespace JourneyCore.Server.Net.Services
             // todo upgrade to C# 8.0 for (yield return in async)
             List<Chunk> chunks = new List<Chunk>();
 
+            if (coords.X < 0 || coords.Y < 0 || coords.X > TileMaps[mapName].Layers[0].Map.Length - 1 ||
+                coords.Y > TileMaps[mapName].Layers[0].Map[0].Length - 1)
+            {
+                return new DiffieHellmanMessagePackage(CryptoServices[guid].PublicKey,
+                    await CryptoServices[guid]
+                        .EncryptAsync(JsonConvert.SerializeObject(
+                            new IndexOutOfRangeException($"Specified index: {coords} out of map range."))));
+            }
+
             foreach (MapLayer layer in TileMaps[mapName].Layers)
             {
                 chunks.Add(layer.Map[coords.X][coords.Y]);
@@ -175,7 +184,7 @@ namespace JourneyCore.Server.Net.Services
         #endregion
 
 
-        #region IHostedService
+        #region IHOSTEDSERVICE
 
         public Task StartAsync(CancellationToken cancellationToken)
         {

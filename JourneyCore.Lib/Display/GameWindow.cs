@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JourneyCore.Lib.Display.Component;
 using JourneyCore.Lib.Display.Drawing;
+using JourneyCore.Lib.System.Event.Input;
 using JourneyCore.Lib.System.Time;
 using SFML.Graphics;
 using SFML.System;
@@ -44,6 +45,7 @@ namespace JourneyCore.Lib.Display
 
             DrawViews = new SortedList<DrawViewLayer, DrawView>();
             DeltaClock = new Delta();
+            ContinuousInputWatcher = new InputWatcher();
         }
 
         public RenderWindow SetActive(bool activeState)
@@ -111,8 +113,24 @@ namespace JourneyCore.Lib.Display
 
         private void SubscribeIPressable(IPressable pressable)
         {
-            MouseButtonPressed += pressable.OnMousePressed;
-            MouseButtonReleased += pressable.OnMouseReleased;
+            MouseButtonPressed += (sender, args) =>
+            {
+                if (pressable.RespectsCapture && PressCaptured)
+                {
+                    return;
+                }
+
+                PressCaptured = pressable.OnMousePressed(args);
+            };
+            MouseButtonReleased += (sender, args) =>
+            {
+                if (pressable.RespectsCapture && ReleaseCaptured)
+                {
+                    return;
+                }
+
+                ReleaseCaptured = pressable.OnMouseReleased(args);
+            };
         }
 
         private void SubscribeIScrollable(IScrollable scrollable)
@@ -128,11 +146,14 @@ namespace JourneyCore.Lib.Display
         private static Delta DeltaClock { get; set; }
         private SortedList<DrawViewLayer, DrawView> DrawViews { get; }
         private static uint _TargetFps;
+        private InputWatcher ContinuousInputWatcher { get; }
 
         public Vector2u Size => Window.Size;
         public bool IsActive => Window.IsOpen;
         public Vector2f ContentScale { get; set; }
         public Vector2f PositionScale { get; set; }
+        public bool PressCaptured { get; set; }
+        public bool ReleaseCaptured { get; set; }
 
         public uint TargetFps
         {
@@ -168,12 +189,19 @@ namespace JourneyCore.Lib.Display
             Window.DispatchEvents();
             Window.Clear();
 
+            DoFrameUpdate();
+
+            Window.Display();
+        }
+
+        private void DoFrameUpdate()
+        {
+            ContinuousInputWatcher.CheckWatchedInputs();
+
             foreach ((DrawViewLayer layer, DrawView drawView) in DrawViews.Where(drawView => drawView.Value.Visible))
             {
                 ProcessDrawView(drawView);
             }
-
-            Window.Display();
         }
 
         #endregion
@@ -225,6 +253,9 @@ namespace JourneyCore.Lib.Display
 
         public void OnMouseButtonPressed(object sender, MouseButtonEventArgs args)
         {
+            PressCaptured = false;
+            ReleaseCaptured = false;
+
             MouseButtonPressed?.Invoke(sender, args);
         }
 
@@ -293,6 +324,31 @@ namespace JourneyCore.Lib.Display
             SetWindowView(layer, drawView.View);
 
             return drawView;
+        }
+
+        #endregion
+
+
+        #region INPUTWATCHER
+
+        public void AddWatchedInput(Keyboard.Key key, Action inputAction, Func<bool> enabledCheck = null,
+            bool singlePress = false)
+        {
+            ContinuousInputWatcher.AddWatchedInput(key, inputAction, enabledCheck, singlePress);
+        }
+
+        public void AddWatchedInput(Mouse.Button button, Action inputAction, bool respectsCapture, Func<bool> enabledCheck = null,
+            bool singlePress = false)
+        {
+            ContinuousInputWatcher.AddWatchedInput(button, () =>
+            {
+                if (respectsCapture && PressCaptured)
+                {
+                    return;
+                }
+
+                inputAction();
+            }, enabledCheck, singlePress);
         }
 
         #endregion

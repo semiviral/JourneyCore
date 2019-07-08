@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace JourneyCore.Lib.System.Event
+namespace JourneyCore.Lib.System.Event.Input
 {
     public class InputActionList
     {

@@ -10,7 +10,7 @@ namespace JourneyCore.Lib.Display.Component
         protected Vector2f _Origin;
         protected Vector2f _Position;
         protected Vector2f _Size;
-        protected Vector2f ResizeFactor { get; set; }
+        protected Vector2f _ResizeFactor;
 
         public Vector2f Size
         {
@@ -35,11 +35,14 @@ namespace JourneyCore.Lib.Display.Component
 
         public Func<bool> Activated { get; set; }
 
-        public Button(Font defaultFont, string displayedText, bool autoSize)
+        public bool RespectsCapture { get; }
+        public FloatRect Bounds => AutoSize ? _TextObject.GetGlobalBounds() : BackgroundShape.GetGlobalBounds();
+
+        public Button(Font defaultFont, string displayedText, bool autoSize, bool respectsCapture)
         {
             AutoSize = autoSize;
 
-            ResizeFactor = new Vector2f(1f, 1f);
+            _ResizeFactor = new Vector2f(1f, 1f);
             BackgroundSprite = new Sprite();
             BackgroundShape = new RectangleShape();
             _TextObject = new Text();
@@ -57,6 +60,8 @@ namespace JourneyCore.Lib.Display.Component
             DisplayedText = displayedText;
 
             Activated = () => true;
+
+            RespectsCapture = respectsCapture;
         }
 
         public void Draw(RenderTarget target, RenderStates states)
@@ -96,7 +101,7 @@ namespace JourneyCore.Lib.Display.Component
 
         public void OnParentResized(object sender, SizeEventArgs args)
         {
-            ResizeFactor = new Vector2f((float)args.Width / OriginalWindowSize.X,
+            _ResizeFactor = new Vector2f((float)args.Width / OriginalWindowSize.X,
                 (float)args.Height / OriginalWindowSize.Y);
         }
 
@@ -108,8 +113,8 @@ namespace JourneyCore.Lib.Display.Component
             }
 
             FloatRect globalBounds = AutoSize ? _TextObject.GetGlobalBounds() : BackgroundShape.GetGlobalBounds();
-            globalBounds.Left *= ResizeFactor.X;
-            globalBounds.Top *= ResizeFactor.Y;
+            globalBounds.Left *= _ResizeFactor.X;
+            globalBounds.Top *= _ResizeFactor.Y;
 
             if (globalBounds.Contains(args.X, args.Y))
             {
@@ -130,38 +135,32 @@ namespace JourneyCore.Lib.Display.Component
             }
         }
 
-        public void OnMousePressed(object sender, MouseButtonEventArgs args)
+        public bool OnMousePressed(MouseButtonEventArgs args)
         {
-            if (!Activated())
+            if (args.Button != Mouse.Button.Left || !Activated() || !IsHovered)
             {
-                return;
-            }
-
-            if (!IsHovered)
-            {
-                return;
+                return false;
             }
 
             IsPressed = true;
 
-            Pressed?.Invoke(sender, args);
+            Pressed?.Invoke(this, args);
+
+            return true;
         }
 
-        public void OnMouseReleased(object sender, MouseButtonEventArgs args)
+        public bool OnMouseReleased(MouseButtonEventArgs args)
         {
-            if (!Activated())
+            if (args.Button != Mouse.Button.Left || !Activated() || !IsPressed)
             {
-                return;
-            }
-
-            if (!IsPressed)
-            {
-                return;
+                return false;
             }
 
             IsPressed = false;
 
-            Released?.Invoke(sender, args);
+            Released?.Invoke(this, args);
+
+            return true;
         }
 
         #endregion
