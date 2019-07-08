@@ -56,32 +56,7 @@ namespace JourneyCore.Client
 
             Log.Information("Game loop started.");
         }
-
-        // todo make this not in the wrong place
-        private async Task<List<Chunk>> LoadChunksAroundArea(Vector2f area)
-        {
-            List<Chunk> chunksToLoad = new List<Chunk>();
-
-            Vector2f iterationStartPoint = new Vector2f(area.X - 1f, area.Y - 1f);
-
-            for (int i = 0; i < 3; i++)
-            {
-                for (int j = 0; j < 3; j++)
-                {
-                    List<Chunk> requestedChunks =
-                        await RequestChunk(new Vector2f(iterationStartPoint.X + i, iterationStartPoint.Y + j));
-
-                    if (requestedChunks != null)
-                    {
-                        chunksToLoad.AddRange(requestedChunks);
-                    }
-                }
-            }
-
-            return chunksToLoad;
-        }
-
-
+        
         public void Start()
         {
             GameWindow.AddDrawItem(DrawViewLayer.Game, 0,
