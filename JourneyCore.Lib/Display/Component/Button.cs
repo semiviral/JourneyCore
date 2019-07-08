@@ -9,8 +9,8 @@ namespace JourneyCore.Lib.Display.Component
     {
         protected Vector2f _Origin;
         protected Vector2f _Position;
-        protected Vector2f _Size;
         protected Vector2f _ResizeFactor;
+        protected Vector2f _Size;
 
         public Vector2f Size
         {
@@ -34,9 +34,6 @@ namespace JourneyCore.Lib.Display.Component
         public bool IsPressed { get; set; }
 
         public Func<bool> Activated { get; set; }
-
-        public bool RespectsCapture { get; }
-        public FloatRect Bounds => AutoSize ? _TextObject.GetGlobalBounds() : BackgroundShape.GetGlobalBounds();
 
         public Button(Font defaultFont, string displayedText, bool autoSize, bool respectsCapture)
         {
@@ -72,6 +69,9 @@ namespace JourneyCore.Lib.Display.Component
         }
 
         public bool IsHovered { get; set; }
+
+        public bool RespectsCapture { get; }
+        public FloatRect Bounds => AutoSize ? _TextObject.GetGlobalBounds() : BackgroundShape.GetGlobalBounds();
 
         public Vector2u OriginalWindowSize { get; set; }
 
