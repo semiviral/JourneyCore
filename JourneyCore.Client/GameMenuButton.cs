@@ -12,7 +12,7 @@ namespace JourneyCore.Client
             ForegroundOutlineColor = Color.Black;
             ForegroundOutlineThickness = 2f;
 
-            Origin = Size / 2f;
+
             BackgroundColor = Color.Transparent;
             Entered += (sender, args) => { ForegroundColor = IsPressed ? Color.Red : Color.Cyan; };
             Exited += (sender, args) =>

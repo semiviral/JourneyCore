@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JourneyCore.Client.DrawViews;
@@ -56,16 +57,12 @@ namespace JourneyCore.Client
 
             Log.Information("Game loop started.");
         }
-        
+
         public void Start()
         {
-            GameWindow.AddDrawItem(DrawViewLayer.Game, 0,
-                new DrawItem(DateTime.MinValue, null,
-                    new DrawObject(ActivateMap.VArray), ActivateMap.RenderStates));
-            GameWindow.AddDrawItem(DrawViewLayer.Minimap, 0,
-                new DrawItem(DateTime.MinValue, null,
-                    new DrawObject(ActivateMap.Minimap.VArray), RenderStates.Default));
-
+            GameWindow.AddDrawItem(DrawViewLayer.Game, 0, new DrawItem(new DrawObject(ActivateMap.VArray), ActivateMap.RenderStates));
+            GameWindow.AddDrawItem(DrawViewLayer.Minimap, 0, new DrawItem(new DrawObject(ActivateMap.Minimap.VArray)));
+            
             try
             {
                 while (GameWindow.IsActive)
@@ -113,7 +110,7 @@ namespace JourneyCore.Client
         {
             try
             {
-                await ConnectGameServer(serverUrl, servicePath);
+                ConnectGameServer(serverUrl, servicePath).Wait();
                 CreateDrawViews();
                 await CreateLocalMap();
                 await SetupPlayer();
@@ -216,16 +213,13 @@ namespace JourneyCore.Client
 
         private async Task SetupPlayer()
         {
+            Console.WriteLine(NetManager.IsHandshakeComplete);
+
             Log.Information("Initializing player...");
 
-            Texture humanTexture = new Texture(await RequestImage("avatar"));
-            Texture projectilesTexture = new Texture(await RequestImage("projectiles"));
+            Player = await RequestPlayer(NetManager.ConnectionId);
+            Player.ClientSideInitialise();
 
-            // todo no hard coding for player texture size
-            Player = new Player(new Sprite(humanTexture, new IntRect(3 * 64, 1 * 64, 64, 64)), projectilesTexture, 0)
-            {
-                Graphic = { Scale = new Vector2f(0.5f, 0.5f) }
-            };
             Player.PropertyChanged += PlayerPropertyChanged;
             Player.PositionChanged += PlayerPositionChanged;
             Player.RotationChanged += PlayerRotationChanged;
@@ -234,9 +228,7 @@ namespace JourneyCore.Client
             Player.AnchorItem(GameWindow.GetDrawView(DrawViewLayer.Minimap));
 
             GameWindow.AddDrawItem(DrawViewLayer.Game, 10,
-                new DrawItem(DateTime.MinValue, null,
-                    new DrawObject(Player.Graphic, Player.Graphic.GetVertices),
-                    new RenderStates(Player.Graphic.Texture)));
+                new DrawItem(new DrawObject(Player.Graphic, Player.Graphic.GetVertices), new RenderStates(Player.Graphic.Texture)));
 
             Log.Information("Player initialized.");
         }
@@ -329,7 +321,7 @@ namespace JourneyCore.Client
 
                 DrawView drawView = GameWindow.GetDrawView(DrawViewLayer.EscapeMenu);
                 drawView.Visible = !drawView.Visible;
-            }, () => true, true);
+            }, null, true);
         }
 
         private void SetupWatchedMouse()
@@ -388,8 +380,7 @@ namespace JourneyCore.Client
             DrawObject playerTileObj = new DrawObject(playerTile, playerTile.GetVertices);
             Player.AnchorItem(playerTileObj);
 
-            GameWindow.AddDrawItem(DrawViewLayer.Minimap, 10,
-                new DrawItem(DateTime.MinValue, null, playerTileObj, RenderStates.Default));
+            GameWindow.AddDrawItem(DrawViewLayer.Minimap, 10, new DrawItem(playerTileObj));
         }
 
         #endregion
@@ -400,7 +391,7 @@ namespace JourneyCore.Client
         private async Task<byte[]> RequestImage(string imageName)
         {
             string retVal = await NetManager.GetResponseAsync(
-                $"gameservice/images?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.CryptoService.PublicKeyString.HtmlEncodeBase64()}&imageNameBase64={await NetManager.GetHtmlSafeEncryptedBase64(imageName)}");
+                $"gameservice/images?id={NetManager.ConnectionId}&remotePublicKeyBase64={NetManager.CryptoService.PublicKeyString.HtmlEncodeBase64()}&imageNameBase64={await NetManager.GetHtmlSafeEncryptedBase64(imageName)}");
             DiffieHellmanMessagePackage messagePackage =
                 JsonConvert.DeserializeObject<DiffieHellmanMessagePackage>(retVal);
 
@@ -415,7 +406,7 @@ namespace JourneyCore.Client
         private async Task<MapMetadata> RequestMapMetadata(string mapName)
         {
             string retVal = await NetManager.GetResponseAsync(
-                $"maps/{await NetManager.GetHtmlSafeEncryptedBase64(mapName)}/metadata?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.CryptoService.PublicKeyString.HtmlEncodeBase64()}");
+                $"maps/{await NetManager.GetHtmlSafeEncryptedBase64(mapName)}/metadata?id={NetManager.ConnectionId}&remotePublicKeyBase64={NetManager.CryptoService.PublicKeyString.HtmlEncodeBase64()}");
             DiffieHellmanMessagePackage messagePackage =
                 JsonConvert.DeserializeObject<DiffieHellmanMessagePackage>(retVal);
 
@@ -430,7 +421,7 @@ namespace JourneyCore.Client
         private async Task<TileSetMetadata> RequestTileSetMetadata(string tileSetName)
         {
             string retVal = await NetManager.GetResponseAsync(
-                $"gameservice/tilesets?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.CryptoService.PublicKeyString.HtmlEncodeBase64()}&tileSetNameBase64={await NetManager.GetHtmlSafeEncryptedBase64(tileSetName)}");
+                $"gameservice/tilesets?id={NetManager.ConnectionId}&remotePublicKeyBase64={NetManager.CryptoService.PublicKeyString.HtmlEncodeBase64()}&tileSetNameBase64={await NetManager.GetHtmlSafeEncryptedBase64(tileSetName)}");
             DiffieHellmanMessagePackage messagePackage =
                 JsonConvert.DeserializeObject<DiffieHellmanMessagePackage>(retVal);
 
@@ -450,7 +441,7 @@ namespace JourneyCore.Client
         private async Task<List<Chunk>> RequestChunk(Vector2i coords)
         {
             string retVal = await NetManager.GetResponseAsync(
-                $"maps/{await NetManager.GetHtmlSafeEncryptedBase64(ActivateMap.Metadata.Name)}?guid={NetManager.Guid}&remotePublicKeyBase64={NetManager.CryptoService.PublicKeyString.HtmlEncodeBase64()}&coordsBase64={await NetManager.GetHtmlSafeEncryptedBase64(JsonConvert.SerializeObject(coords))}");
+                $"maps/{await NetManager.GetHtmlSafeEncryptedBase64(ActivateMap.Metadata.Name)}?id={NetManager.ConnectionId}&remotePublicKeyBase64={NetManager.CryptoService.PublicKeyString.HtmlEncodeBase64()}&coordsBase64={await NetManager.GetHtmlSafeEncryptedBase64(JsonConvert.SerializeObject(coords))}");
             DiffieHellmanMessagePackage messagePackage =
                 JsonConvert.DeserializeObject<DiffieHellmanMessagePackage>(retVal);
 
@@ -466,10 +457,35 @@ namespace JourneyCore.Client
             }
             catch
             {
-                // ignored
+                // todo unignore
             }
 
             return chunks ?? new List<Chunk>();
+        }
+
+        public async Task<Player> RequestPlayer(string connectionId)
+        {
+            string retVal = await NetManager.GetResponseAsync(
+                $"gameservice/playerData?id={connectionId}&remotePublicKeyBase64={NetManager.CryptoService.PublicKeyString.HtmlEncodeBase64()}");
+            DiffieHellmanMessagePackage messagePackage =
+                JsonConvert.DeserializeObject<DiffieHellmanMessagePackage>(retVal);
+
+            string serializedString =
+                await NetManager.CryptoService.DecryptAsync(messagePackage.RemotePublicKey,
+                    messagePackage.SecretMessage);
+
+            Player player = null;
+
+            try
+            {
+                player = JsonConvert.DeserializeObject<Player>(serializedString);
+            }
+            catch (Exception ex)
+            {
+                // todo unignored
+            }
+
+            return player;
         }
 
         #endregion

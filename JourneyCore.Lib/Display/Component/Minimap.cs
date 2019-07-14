@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using JourneyCore.Lib.Display.Drawing;
 using SFML.Graphics;
+using SFML.System;
 using SFML.Window;
 
 namespace JourneyCore.Lib.Display.Component
 {
     public class Minimap : IUIObject, IHoverable, IScrollable
     {
+        private Vector2u _Size;
         public VertexArray VArray { get; }
         public Dictionary<uint, DrawObject> MinimapObjects { get; }
 
@@ -84,6 +86,23 @@ namespace JourneyCore.Lib.Display.Component
         public void OnMinimapEntityVerticesUpdated(object sender, uint startIndex)
         {
             CalculateVerticesAtIndex(startIndex);
+        }
+
+        public Vector2f Size { get; set; }
+
+        Vector2u IUIObject.Size
+        {
+            get => _Size;
+            set => _Size = value;
+        }
+
+        public Vector2f Position { get; set; }
+        public Vector2f Origin { get; set; }
+        public event EventHandler<SizeEventArgs> Resized;
+
+        public IEnumerable<IUIObject> SubscribableObjects()
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -69,7 +69,7 @@ namespace JourneyCore.Lib.System.Net.Security
             CalculateSharedKey(remotePublicKey);
         }
 
-        public void CalculateSharedKey(DiffieHellmanAuthPackage authPackage)
+        public void CalculateSharedKey(EncryptionTicket authPackage)
         {
             IV = authPackage.IV;
 

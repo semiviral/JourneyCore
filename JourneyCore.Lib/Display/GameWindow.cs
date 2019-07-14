@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using JourneyCore.Lib.Display.Component;
 using JourneyCore.Lib.Display.Drawing;
+using JourneyCore.Lib.Game.Object.Collision;
+using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System.Event.Input;
+using JourneyCore.Lib.System.Math;
 using JourneyCore.Lib.System.Time;
 using SFML.Graphics;
 using SFML.System;
@@ -24,6 +27,34 @@ namespace JourneyCore.Lib.Display
     {
         public const float WidescreenRatio = 16f / 9f;
         public const float LetterboxRatio = 4f / 3f;
+        private static uint _TargetFps;
+
+        private RenderWindow Window { get; }
+        private static Delta DeltaClock { get; set; }
+        private SortedList<DrawViewLayer, DrawView> DrawViews { get; }
+        private InputWatcher ContinuousInputWatcher { get; }
+
+        public Vector2u Size => Window.Size;
+        public bool IsActive => Window.IsOpen;
+        public Vector2f ContentScale { get; set; }
+        public Vector2f PositionScale { get; set; }
+        public bool PressCaptured { get; set; }
+        public bool ReleaseCaptured { get; set; }
+
+        public uint TargetFps
+        {
+            get => _TargetFps;
+            set
+            {
+                // fps changed stuff
+
+                _TargetFps = value;
+                IndividualFrameTime = 1f / _TargetFps;
+            }
+        }
+
+        public float ElapsedTime { get; private set; }
+        public float IndividualFrameTime { get; private set; }
 
         public GameWindow(string windowTitle, VideoMode videoMode, uint targetFps, Vector2f contentScale,
             float positionScale)
@@ -55,6 +86,11 @@ namespace JourneyCore.Lib.Display
             return Window;
         }
 
+        public void SetVSync(bool enabled)
+        {
+            Window.SetVerticalSyncEnabled(enabled);
+        }
+
         public Vector2i GetRelativeMousePosition()
         {
             return Mouse.GetPosition(Window);
@@ -62,7 +98,7 @@ namespace JourneyCore.Lib.Display
 
         public void AddDrawItem(DrawViewLayer layer, int internalLayer, DrawItem drawItem)
         {
-            DrawView drawView = DrawViews.SingleOrDefault(view => view.Value.Layer.Equals(layer)).Value;
+            DrawView drawView = DrawViews.SingleOrDefault(view => view.Value.Layer == layer).Value;
 
             drawView?.AddDrawItem(internalLayer, drawItem);
         }
@@ -70,40 +106,58 @@ namespace JourneyCore.Lib.Display
 
         #region UI OBJECTS
 
-        private List<IUIObject> UIObjects { get; }
-
-        public void SubscribeUiObject(DrawViewLayer layer, int internalLayer, object uiObject)
+        public void SubscribeUiObject(IUIObject iuiObject, IUIObject parent)
         {
-            if (!(uiObject is IUIObject))
+            if (iuiObject == null)
             {
                 return;
             }
 
-            if (uiObject is IResizeResponsive resizeResponsiveUiObject)
+            if (iuiObject is IResizeResponsive resizeResponsiveUiObject)
             {
-                SubscribeIResizeResponsive(resizeResponsiveUiObject);
+                SubscribeIResizeResponsive(resizeResponsiveUiObject, parent);
             }
 
-            if (uiObject is IHoverable hoverableUiObject)
+            if (iuiObject is IHoverable hoverableUiObject)
             {
                 SubscribeIHoverable(hoverableUiObject);
             }
 
-            if (uiObject is IPressable pressableUiObject)
+            if (iuiObject is IPressable pressableUiObject)
             {
                 SubscribeIPressable(pressableUiObject);
             }
 
-            if (uiObject is IScrollable scrollableUiObject)
+            if (iuiObject is IScrollable scrollableUiObject)
             {
                 SubscribeIScrollable(scrollableUiObject);
             }
+
+            List<IUIObject> subscribables = iuiObject.SubscribableObjects().ToList();
+
+            if (subscribables.Count == 0)
+            {
+                return;
+            }
+
+            foreach (IUIObject uiObjectChild in subscribables)
+            {
+                SubscribeUiObject(uiObjectChild, iuiObject);
+            }
         }
 
-        private void SubscribeIResizeResponsive(IResizeResponsive resizeResponsive)
+        private void SubscribeIResizeResponsive(IResizeResponsive resizeResponsive, IUIObject parent)
         {
-            resizeResponsive.OriginalWindowSize = Window.Size;
-            Resized += resizeResponsive.OnParentResized;
+            if (parent == null || resizeResponsive is Button)
+            {
+                resizeResponsive.OriginalParentSize = Size;
+                Resized += resizeResponsive.OnParentResized;
+            }
+            else
+            {
+                resizeResponsive.OriginalParentSize = parent.Size;
+                parent.Resized += resizeResponsive.OnParentResized;
+            }
         }
 
         private void SubscribeIHoverable(IHoverable hoverable)
@@ -140,38 +194,6 @@ namespace JourneyCore.Lib.Display
 
         #endregion
 
-        #region VARIABLES
-
-        private RenderWindow Window { get; }
-        private static Delta DeltaClock { get; set; }
-        private SortedList<DrawViewLayer, DrawView> DrawViews { get; }
-        private static uint _TargetFps;
-        private InputWatcher ContinuousInputWatcher { get; }
-
-        public Vector2u Size => Window.Size;
-        public bool IsActive => Window.IsOpen;
-        public Vector2f ContentScale { get; set; }
-        public Vector2f PositionScale { get; set; }
-        public bool PressCaptured { get; set; }
-        public bool ReleaseCaptured { get; set; }
-
-        public uint TargetFps
-        {
-            get => _TargetFps;
-            set
-            {
-                // fps changed stuff
-
-                _TargetFps = value;
-                IndividualFrameTime = 1f / _TargetFps;
-            }
-        }
-
-        public float ElapsedTime { get; private set; }
-        public float IndividualFrameTime { get; private set; }
-
-        #endregion
-
 
         #region RENDERING
 
@@ -186,12 +208,14 @@ namespace JourneyCore.Lib.Display
         {
             ElapsedTime = DeltaClock.GetDelta();
 
+            Window.PushGLStates();
             Window.DispatchEvents();
             Window.Clear();
 
             DoFrameUpdate();
 
             Window.Display();
+            Window.PopGLStates();
         }
 
         private void DoFrameUpdate()

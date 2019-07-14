@@ -1,11 +1,11 @@
 ﻿namespace JourneyCore.Lib.System.Net.Security
 {
-    public class DiffieHellmanAuthPackage
+    public class EncryptionTicket
     {
         public byte[] RemotePublicKey { get; }
         public byte[] IV { get; }
 
-        public DiffieHellmanAuthPackage(byte[] remotePublicKey, byte[] iv)
+        public EncryptionTicket(byte[] remotePublicKey, byte[] iv)
         {
             RemotePublicKey = remotePublicKey;
             IV = iv;

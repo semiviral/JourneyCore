@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using JourneyCore.Lib.Game.Object;
+using JourneyCore.Lib.Game.Object.Collision;
 using SFML.Graphics;
 
 namespace JourneyCore.Lib.Game.Environment.Metadata
@@ -10,15 +10,15 @@ namespace JourneyCore.Lib.Game.Environment.Metadata
         public string Type { get; set; }
         public IntRect TextureRect { get; set; }
         public Color MiniMapColor { get; set; }
-        public List<CollisionBox> Collidables { get; set; }
+        public List<CollisionQuad> Colliders { get; set; }
 
         public TileMetadata() { }
 
         public TileMetadata(int gid, string type, IntRect textureRect, Color miniMapColor,
-            List<CollisionBox> collidables) :
+            List<CollisionQuad> colliders) :
             this(gid, type, textureRect, miniMapColor)
         {
-            Collidables = collidables;
+            Colliders = colliders;
         }
 
         public TileMetadata(int gid, string type, IntRect textureRect, Color miniMapColor)

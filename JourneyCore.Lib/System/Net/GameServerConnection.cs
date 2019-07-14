@@ -12,7 +12,7 @@ namespace JourneyCore.Lib.System.Net
     public class GameServerConnection
     {
         public DiffieHellman CryptoService { get; }
-        public string Guid { get; }
+        public string ConnectionId { get; private set; }
         public string ServerUrl { get; }
         public HubConnection Connection { get; private set; }
         public ServerStateUpdater StateUpdater { get; private set; }
@@ -23,7 +23,6 @@ namespace JourneyCore.Lib.System.Net
         {
             CryptoService = new DiffieHellman();
 
-            Guid = global::System.Guid.NewGuid().ToString();
             ServerUrl = serverUrl;
             IsServerReady = false;
             IsHandshakeComplete = false;
@@ -87,12 +86,13 @@ namespace JourneyCore.Lib.System.Net
             Log.Information("Initialising connection to game server...");
 
             Connection = new HubConnectionBuilder().WithUrl($"{ServerUrl}/{servicePath}").Build();
-
             Connection.Closed += async error =>
             {
                 await Task.Delay(1000);
                 await Connection.StartAsync();
             };
+
+            Connection.On<string, EncryptionTicket>(nameof(ReceiveEncryptionTicket), ReceiveEncryptionTicket);
         }
 
         private async Task WaitForServerReady()
@@ -128,19 +128,13 @@ namespace JourneyCore.Lib.System.Net
         public async Task ServerHandshake()
         {
             Log.Information("Handshaking with server...");
+            
+            await Connection.InvokeAsync("ReceiveEncryptionRegistrar", CryptoService.PublicKey);
 
-            string fullUrl =
-                $"gameservice/security/handshake?guid={Guid}&clientPublicKeyBase64={CryptoService.PublicKeyString.HtmlEncodeBase64()}";
-
-            // not using GetResponseAsync since we haven't
-            // yet established the handshake
-            string retVal = await GetResponseAsync(fullUrl);
-            DiffieHellmanAuthPackage authPackage = JsonConvert.DeserializeObject<DiffieHellmanAuthPackage>(retVal);
-            CryptoService.CalculateSharedKey(authPackage);
-
-            IsHandshakeComplete = true;
-
-            Log.Information("Successfully completed handshake with server.");
+            while (!IsHandshakeComplete)
+            {
+                await Task.Delay(500);
+            }
         }
 
         private async Task BuildSynchroniser()
@@ -160,6 +154,16 @@ namespace JourneyCore.Lib.System.Net
 
 
         #region  RECEPTION METHODS
+
+        private void ReceiveEncryptionTicket(string connectionId, EncryptionTicket ticket)
+        {
+            ConnectionId = connectionId;
+            CryptoService.CalculateSharedKey(ticket);
+
+            IsHandshakeComplete = true;
+
+            Log.Information("Encryption ticket received from server, handshake complete.");
+        }
 
         private async Task<bool> GetServerReadyState()
         {

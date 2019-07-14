@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -10,25 +11,7 @@ namespace JourneyCore.Lib.Display.Component
         protected Vector2f _Origin;
         protected Vector2f _Position;
         protected Vector2f _ResizeFactor;
-        protected Vector2f _Size;
-
-        public Vector2f Size
-        {
-            get => _Size;
-            set => SetSize(value);
-        }
-
-        public Vector2f Position
-        {
-            get => _Position;
-            set => SetPosition(value);
-        }
-
-        public Vector2f Origin
-        {
-            get => _Origin;
-            set => SetOrigin(value);
-        }
+        protected Vector2u _Size;
 
         public bool AutoSize { get; set; }
         public bool IsPressed { get; set; }
@@ -41,10 +24,10 @@ namespace JourneyCore.Lib.Display.Component
 
             _ResizeFactor = new Vector2f(1f, 1f);
             BackgroundSprite = new Sprite();
-            BackgroundShape = new RectangleShape();
+            _BackgroundShape = new RectangleShape();
             _TextObject = new Text();
 
-            Size = new Vector2f(0f, 0f);
+            Size = new Vector2u(0, 0);
             Position = new Vector2f(0f, 0f);
             Origin = new Vector2f(0f, 0f);
 
@@ -63,7 +46,7 @@ namespace JourneyCore.Lib.Display.Component
 
         public void Draw(RenderTarget target, RenderStates states)
         {
-            BackgroundShape.Draw(target, states);
+            _BackgroundShape.Draw(target, states);
             BackgroundSprite.Draw(target, states);
             _TextObject.Draw(target, states);
         }
@@ -71,24 +54,57 @@ namespace JourneyCore.Lib.Display.Component
         public bool IsHovered { get; set; }
 
         public bool RespectsCapture { get; }
-        public FloatRect Bounds => AutoSize ? _TextObject.GetGlobalBounds() : BackgroundShape.GetGlobalBounds();
+        public FloatRect Bounds => AutoSize ? _TextObject.GetGlobalBounds() : _BackgroundShape.GetGlobalBounds();
 
-        public Vector2u OriginalWindowSize { get; set; }
+        public Vector2u OriginalParentSize { get; set; }
+
+        public Vector2u Size
+        {
+            get => _Size;
+            set
+            {
+                SetSize(value);
+                Resized?.Invoke(this, new SizeEventArgs(new SizeEvent { Width = _Size.X, Height = _Size.Y }));
+            }
+        }
+
+        public Vector2f Position
+        {
+            get => _Position;
+            set => SetPosition(value);
+        }
+
+        public Vector2f Origin
+        {
+            get => _Origin;
+            set => SetOrigin(value);
+        }
+
+        public event EventHandler<SizeEventArgs> Resized;
+
+        public IEnumerable<IUIObject> SubscribableObjects()
+        {
+            return new IUIObject[] { };
+        }
 
         protected void UpdateTextObject(string newDisplayedText)
         {
             Text newText = new Text(newDisplayedText, DefaultFont);
 
-            FloatRect localBounds = newText.GetLocalBounds();
-            newText.Origin = new Vector2f(localBounds.Width / 2f + localBounds.Left,
-                localBounds.Height / 2f + localBounds.Top);
-
             _TextObject = newText;
 
             if (AutoSize)
             {
-                SetSize(new Vector2f(localBounds.Width, localBounds.Height));
+                FloatRect localBounds = newText.GetLocalBounds();
+
+                Size = new Vector2u((uint)(localBounds.Width + localBounds.Left),
+                    (uint)(localBounds.Height + localBounds.Top));
+                Origin = new Vector2f(Size.X, Size.Y) / 2f;
             }
+
+            Position = _Position;
+            ForegroundOutlineColor = _ForegroundOutlineColor;
+            ForegroundOutlineThickness = _ForegroundOutlineThickness;
         }
 
 
@@ -101,18 +117,13 @@ namespace JourneyCore.Lib.Display.Component
 
         public void OnParentResized(object sender, SizeEventArgs args)
         {
-            _ResizeFactor = new Vector2f((float)args.Width / OriginalWindowSize.X,
-                (float)args.Height / OriginalWindowSize.Y);
+            _ResizeFactor = new Vector2f((float)args.Width / OriginalParentSize.X,
+                (float)args.Height / OriginalParentSize.Y);
         }
 
         public void OnMouseMoved(object sender, MouseMoveEventArgs args)
         {
-            if (!Activated())
-            {
-                return;
-            }
-
-            FloatRect globalBounds = AutoSize ? _TextObject.GetGlobalBounds() : BackgroundShape.GetGlobalBounds();
+            FloatRect globalBounds = AutoSize ? _TextObject.GetGlobalBounds() : _BackgroundShape.GetGlobalBounds();
             globalBounds.Left *= _ResizeFactor.X;
             globalBounds.Top *= _ResizeFactor.Y;
 
@@ -137,6 +148,11 @@ namespace JourneyCore.Lib.Display.Component
 
         public bool OnMousePressed(MouseButtonEventArgs args)
         {
+            if (!Activated())
+            {
+                return false;
+            }
+
             if (args.Button != Mouse.Button.Left || !Activated() || !IsHovered)
             {
                 return false;
@@ -151,6 +167,11 @@ namespace JourneyCore.Lib.Display.Component
 
         public bool OnMouseReleased(MouseButtonEventArgs args)
         {
+            if (!Activated())
+            {
+                return false;
+            }
+
             if (args.Button != Mouse.Button.Left || !Activated() || !IsPressed)
             {
                 return false;
@@ -168,20 +189,20 @@ namespace JourneyCore.Lib.Display.Component
 
         #region POSITIONING / SIZING
 
-        protected void SetSize(Vector2f size)
+        protected void SetSize(Vector2u size)
         {
-            BackgroundSprite.Scale = new Vector2f(size.X / BackgroundSprite.TextureRect.Width,
-                size.Y / BackgroundSprite.TextureRect.Height);
-            BackgroundShape.Size = size;
+            BackgroundSprite.Scale = new Vector2f((float)size.X / BackgroundSprite.TextureRect.Width,
+                (float)size.Y / BackgroundSprite.TextureRect.Height);
+            _BackgroundShape.Size = new Vector2f(size.X, size.Y);
 
             _Size = size;
         }
 
         protected void SetPosition(Vector2f position)
         {
-            BackgroundShape.Position = position;
+            _BackgroundShape.Position = position;
             BackgroundSprite.Position = position;
-            _TextObject.Position = position + Size / 2f;
+            _TextObject.Position = position;
 
             _Position = position;
         }
@@ -189,7 +210,8 @@ namespace JourneyCore.Lib.Display.Component
         protected void SetOrigin(Vector2f origin)
         {
             BackgroundSprite.Origin = origin;
-            BackgroundShape.Origin = origin;
+            _BackgroundShape.Origin = origin;
+            _TextObject.Origin = origin;
 
             _Origin = origin;
         }
@@ -199,12 +221,12 @@ namespace JourneyCore.Lib.Display.Component
 
         #region VARIABLES - BACKGROUND
 
-        protected RectangleShape BackgroundShape { get; }
+        protected RectangleShape _BackgroundShape { get; }
 
         public Color BackgroundColor
         {
-            get => BackgroundShape.FillColor;
-            set => BackgroundShape.FillColor = value;
+            get => _BackgroundShape.FillColor;
+            set => _BackgroundShape.FillColor = value;
         }
 
         public Sprite BackgroundSprite { get; }
@@ -217,16 +239,27 @@ namespace JourneyCore.Lib.Display.Component
         protected Text _TextObject;
         public Font DefaultFont { get; set; }
 
+        protected Color _ForegroundOutlineColor;
+        protected float _ForegroundOutlineThickness;
+
         public Color ForegroundOutlineColor
         {
-            get => _TextObject.OutlineColor;
-            set => _TextObject.OutlineColor = value;
+            get => _ForegroundOutlineColor;
+            set
+            {
+                _ForegroundOutlineColor = value;
+                _TextObject.OutlineColor = value;
+            }
         }
 
         public float ForegroundOutlineThickness
         {
-            get => _TextObject.OutlineThickness;
-            set => _TextObject.OutlineThickness = value;
+            get => _ForegroundOutlineThickness;
+            set
+            {
+                _ForegroundOutlineThickness = value;
+                _TextObject.OutlineThickness = value;
+            }
         }
 
         public string DisplayedText

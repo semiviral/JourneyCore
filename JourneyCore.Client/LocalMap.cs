@@ -7,10 +7,10 @@ using JourneyCore.Lib.Display.Component;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
-using JourneyCore.Lib.Game.Object;
+using JourneyCore.Lib.Game.Object.Collision;
+using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System.Loaders;
 using JourneyCore.Lib.System.Math;
-using JourneyCore.Lib.System.Static;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -49,9 +49,7 @@ namespace JourneyCore.Client
                 }
             }
         }
-
-        public List<CollisionBox> CollisionObjects { get; }
-
+        
         public bool IsHovered { get; private set; }
 
         public LocalMap(byte[] mapImage)
@@ -63,7 +61,6 @@ namespace JourneyCore.Client
             Metadata = new MapMetadata();
             _VArray = new VertexArray(PrimitiveType.Quads);
             _Minimap = new Minimap();
-            CollisionObjects = new List<CollisionBox>();
         }
 
         public void Update(MapMetadata mapMetadata)
@@ -89,9 +86,7 @@ namespace JourneyCore.Client
             {
                 Vector2f tileCoords = new Vector2f(chunk.Left * MapLoader.ChunkSize + x,
                     chunk.Top * MapLoader.ChunkSize + y);
-
-                ProcessCollisions(chunk[x][y], tileCoords);
-
+                    
                 AllocateTileToVArray(chunk[x][y], tileCoords, chunk.Layer);
             }
         }
@@ -138,25 +133,6 @@ namespace JourneyCore.Client
 
         #region MAP BUILDING
 
-        private void ProcessCollisions(TilePrimitive tilePrimitive, Vector2f tileCoords)
-        {
-            TileMetadata tileMetadata = GetTileMetadata(tilePrimitive.Gid);
-
-            if (tileMetadata?.Collidables == null)
-            {
-                return;
-            }
-
-            foreach (CollisionBox collidable in tileMetadata.Collidables)
-            {
-                CollisionObjects.Add(new CollisionBox(collidable)
-                {
-                    Position = new Vector2f(tileCoords.X * MapLoader.TilePixelSize + collidable.Position.X,
-                        tileCoords.Y * MapLoader.TilePixelSize + collidable.Position.Y)
-                });
-            }
-        }
-
         private void AllocateTileToVArray(TilePrimitive tilePrimitive, Vector2f tileCoords, int drawLayer)
         {
             if (tilePrimitive.Gid == 0)
@@ -184,10 +160,10 @@ namespace JourneyCore.Client
             uint index = (uint)((tileCoords.Y * Metadata.Width + tileCoords.X) * 4 +
                                 (drawLayer - 1) * (VArray.VertexCount / Metadata.LayerCount));
 
-            VArray[index + 0] = new Vertex(topLeft.ZeroPointRound(), textureCoords.TopLeft);
-            VArray[index + 1] = new Vertex(topRight.ZeroPointRound(), textureCoords.TopRight);
-            VArray[index + 2] = new Vertex(bottomRight.ZeroPointRound(), textureCoords.BottomRight);
-            VArray[index + 3] = new Vertex(bottomLeft.ZeroPointRound(), textureCoords.BottomLeft);
+            VArray[index + 0] = new Vertex(topLeft, textureCoords.TopLeft);
+            VArray[index + 1] = new Vertex(topRight, textureCoords.TopRight);
+            VArray[index + 2] = new Vertex(bottomRight, textureCoords.BottomRight);
+            VArray[index + 3] = new Vertex(bottomLeft, textureCoords.BottomLeft);
 
             Minimap.VArray[index + 0] = new Vertex(topLeft, tileMetadata.MiniMapColor);
             Minimap.VArray[index + 1] = new Vertex(topRight, tileMetadata.MiniMapColor);

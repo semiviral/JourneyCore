@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
+using JourneyCore.Lib.Game.Object.Collision;
 using JourneyCore.Lib.System.Loaders;
+using SFML.System;
 
 namespace JourneyCore.Lib.Game.Environment.Mapping
 {
@@ -22,11 +25,13 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
         public float SpawnPointX { get; private set; }
         public float SpawnPointY { get; private set; }
         public List<TileSet> UsedTileSets { get; }
+        public List<CollisionQuad> Colliders { get; }
 
         public Map()
         {
             Rand = new Random();
             UsedTileSets = new List<TileSet>();
+            Colliders = new List<CollisionQuad>();
         }
 
 
@@ -73,7 +78,7 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
             return Layers;
         }
 
-        public List<MapLayer> ProcessTileEffects()
+        public List<MapLayer> ProcessTiles()
         {
             foreach (Chunk chunk in Layers.SelectMany(layer => layer.Map).SelectMany(map => map))
             {
@@ -94,10 +99,37 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
                     {
                         chunk[x][y].Rotation = Rand.Next(0, 3);
                     }
+
+                    List<TileMetadata> tileMetadatas = UsedTileSets.SelectMany(tileSet => tileSet.Tiles)
+                        .Select(tile => tile.GetMetadata()).ToList();
+
+                    Vector2f tileCoords = new Vector2f(chunk.Left * MapLoader.ChunkSize + x,
+                        chunk.Top * MapLoader.ChunkSize + y);
+                        
+                    AllocateTileCollisions(
+                        tileMetadatas.FirstOrDefault(tileMetadata => tileMetadata.Gid == chunk[x][y].Gid), tileCoords);
                 }
             }
 
             return Layers;
+        }
+
+        private void AllocateTileCollisions(TileMetadata tileMetadata, Vector2f tileCoords)
+        {
+            if (tileMetadata?.Colliders == null)
+            {
+                return;
+            }
+
+            foreach (CollisionQuad collider in tileMetadata.Colliders)
+            {
+                CollisionQuad copy = new CollisionQuad(collider);
+
+                copy.Position = tileCoords * MapLoader.TileSize +
+                                new Vector2f(16f - copy.Position.X, 16f - copy.Position.Y);
+
+                Colliders.Add(copy);
+            }
         }
 
         public void ApplyProperties()

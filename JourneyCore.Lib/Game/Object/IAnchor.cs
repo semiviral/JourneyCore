@@ -9,7 +9,7 @@ namespace JourneyCore.Lib.Game.Object
         event EventHandler<float> RotationChanged;
 
         void AnchorItem(IAnchorable anchorableItem);
-        void AnchorItemPosition(IAnchorable anchorableItem);
+        void AnchorItemPosition(IAnchorable anchorableItem, Vector2f positionOffset);
         void AnchorItemRotation(IAnchorable anchorableItem);
     }
 

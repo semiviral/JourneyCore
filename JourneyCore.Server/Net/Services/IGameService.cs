@@ -15,17 +15,19 @@ namespace JourneyCore.Server.Net.Services
         List<Player> Players { get; }
         Dictionary<string, Map> TileMaps { get; }
 
-        Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages);
+        Task ReceiveUpdatePackages(string connectionId, List<UpdatePackage> updatePackages);
+        Task RegisterEncryptedConnection(string connectionId, byte[] clientPublicKey);
+        
+        Task<DiffieHellmanMessagePackage> GetImage(string id, byte[] remotePublicKey, byte[] textureNameEncrypted);
 
-        DiffieHellmanAuthPackage RegisterDiffieHellman(string guid, byte[] clientPublicKey);
-        Task<DiffieHellmanMessagePackage> GetImage(string guid, byte[] remotePublicKey, byte[] textureNameEncrypted);
-
-        Task<DiffieHellmanMessagePackage> GetTileSetMetadata(string guid, byte[] remotePublicKey,
+        Task<DiffieHellmanMessagePackage> GetTileSetMetadata(string id, byte[] remotePublicKey,
             byte[] tileSetNameEncrypted);
 
-        Task<DiffieHellmanMessagePackage> GetMapMetadata(string guid, byte[] remotePublicKey, byte[] mapNameEncrypted);
+        Task<DiffieHellmanMessagePackage> GetMapMetadata(string id, byte[] remotePublicKey, byte[] mapNameEncrypted);
 
-        Task<DiffieHellmanMessagePackage> GetChunk(string guid, byte[] remotePublicKey, byte[] mapNameEncrypted,
+        Task<DiffieHellmanMessagePackage> GetChunk(string id, byte[] remotePublicKey, byte[] mapNameEncrypted,
             byte[] coordsEncrypted);
+
+        Task<DiffieHellmanMessagePackage> GetPlayer(string id, byte[] remotePublicKey);
     }
 }

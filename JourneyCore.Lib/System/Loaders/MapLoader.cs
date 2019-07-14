@@ -32,7 +32,7 @@ namespace JourneyCore.Lib.System.Loaders
 
                 map.LoadTileSets();
                 map.BuildMap();
-                map.ProcessTileEffects();
+                map.ProcessTiles();
                 map.ApplyProperties();
 
                 return map;

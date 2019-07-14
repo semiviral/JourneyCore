@@ -26,9 +26,14 @@ namespace JourneyCore.Server.Net.SignalR.Hubs
 
         #region CLIENT-TO-SERVER RELAY METHODS
 
+        public async Task ReceiveEncryptionRegistrar(byte[] clientPublicKey)
+        {
+            await GameService.RegisterEncryptedConnection(Context.ConnectionId, clientPublicKey);
+        }
+
         public async Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages)
         {
-            await GameService.ReceiveUpdatePackages(updatePackages);
+            await GameService.ReceiveUpdatePackages(Context.ConnectionId, updatePackages);
         }
 
         #endregion

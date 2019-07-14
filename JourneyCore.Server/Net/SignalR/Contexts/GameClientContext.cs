@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using JourneyCore.Lib.System.Net.Security;
 using JourneyCore.Server.Net.SignalR.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using SFML.System;
@@ -14,6 +15,11 @@ namespace JourneyCore.Server.Net.SignalR.Contexts
 
         public IHubContext<GameClientHub> HubContext { get; }
 
+        public async Task SendEncryptionTicket(string connectionId, EncryptionTicket encryptionTicket)
+        {
+            await HubContext.Clients.Client(connectionId).SendAsync("ReceiveEncryptionTicket", connectionId, encryptionTicket);
+        }
+        
         public async Task MovePlayer(string connectionId, Vector2f movement)
         {
             await HubContext.Clients.Client(connectionId).SendAsync("ReceivePlayerMovement", movement);

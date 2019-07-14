@@ -2,10 +2,12 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using JourneyCore.Lib.Display.Drawing;
+using JourneyCore.Lib.Game.Object.Collision;
 using JourneyCore.Lib.System.Event;
 using JourneyCore.Lib.System.Loaders;
 using JourneyCore.Lib.System.Math;
 using JourneyCore.Lib.System.Static;
+using Newtonsoft.Json;
 using SFML.Graphics;
 using SFML.System;
 
@@ -13,16 +15,16 @@ namespace JourneyCore.Lib.Game.Object.Entity
 {
     public class Player : IEntity, IEntityLiving, IEntityAttacker, IAnchor
     {
-        public Player(Sprite graphic, Texture projectilesTexture, long lifetime)
+        public Player(byte[] humanTextureBytes, byte[] projectilesTextureBytes, long lifetime)
         {
             Guid = global::System.Guid.NewGuid().ToString();
 
             Lifetime = lifetime;
             ProjectileCooldown = DateTime.MinValue;
-            ProjectileRenderStates = new RenderStates(projectilesTexture);
+            ProjectileTextureBytes = projectilesTextureBytes;
             CurrentChunk = new Vector2f(0f, 0f);
 
-            InitialiseSprite(graphic);
+            TextureBytes = humanTextureBytes;
             InitialiseDefaultAttributes();
 
             // todo set up inventory stat stuff
@@ -53,14 +55,14 @@ namespace JourneyCore.Lib.Game.Object.Entity
             projectile.Graphic.Rotation = (float)angle + 180f % 360;
             projectile.Graphic.Scale = new Vector2f(0.35f, 0.35f);
 
-            DrawItem projectileDrawItem = new DrawItem(projectile.TriggerAlive(), frameTime =>
+            DrawItem projectileDrawItem = new DrawItem(
+                new DrawObject(projectile.Graphic, projectile.Graphic.GetVertices), ProjectileRenderStates, frameTime =>
                 {
                     Vector2f movement = new Vector2f((float)GraphMath.SinFromDegrees(angle),
                         (float)GraphMath.CosFromDegrees(angle) * -1f);
 
                     projectile.MoveEntity(movement, tileWidth, frameTime);
-                }, new DrawObject(projectile.Graphic, projectile.Graphic.GetVertices),
-                ProjectileRenderStates);
+                }, projectile.TriggerAlive());
 
             return projectileDrawItem;
         }
@@ -70,18 +72,42 @@ namespace JourneyCore.Lib.Game.Object.Entity
         private DateTime ProjectileCooldown { get; set; }
 
         public string Guid { get; }
+
+        [JsonIgnore]
         public Sprite Graphic { get; private set; }
+
+        public byte[] TextureBytes { get; set; }
+        public byte[] ProjectileTextureBytes { get; set; }
+
+        [JsonIgnore]
+        public RenderStates ProjectileRenderStates { get; private set; }
+
         public long Lifetime { get; }
         public int AttackCooldownValue { get; }
         public bool CanAttack => ProjectileCooldown < DateTime.Now;
-        public RenderStates ProjectileRenderStates { get; }
         public Vector2f CurrentChunk { get; set; }
+
+        public CollisionQuad Collider
+        {
+            get => _Collider;
+            set
+            {
+                _Collider = value;
+
+                TryInitialiseCollider();
+            }
+        }
 
         public Vector2f Position
         {
-            get => Graphic.Position;
+            get => Graphic?.Position ?? new Vector2f(0f, 0f);
             set
             {
+                if (Graphic == null)
+                {
+                    return;
+                }
+
                 if (Graphic.Position == value)
                 {
                     return;
@@ -96,9 +122,14 @@ namespace JourneyCore.Lib.Game.Object.Entity
 
         public float Rotation
         {
-            get => Graphic.Rotation;
+            get => Graphic?.Rotation ?? 0f;
             set
             {
+                if (Graphic == null)
+                {
+                    return;
+                }
+
                 if (Math.Abs(Graphic.Rotation - value) < 0.0001)
                 {
                     return;
@@ -158,6 +189,7 @@ namespace JourneyCore.Lib.Game.Object.Entity
         }
 
         private double _CurrentHp;
+        private CollisionQuad _Collider;
 
         #endregion
 
@@ -195,11 +227,37 @@ namespace JourneyCore.Lib.Game.Object.Entity
 
         #region INIT
 
-        private void InitialiseSprite(Sprite sprite)
+        public void ClientSideInitialise()
         {
-            Graphic = sprite;
+            InitialiseGraphics();
+            TryInitialiseCollider();
+        }
+
+        private void InitialiseGraphics()
+        {
+            Graphic = new Sprite(new Texture(TextureBytes), new IntRect(3 * 64, 1 * 64, 64, 64))
+            {
+                Scale = new Vector2f(0.5f, 0.5f)
+            };
             Graphic.Origin = new Vector2f(Graphic.TextureRect.Width / 2f, Graphic.TextureRect.Height / 2f);
             Graphic.Position = new Vector2f(0f, 0f);
+
+            Collider.Scale = Graphic.Scale;
+
+            ProjectileRenderStates = new RenderStates(new Texture(ProjectileTextureBytes));
+        }
+
+        private void TryInitialiseCollider()
+        {
+            if (Graphic == null)
+            {
+                return;
+            }
+
+            _Collider.Scale = Graphic.Scale;
+            _Collider.Mobile = true;
+            _Collider.Colliding += (sender, args) => { Position += args; };
+            AnchorItem(_Collider, _Collider.CenterPoint - _Collider.Position);
         }
 
 
@@ -229,17 +287,23 @@ namespace JourneyCore.Lib.Game.Object.Entity
             Rotation = Graphic.TryRotation(rotation, elapsedTime, isClockwise);
         }
 
+
         public void AnchorItem(IAnchorable anchorableItem)
         {
-            AnchorItemPosition(anchorableItem);
+            AnchorItem(anchorableItem, new Vector2f(0f, 0f));
+        }
+
+        public void AnchorItem(IAnchorable anchorableItem, Vector2f positionOffset)
+        {
+            AnchorItemPosition(anchorableItem, positionOffset);
             AnchorItemRotation(anchorableItem);
         }
 
-        public void AnchorItemPosition(IAnchorable anchorableItem)
+        public void AnchorItemPosition(IAnchorable anchorableItem, Vector2f positionOffset)
         {
-            anchorableItem.Position = Graphic.Position;
+            anchorableItem.Position = Graphic.Position + positionOffset;
 
-            PositionChanged += (sender, position) => { anchorableItem.Position = position; };
+            PositionChanged += (sender, position) => { anchorableItem.Position = position + positionOffset; };
         }
 
         public void AnchorItemRotation(IAnchorable anchorableItem)

@@ -17,7 +17,7 @@ namespace JourneyCore.Server.Net.Controllers
         }
 
         [HttpGet("/maps/{mapNameBase64}")]
-        public async Task<IActionResult> GetChunkSpace(string guid, string remotePublicKeyBase64, string mapNameBase64,
+        public async Task<IActionResult> GetChunkSpace(string id, string remotePublicKeyBase64, string mapNameBase64,
             string coordsBase64)
         {
             byte[] remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
@@ -29,7 +29,7 @@ namespace JourneyCore.Server.Net.Controllers
             try
             {
                 encryptedMessagePackage =
-                    await GameService.GetChunk(guid, remotePublicKey, mapNameEncrypted, coordsEncrypted);
+                    await GameService.GetChunk(id, remotePublicKey, mapNameEncrypted, coordsEncrypted);
             }
             catch (Exception ex)
             {
@@ -40,12 +40,12 @@ namespace JourneyCore.Server.Net.Controllers
         }
 
         [HttpGet("/maps/{mapNameBase64}/metadata")]
-        public async Task<IActionResult> GetMapMetadata(string guid, string remotePublicKeyBase64, string mapNameBase64)
+        public async Task<IActionResult> GetMapMetadata(string id, string remotePublicKeyBase64, string mapNameBase64)
         {
             byte[] remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
             byte[] mapNameEncrypted = Convert.FromBase64String(mapNameBase64.HtmlDecodeBase64());
 
-            return new JsonResult(await GameService.GetMapMetadata(guid, remotePublicKey, mapNameEncrypted));
+            return new JsonResult(await GameService.GetMapMetadata(id, remotePublicKey, mapNameEncrypted));
         }
     }
 }

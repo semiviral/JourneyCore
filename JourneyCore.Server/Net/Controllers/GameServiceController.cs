@@ -22,34 +22,42 @@ namespace JourneyCore.Server.Net.Controllers
         }
 
         [HttpGet("gameservice/security/handshake")]
-        public IActionResult GetDiffieHellmanKeys(string guid, string clientPublicKeyBase64)
+        public IActionResult GetDiffieHellmanKeys(string id, string clientPublicKeyBase64)
         {
-            return new JsonResult(GameService.RegisterDiffieHellman(guid,
+            return new JsonResult(GameService.RegisterEncryptedConnection(id,
                 Convert.FromBase64String(clientPublicKeyBase64.HtmlDecodeBase64())));
         }
 
         [HttpGet("gameservice/tilesets")]
-        public async Task<IActionResult> GetTileSet(string guid, string remotePublicKeyBase64, string tileSetNameBase64)
+        public async Task<IActionResult> GetTileSet(string id, string remotePublicKeyBase64, string tileSetNameBase64)
         {
             byte[] remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
             byte[] tileSetNameEncrypted = Convert.FromBase64String(tileSetNameBase64.HtmlDecodeBase64());
 
-            return new JsonResult(await GameService.GetTileSetMetadata(guid, remotePublicKey, tileSetNameEncrypted));
+            return new JsonResult(await GameService.GetTileSetMetadata(id, remotePublicKey, tileSetNameEncrypted));
         }
 
         [HttpGet("gameservice/images")]
-        public async Task<IActionResult> GetImage(string guid, string remotePublicKeyBase64, string imageNameBase64)
+        public async Task<IActionResult> GetImage(string id, string remotePublicKeyBase64, string imageNameBase64)
         {
             byte[] remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
             byte[] imageNameEncrypted = Convert.FromBase64String(imageNameBase64.HtmlDecodeBase64());
 
-            return new JsonResult(await GameService.GetImage(guid, remotePublicKey, imageNameEncrypted));
+            return new JsonResult(await GameService.GetImage(id, remotePublicKey, imageNameEncrypted));
         }
 
         [HttpGet("gameservice/tickrate")]
         public IActionResult GetTickInterval()
         {
             return new JsonResult(GameService.TickRate);
+        }
+
+        [HttpGet("gameservice/playerData")]
+        public async Task<IActionResult> GetPlayer(string id, string remotePublicKeyBase64)
+        {
+            byte[] remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
+
+            return new JsonResult(await GameService.GetPlayer(id, remotePublicKey));
         }
     }
 }

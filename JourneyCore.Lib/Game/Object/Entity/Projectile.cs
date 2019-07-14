@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using JourneyCore.Lib.Game.Object.Collision;
 using JourneyCore.Lib.System.Static;
 using SFML.Graphics;
 using SFML.System;
@@ -55,6 +56,8 @@ namespace JourneyCore.Lib.Game.Object.Entity
                 NotifyPropertyChanged();
             }
         }
+
+        public CollisionQuad Collider { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

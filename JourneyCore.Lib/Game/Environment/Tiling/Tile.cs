@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Linq;
 using JourneyCore.Lib.Game.Environment.Metadata;
-using JourneyCore.Lib.Game.Object;
+using JourneyCore.Lib.Game.Object.Collision;
 using JourneyCore.Lib.System.Loaders;
 using SFML.Graphics;
-using SFML.System;
 
 namespace JourneyCore.Lib.Game.Environment.Tiling
 {
@@ -67,8 +66,7 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
             }
 
             return new TileMetadata(Gid, Type, TextureRect, MiniMapColor, ObjectGroup.Objects.Select(tileObject =>
-                new CollisionBox(new Vector2f(tileObject.X, tileObject.Y),
-                    new Vector2f(tileObject.Width, tileObject.Height))).ToList());
+                new CollisionQuad(new FloatRect(tileObject.X, tileObject.Y, tileObject.Width, tileObject.Height), tileObject.Rotation)).ToList());
         }
 
         public TilePrimitive ToPrimitive()
