@@ -15,19 +15,19 @@ namespace JourneyCore.Server.Net.SignalR.Contexts
 
         public IHubContext<GameClientHub> HubContext { get; }
 
-        public async Task SendEncryptionTicket(string connectionId, EncryptionTicket encryptionTicket)
-        {
-            await HubContext.Clients.Client(connectionId).SendAsync("ReceiveEncryptionTicket", connectionId, encryptionTicket);
-        }
-        
-        public async Task MovePlayer(string connectionId, Vector2f movement)
-        {
-            await HubContext.Clients.Client(connectionId).SendAsync("ReceivePlayerMovement", movement);
-        }
-
         public async Task SendServerStatus(string connectionId, bool serverStatus)
         {
             await HubContext.Clients.Client(connectionId).SendAsync("ReceiveServerStatus", serverStatus);
+        }
+
+        public async Task SendConnectionId(string connectionId)
+        {
+            await HubContext.Clients.Client(connectionId).SendAsync("ReceiveConnectionId", connectionId);
+        }
+
+        public async Task MovePlayer(string connectionId, Vector2f movement)
+        {
+            await HubContext.Clients.Client(connectionId).SendAsync("ReceivePlayerMovement", movement);
         }
     }
 }

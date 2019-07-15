@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using JourneyCore.Lib.System.Net;
 using JourneyCore.Server.Net.Services;
+using Microsoft.AspNetCore.Identity.UI.V3.Pages.Internal.Account;
 using Microsoft.AspNetCore.SignalR;
 
 namespace JourneyCore.Server.Net.SignalR.Hubs
@@ -26,9 +27,14 @@ namespace JourneyCore.Server.Net.SignalR.Hubs
 
         #region CLIENT-TO-SERVER RELAY METHODS
 
-        public async Task ReceiveEncryptionRegistrar(byte[] clientPublicKey)
+        public async Task RequestReadyStatus()
         {
-            await GameService.RegisterEncryptedConnection(Context.ConnectionId, clientPublicKey);
+            await GameService.RelayReadyStatus(Context.ConnectionId);
+        }
+
+        public async Task RequestConnectionId()
+        {
+            await GameService.RelayConnectionId(Context.ConnectionId);
         }
 
         public async Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages)

@@ -15,19 +15,17 @@ namespace JourneyCore.Server.Net.Services
         List<Player> Players { get; }
         Dictionary<string, Map> TileMaps { get; }
 
+        Task RelayReadyStatus(string connectionId);
+        Task RelayConnectionId(string connectionId);
         Task ReceiveUpdatePackages(string connectionId, List<UpdatePackage> updatePackages);
-        Task RegisterEncryptedConnection(string connectionId, byte[] clientPublicKey);
-        
-        Task<DiffieHellmanMessagePackage> GetImage(string id, byte[] remotePublicKey, byte[] textureNameEncrypted);
 
+        EncryptionTicket RegisterEncryptedConnection(string id, EncryptionTicket ticket);
+        Task<DiffieHellmanMessagePackage> GetImage(string id, byte[] remotePublicKey, byte[] textureNameEncrypted);
         Task<DiffieHellmanMessagePackage> GetTileSetMetadata(string id, byte[] remotePublicKey,
             byte[] tileSetNameEncrypted);
-
         Task<DiffieHellmanMessagePackage> GetMapMetadata(string id, byte[] remotePublicKey, byte[] mapNameEncrypted);
-
         Task<DiffieHellmanMessagePackage> GetChunk(string id, byte[] remotePublicKey, byte[] mapNameEncrypted,
             byte[] coordsEncrypted);
-
         Task<DiffieHellmanMessagePackage> GetPlayer(string id, byte[] remotePublicKey);
     }
 }

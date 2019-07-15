@@ -16,7 +16,6 @@ using JourneyCore.Lib.System.Net;
 using JourneyCore.Lib.System.Net.Security;
 using JourneyCore.Server.Net.SignalR.Contexts;
 using Newtonsoft.Json;
-using SFML.Graphics;
 using SFML.System;
 
 namespace JourneyCore.Server.Net.Services
@@ -60,19 +59,14 @@ namespace JourneyCore.Server.Net.Services
 
         #region CLIENT-TO-SERVER REQUESTS
 
-        public async Task RegisterEncryptedConnection(string connectionId, byte[] clientPublicKey)
+        public async Task RelayReadyStatus(string connectionId)
         {
-            using (Aes aes = new AesCryptoServiceProvider())
-            {
-                CryptoServices.Add(connectionId, new DiffieHellman(clientPublicKey)
-                {
-                    IV = aes.IV
-                });
-            }
+            await GameClientContext.SendServerStatus(connectionId, Status);
+        }
 
-            await GameClientContext.SendEncryptionTicket(connectionId, new EncryptionTicket(
-                CryptoServices[connectionId].PublicKey,
-                CryptoServices[connectionId].IV));
+        public async Task RelayConnectionId(string connectionId)
+        {
+            await GameClientContext.SendConnectionId(connectionId);
         }
 
         public Task ReceiveUpdatePackages(string connectionId, List<UpdatePackage> updatePackages)
@@ -147,6 +141,19 @@ namespace JourneyCore.Server.Net.Services
 
 
         #region IGAMESERVICE
+
+        public EncryptionTicket RegisterEncryptedConnection(string id, EncryptionTicket ticket)
+        {
+            using (Aes aes = new AesCryptoServiceProvider())
+            {
+                CryptoServices.Add(id, new DiffieHellman(ticket.PublicKey)
+                {
+                    IV = aes.IV
+                });
+            }
+
+            return new EncryptionTicket(CryptoServices[id].PublicKey, CryptoServices[id].IV);
+        }
 
         public async Task<DiffieHellmanMessagePackage> GetImage(string id, byte[] remotePublicKey,
             byte[] textureNameEncrypted)
@@ -241,10 +248,7 @@ namespace JourneyCore.Server.Net.Services
 
                 Players.Add(player);
             }
-            catch (Exception ex)
-            {
-
-            }
+            catch (Exception ex) { }
 
             Status = true;
 

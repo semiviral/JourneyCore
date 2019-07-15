@@ -213,8 +213,6 @@ namespace JourneyCore.Client
 
         private async Task SetupPlayer()
         {
-            Console.WriteLine(NetManager.IsHandshakeComplete);
-
             Log.Information("Initializing player...");
 
             Player = await RequestPlayer(NetManager.ConnectionId);

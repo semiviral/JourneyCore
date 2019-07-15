@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Threading.Tasks;
 using JourneyCore.Lib.System.Event;
 using JourneyCore.Lib.System.Net.Security;
@@ -23,6 +24,7 @@ namespace JourneyCore.Lib.System.Net
         {
             CryptoService = new DiffieHellman();
 
+            ConnectionId = string.Empty;
             ServerUrl = serverUrl;
             IsServerReady = false;
             IsHandshakeComplete = false;
@@ -73,68 +75,106 @@ namespace JourneyCore.Lib.System.Net
 
         public async Task InitialiseAsync(string servicePath)
         {
-            BuildConnection(servicePath);
-            await WaitForServerReady();
+            await BuildConnection(servicePath);
+            await ReadyWait();
             await ServerHandshake();
             await BuildSynchroniser();
 
             Log.Information("Connection to game server completed successfully.");
         }
 
-        private void BuildConnection(string servicePath)
+        private async Task BuildConnection(string servicePath)
         {
             Log.Information("Initialising connection to game server...");
 
-            Connection = new HubConnectionBuilder().WithUrl($"{ServerUrl}/{servicePath}").Build();
-            Connection.Closed += async error =>
-            {
-                await Task.Delay(1000);
-                await Connection.StartAsync();
-            };
-
-            Connection.On<string, EncryptionTicket>(nameof(ReceiveEncryptionTicket), ReceiveEncryptionTicket);
-        }
-
-        private async Task WaitForServerReady()
-        {
+            bool connected = false;
             int tries = 0;
 
-            while (!IsServerReady)
+            while (!connected && tries < 5)
             {
                 try
                 {
-                    if (tries > 0)
+                    Connection = new HubConnectionBuilder().WithUrl($"{ServerUrl}/{servicePath}").Build();
+                    Connection.Closed += async error =>
                     {
-                        await Task.Delay(5000);
-                    }
+                        Log.Error(error.Message);
 
-                    if (tries > 4)
-                    {
-                        await OnFatalExit(this, "Could not connect to server. Aborting game launch.");
-                    }
+                        await Task.Delay(1000);
+                        await Connection.StartAsync();
+                    };
 
                     await Connection.StartAsync();
 
-                    IsServerReady = await GetServerReadyState();
+                    connected = true;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    Log.Warning("Connection to server failed, retrying in 5 seconds...");
-                    tries += 1;
+                    if (tries == 4)
+                    {
+                        await OnFatalExit(this, ex.Message);
+                    }
+                    else
+                    {
+                        Log.Error($"{ex.Message}.. trying again.");
+
+                        tries += 1;
+                    }
                 }
             }
+            
+            Connection.On<string>("ReceiveConnectionId", connectionId => { ConnectionId = connectionId; });
+            Connection.On<bool>("ReceiveServerStatus", status => { IsServerReady = status; });
+        }
+
+        public async Task ReadyWait()
+        {
+            while (!IsServerReady)
+            {
+                Log.Information("Waiting for server ready flag...");
+
+                await Connection.InvokeAsync("RequestReadyStatus");
+                await Task.Delay(1000);
+            }
+
+            Log.Information("Received server ready flag.");
+
+            while (string.IsNullOrWhiteSpace(ConnectionId))
+            {
+                Log.Information("Requesting connection ID...");
+
+                await Connection.InvokeAsync("RequestConnectionId");
+                await Task.Delay(100);
+            }
+
+            Log.Information("Connection ID received.");
         }
 
         public async Task ServerHandshake()
         {
             Log.Information("Handshaking with server...");
-            
-            await Connection.InvokeAsync("ReceiveEncryptionRegistrar", CryptoService.PublicKey);
 
-            while (!IsHandshakeComplete)
+            EncryptionTicket localTicket = new EncryptionTicket(CryptoService.PublicKey, CryptoService.IV);
+
+            string retVal =
+                await GetResponseAsync($"gameservice/security/handshake?id={ConnectionId}&htmlSafeBase64Ticket={localTicket.ConvertToHtmlSafeBase64()}");
+            EncryptionTicket remoteTicket;
+
+            try
             {
-                await Task.Delay(500);
+                remoteTicket = JsonConvert.DeserializeObject<EncryptionTicket>(retVal);
             }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message);
+
+                return;
+            }
+
+            CryptoService.CalculateSharedKey(remoteTicket.PublicKey, remoteTicket.IV);
+
+            IsHandshakeComplete = true;
+
+            Log.Information("Encryption ticket received from server, handshake complete.");
         }
 
         private async Task BuildSynchroniser()
@@ -154,16 +194,6 @@ namespace JourneyCore.Lib.System.Net
 
 
         #region  RECEPTION METHODS
-
-        private void ReceiveEncryptionTicket(string connectionId, EncryptionTicket ticket)
-        {
-            ConnectionId = connectionId;
-            CryptoService.CalculateSharedKey(ticket);
-
-            IsHandshakeComplete = true;
-
-            Log.Information("Encryption ticket received from server, handshake complete.");
-        }
 
         private async Task<bool> GetServerReadyState()
         {

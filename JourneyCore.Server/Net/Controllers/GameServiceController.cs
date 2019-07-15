@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using JourneyCore.Lib.System.Net.Security;
 using JourneyCore.Lib.System.Static;
 using JourneyCore.Server.Net.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -22,10 +23,9 @@ namespace JourneyCore.Server.Net.Controllers
         }
 
         [HttpGet("gameservice/security/handshake")]
-        public IActionResult GetDiffieHellmanKeys(string id, string clientPublicKeyBase64)
+        public IActionResult GetDiffieHellmanKeys(string id, string htmlSafeBase64Ticket)
         {
-            return new JsonResult(GameService.RegisterEncryptedConnection(id,
-                Convert.FromBase64String(clientPublicKeyBase64.HtmlDecodeBase64())));
+            return new JsonResult(GameService.RegisterEncryptedConnection(id, EncryptionTicket.ConvertFromHtmlSafeBase64(htmlSafeBase64Ticket)));
         }
 
         [HttpGet("gameservice/tilesets")]

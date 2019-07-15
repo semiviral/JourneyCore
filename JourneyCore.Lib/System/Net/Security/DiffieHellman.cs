@@ -69,13 +69,6 @@ namespace JourneyCore.Lib.System.Net.Security
             CalculateSharedKey(remotePublicKey);
         }
 
-        public void CalculateSharedKey(EncryptionTicket authPackage)
-        {
-            IV = authPackage.IV;
-
-            CalculateSharedKey(authPackage.RemotePublicKey);
-        }
-
         public async Task<byte[]> EncryptAsync(string secretMessage)
         {
             using (Aes aes = new AesCryptoServiceProvider

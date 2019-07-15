@@ -10,8 +10,8 @@ namespace JourneyCore.Server.Net.SignalR.Contexts
     {
         IHubContext<GameClientHub> HubContext { get; }
 
-        Task SendEncryptionTicket(string connectionId, EncryptionTicket encryptionTicket);
-        Task MovePlayer(string connectionId, Vector2f movement);
         Task SendServerStatus(string connectionId, bool serverReady);
+        Task SendConnectionId(string connectionId);
+        Task MovePlayer(string connectionId, Vector2f movement);
     }
 }
