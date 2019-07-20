@@ -1,20 +1,25 @@
-﻿namespace JourneyCore.Lib.System.Net
-{
-    public struct UpdatePackage
-    {
-        public StateUpdateType UpdateType { get; set; }
-        public object[] Args { get; set; }
+﻿using System.Collections.Generic;
 
-        public UpdatePackage(StateUpdateType updateType, params object[] args)
+namespace JourneyCore.Lib.System.Net
+{
+    public struct UpdatePackage<T>
+    {
+        public StateUpdateType UpdateType { get; }
+        public List<T> Values { get; }
+
+        public UpdatePackage(StateUpdateType updateType, params T[] values)
         {
             UpdateType = updateType;
-            Args = args;
+            Values = new List<T>(values);
         }
     }
 
     public enum StateUpdateType
     {
+        None,
         Position,
-        Rotation
+        PositionModification,
+        Rotation,
+        RotationModification
     }
 }

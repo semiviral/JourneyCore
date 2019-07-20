@@ -15,6 +15,13 @@ namespace JourneyCore.Lib.Display.Component
         private Vector2f _Position;
         private Vector2u _Size;
         private UIObjectVerticalPositioning _VerticalPositioning;
+
+        public UIObjectContainer()
+        {
+            UIObjects = new ObservableCollection<IUIObject>();
+            UIObjects.CollectionChanged += OnCollectionChanged;
+        }
+
         public Vector2u ParentSize { get; private set; }
 
         public UIObjectVerticalPositioning VerticalPositioning
@@ -44,12 +51,6 @@ namespace JourneyCore.Lib.Display.Component
 
         public ObservableCollection<IUIObject> UIObjects { get; }
 
-        public UIObjectContainer()
-        {
-            UIObjects = new ObservableCollection<IUIObject>();
-            UIObjects.CollectionChanged += OnCollectionChanged;
-        }
-
         public Vector2u OriginalParentSize
         {
             get => _OriginalParentSize;
@@ -66,7 +67,7 @@ namespace JourneyCore.Lib.Display.Component
             set
             {
                 _Size = value;
-                OnSizeChanged(this, new SizeEventArgs(new SizeEvent { Height = _Size.X, Width = _Size.Y }));
+                OnSizeChanged(this, new SizeEventArgs(new SizeEvent {Height = _Size.X, Width = _Size.Y}));
             }
         }
 
@@ -87,13 +88,13 @@ namespace JourneyCore.Lib.Display.Component
         {
             return UIObjects;
         }
-        
+
         private void FullUIObjectsPositioningUpdate()
         {
             float autoStackMiddleSpacingX = Size.X / (UIObjects.Count + 1f);
             float autoStackMiddleSpacingY = Size.Y / (UIObjects.Count + 1f);
-            float totalObjectsSizeX = UIObjects.Select(uiObject => (float)uiObject.Size.X).Sum();
-            float totalObjectsSizeY = UIObjects.Select(uiObject => (float)uiObject.Size.Y).Sum();
+            float totalObjectsSizeX = UIObjects.Select(uiObject => (float) uiObject.Size.X).Sum();
+            float totalObjectsSizeY = UIObjects.Select(uiObject => (float) uiObject.Size.Y).Sum();
             float cumulativeWidth = 0f;
             float cumulativeHeight = 0f;
 
@@ -110,7 +111,9 @@ namespace JourneyCore.Lib.Display.Component
                             : UIObjects[i].Size.X / 2f;
                         break;
                     case UIObjectHorizontalPositioning.Middle:
-                        xPos = HorizontalAutoStacking ? Size.X / 2f - totalObjectsSizeX / 2f + cumulativeWidth + UIObjects[i].Size.X / 2f : Size.X / 2f;
+                        xPos = HorizontalAutoStacking
+                            ? Size.X / 2f - totalObjectsSizeX / 2f + cumulativeWidth + UIObjects[i].Size.X / 2f
+                            : Size.X / 2f;
                         break;
                     case UIObjectHorizontalPositioning.Right:
                         xPos = HorizontalAutoStacking
@@ -131,7 +134,9 @@ namespace JourneyCore.Lib.Display.Component
                             : UIObjects[i].Size.Y / 2f;
                         break;
                     case UIObjectVerticalPositioning.Middle:
-                        yPos = VerticalAutoStacking ? Size.Y / 2f - totalObjectsSizeY / 2f + cumulativeHeight + UIObjects[i].Size.Y / 2f : Size.Y / 2f;
+                        yPos = VerticalAutoStacking
+                            ? Size.Y / 2f - totalObjectsSizeY / 2f + cumulativeHeight + UIObjects[i].Size.Y / 2f
+                            : Size.Y / 2f;
                         break;
                     case UIObjectVerticalPositioning.Bottom:
                         yPos = VerticalAutoStacking
@@ -146,7 +151,7 @@ namespace JourneyCore.Lib.Display.Component
 
                 cumulativeWidth += UIObjects[i].Size.X;
                 cumulativeHeight += UIObjects[i].Size.Y;
-                
+
                 UIObjects[i].Position = new Vector2f(xPos + Position.X, yPos + Position.Y);
             }
         }

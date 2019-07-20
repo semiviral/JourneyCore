@@ -7,11 +7,6 @@ namespace JourneyCore.Server
 {
     public class Instance
     {
-        public string Id { get; }
-
-        public List<Player> Entities { get; }
-        public List<UpdatedProperty> UpdatedProperties { get; }
-
         public Instance()
         {
             Id = Guid.NewGuid().ToString();
@@ -19,5 +14,10 @@ namespace JourneyCore.Server
             Entities = new List<Player>();
             UpdatedProperties = new List<UpdatedProperty>();
         }
+
+        public string Id { get; }
+
+        public List<Player> Entities { get; }
+        public List<UpdatedProperty> UpdatedProperties { get; }
     }
 }

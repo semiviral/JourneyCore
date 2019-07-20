@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using System.Threading.Tasks;
 using JourneyCore.Lib.System.Event;
 using JourneyCore.Lib.System.Net.Security;
@@ -12,14 +11,6 @@ namespace JourneyCore.Lib.System.Net
 {
     public class GameServerConnection
     {
-        public DiffieHellman CryptoService { get; }
-        public string ConnectionId { get; private set; }
-        public string ServerUrl { get; }
-        public HubConnection Connection { get; private set; }
-        public ServerStateUpdater StateUpdater { get; private set; }
-        public bool IsServerReady { get; private set; }
-        public bool IsHandshakeComplete { get; private set; }
-
         public GameServerConnection(string serverUrl)
         {
             CryptoService = new DiffieHellman();
@@ -32,43 +23,34 @@ namespace JourneyCore.Lib.System.Net
             Closed += OnClosed;
         }
 
+        public DiffieHellman CryptoService { get; }
+        public string ConnectionId { get; private set; }
+        public string ServerUrl { get; }
+        public HubConnection Connection { get; private set; }
+        public bool IsServerReady { get; private set; }
+        public bool IsHandshakeComplete { get; private set; }
+
         public async Task<string> GetResponseAsync(string urlSuffix)
         {
             return await RestClient.GetAsync($"{ServerUrl}/{urlSuffix}");
         }
-
 
         public async Task<string> GetHtmlSafeEncryptedBase64(string target)
         {
             return Convert.ToBase64String(await CryptoService.EncryptAsync(target)).HtmlEncodeBase64();
         }
 
-        #region EVENTS
-
-        public event AsyncEventHandler<string> FatalExit;
-        public event AsyncEventHandler<Exception> Closed;
-
-        private async Task OnFatalExit(object sender, string fatalityDescription)
+        public bool On<T>(string methodName, Action<T> action)
         {
-            if (FatalExit == null)
-            {
-                return;
-            }
+            Connection.On(methodName, action);
 
-            await FatalExit.Invoke(sender, fatalityDescription);
+            return true;
         }
 
-        private async Task OnClosed(object sender, Exception ex)
+        public void InvokeHubAsync(string methodName, params object[] args)
         {
-            if (Closed == null)
-            {
-                return;
-            }
-
-            await Closed.Invoke(sender, ex);
+            Connection?.InvokeAsync(methodName, args);
         }
-
-        #endregion
 
 
         #region INIT
@@ -78,7 +60,6 @@ namespace JourneyCore.Lib.System.Net
             await BuildConnection(servicePath);
             await ReadyWait();
             await ServerHandshake();
-            await BuildSynchroniser();
 
             Log.Information("Connection to game server completed successfully.");
         }
@@ -91,7 +72,6 @@ namespace JourneyCore.Lib.System.Net
             int tries = 0;
 
             while (!connected && tries < 5)
-            {
                 try
                 {
                     Connection = new HubConnectionBuilder().WithUrl($"{ServerUrl}/{servicePath}").Build();
@@ -120,28 +100,39 @@ namespace JourneyCore.Lib.System.Net
                         tries += 1;
                     }
                 }
-            }
-            
-            Connection.On<string>("ReceiveConnectionId", connectionId => { ConnectionId = connectionId; });
-            Connection.On<bool>("ReceiveServerStatus", status => { IsServerReady = status; });
+
+            On<string>("ReceiveConnectionId", connectionId => { ConnectionId = connectionId; });
+            On<bool>("ReceiveServerStatus", status => { IsServerReady = status; });
         }
 
         public async Task ReadyWait()
         {
+            Log.Information("Waiting for server ready flag...");
+
             while (!IsServerReady)
             {
-                Log.Information("Waiting for server ready flag...");
+                string retVal = await GetResponseAsync("gameservice/status");
+                bool readyStatus = false;
 
-                await Connection.InvokeAsync("RequestReadyStatus");
-                await Task.Delay(1000);
+                try
+                {
+                    readyStatus = JsonConvert.DeserializeObject<bool>(retVal);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex.Message);
+
+                    await Task.Delay(1000);
+                }
+
+                IsServerReady = readyStatus;
             }
 
             Log.Information("Received server ready flag.");
+            Log.Information("Requesting connection ID...");
 
             while (string.IsNullOrWhiteSpace(ConnectionId))
             {
-                Log.Information("Requesting connection ID...");
-
                 await Connection.InvokeAsync("RequestConnectionId");
                 await Task.Delay(100);
             }
@@ -156,7 +147,8 @@ namespace JourneyCore.Lib.System.Net
             EncryptionTicket localTicket = new EncryptionTicket(CryptoService.PublicKey, CryptoService.IV);
 
             string retVal =
-                await GetResponseAsync($"gameservice/security/handshake?id={ConnectionId}&htmlSafeBase64Ticket={localTicket.ConvertToHtmlSafeBase64()}");
+                await GetResponseAsync(
+                    $"gameservice/security/handshake?id={ConnectionId}&htmlSafeBase64Ticket={localTicket.ConvertToHtmlSafeBase64()}");
             EncryptionTicket remoteTicket;
 
             try
@@ -177,17 +169,26 @@ namespace JourneyCore.Lib.System.Net
             Log.Information("Encryption ticket received from server, handshake complete.");
         }
 
-        private async Task BuildSynchroniser()
+        #endregion
+
+
+        #region EVENTS
+
+        public event AsyncEventHandler<string> FatalExit;
+        public event AsyncEventHandler<Exception> Closed;
+
+        private async Task OnFatalExit(object sender, string fatalityDescription)
         {
-            Log.Information("Requesting server tick interval...");
+            if (FatalExit == null) return;
 
-            int tickRate = await GetServerTickInterval();
+            await FatalExit.Invoke(sender, fatalityDescription);
+        }
 
-            StateUpdater = new ServerStateUpdater(tickRate);
-            StateUpdater.SyncCallback += async (sender, args) =>
-            {
-                await Connection.InvokeAsync("ReceiveUpdatePackages", args);
-            };
+        private async Task OnClosed(object sender, Exception ex)
+        {
+            if (Closed == null) return;
+
+            await Closed.Invoke(sender, ex);
         }
 
         #endregion
@@ -207,10 +208,7 @@ namespace JourneyCore.Lib.System.Net
             string retVal = await GetResponseAsync("gameservice/tickrate");
             int tickRate = JsonConvert.DeserializeObject<int>(retVal);
 
-            if (tickRate > 0)
-            {
-                return tickRate;
-            }
+            if (tickRate > 0) return tickRate;
 
             await OnFatalExit(this,
                 "Request for server tick interval returned an illegal value. Aborting game launch.");

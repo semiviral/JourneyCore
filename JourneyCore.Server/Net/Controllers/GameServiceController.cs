@@ -9,12 +9,12 @@ namespace JourneyCore.Server.Net.Controllers
 {
     public class GameServiceController : Controller
     {
-        private IGameService GameService { get; }
-
         public GameServiceController(IGameService gameService)
         {
             GameService = gameService;
         }
+
+        private IGameService GameService { get; }
 
         [HttpGet("gameservice/status")]
         public IActionResult GetStatus()
@@ -25,7 +25,8 @@ namespace JourneyCore.Server.Net.Controllers
         [HttpGet("gameservice/security/handshake")]
         public IActionResult GetDiffieHellmanKeys(string id, string htmlSafeBase64Ticket)
         {
-            return new JsonResult(GameService.RegisterEncryptedConnection(id, EncryptionTicket.ConvertFromHtmlSafeBase64(htmlSafeBase64Ticket)));
+            return new JsonResult(GameService.RegisterEncryptedConnection(id,
+                EncryptionTicket.ConvertFromHtmlSafeBase64(htmlSafeBase64Ticket)));
         }
 
         [HttpGet("gameservice/tilesets")]

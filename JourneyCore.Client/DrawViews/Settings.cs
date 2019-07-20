@@ -9,13 +9,13 @@ namespace JourneyCore.Client.DrawViews
 {
     public class Settings
     {
-        private GameWindow GameWindow { get; }
-        private DrawView AppliedDrawView { get; set; }
-
         public Settings(GameWindow gameWindow)
         {
             GameWindow = gameWindow;
         }
+
+        private GameWindow GameWindow { get; }
+        private DrawView AppliedDrawView { get; set; }
 
         public void Initialise()
         {
@@ -27,14 +27,15 @@ namespace JourneyCore.Client.DrawViews
         {
             GameWindow.CreateDrawView(new DrawView(DrawViewLayer.Settings,
                 new View(new FloatRect(0f, 0f, GameWindow.Size.X, GameWindow.Size.Y))
-                    { Viewport = new FloatRect(0f, 0f, 1f, 1f) }));
+                    {Viewport = new FloatRect(0f, 0f, 1f, 1f)}));
             AppliedDrawView = GameWindow.GetDrawView(DrawViewLayer.Settings);
         }
 
         private void PopulateSettingsView()
         {
             GameWindow.AddDrawItem(DrawViewLayer.Settings, 0,
-                new DrawItem(new DrawObject(new RectangleShape((Vector2f)GameWindow.Size) { FillColor = new Color(0, 0, 0, 155) })));
+                new DrawItem(new DrawObject(new RectangleShape((Vector2f) GameWindow.Size)
+                    {FillColor = new Color(0, 0, 0, 155)})));
 
             Button increaseBrightness = CreateBrightnessIncreaseButton();
             GameWindow.AddDrawItem(DrawViewLayer.Settings, 10,
@@ -43,7 +44,7 @@ namespace JourneyCore.Client.DrawViews
             Button decreaseBrightness = CreateBrightnessDecreaseButton();
             GameWindow.AddDrawItem(DrawViewLayer.Settings, 10,
                 new DrawItem(new DrawObject(decreaseBrightness)));
-            
+
             Text vSyncText = CreateVSyncText();
             GameWindow.AddDrawItem(DrawViewLayer.Settings, 10, new DrawItem(new DrawObject(vSyncText)));
 
@@ -69,7 +70,7 @@ namespace JourneyCore.Client.DrawViews
             objectContainer.UIObjects.Add(increaseBrightness);
             objectContainer.UIObjects.Add(decreaseBrightness);
             objectContainer.UIObjects.Add(vSyncContainer);
-            
+
             GameWindow.SubscribeUiObject(objectContainer, null);
 
             vSyncContainer.Size = vSyncText.Size + vSyncButton.Size + new Vector2u(30, 0);

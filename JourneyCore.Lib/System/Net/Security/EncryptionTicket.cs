@@ -7,14 +7,14 @@ namespace JourneyCore.Lib.System.Net.Security
 {
     public class EncryptionTicket
     {
-        public byte[] PublicKey { get; }
-        public byte[] IV { get; }
-
         public EncryptionTicket(byte[] publicKey, byte[] iv)
         {
             PublicKey = publicKey;
             IV = iv;
         }
+
+        public byte[] PublicKey { get; }
+        public byte[] IV { get; }
 
         public string ConvertToHtmlSafeBase64()
         {
@@ -23,7 +23,8 @@ namespace JourneyCore.Lib.System.Net.Security
 
         public static EncryptionTicket ConvertFromHtmlSafeBase64(string htmlSafeBase64Ticket)
         {
-            return JsonConvert.DeserializeObject<EncryptionTicket>(Encoding.UTF8.GetString(Convert.FromBase64String(htmlSafeBase64Ticket.HtmlDecodeBase64())));
+            return JsonConvert.DeserializeObject<EncryptionTicket>(
+                Encoding.UTF8.GetString(Convert.FromBase64String(htmlSafeBase64Ticket.HtmlDecodeBase64())));
         }
     }
 }

@@ -12,7 +12,6 @@ using JourneyCore.Lib.Game.Object.Collision;
 using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System.Loaders;
 using JourneyCore.Lib.System.Math;
-using JourneyCore.Lib.System.Net;
 using JourneyCore.Lib.System.Net.Security;
 using JourneyCore.Server.Net.SignalR.Contexts;
 using Newtonsoft.Json;
@@ -32,24 +31,7 @@ namespace JourneyCore.Server.Net.Services
             TileMaps = new Dictionary<string, Map>();
             Players = new List<Player>();
 
-            TickRate = (int)(1f / 30f * 1000f);
-        }
-
-        public void CollisionCheck()
-        {
-            foreach (Map map in TileMaps.Values)
-            {
-                foreach (CollisionQuad mobileCollider in map.Colliders.Where(collider => collider.Mobile))
-                {
-                    foreach (CollisionQuad quad in map.Colliders.Where(collider => !collider.Mobile))
-                    {
-                        foreach (Vector2f displacement in GraphMath.DiagnasticCollision(mobileCollider, quad))
-                        {
-                            mobileCollider.FlagCollision(this, displacement);
-                        }
-                    }
-                }
-            }
+            TickRate = (int) (1f / 30f * 1000f);
         }
 
         public DiffieHellmanMessagePackage PackageMessage(string connectionId, byte[] secretMessage)
@@ -69,14 +51,32 @@ namespace JourneyCore.Server.Net.Services
             await GameClientContext.SendConnectionId(connectionId);
         }
 
-        public Task ReceiveUpdatePackages(string connectionId, List<UpdatePackage> updatePackages)
+        public async Task ReceivePlayerMovement(string connectionId, Vector2f movement)
         {
-            foreach (UpdatePackage pacakage in updatePackages)
-            {
-                if (pacakage.UpdateType != StateUpdateType.Position) { }
-            }
+            Players.First().Position += movement;
+
+            foreach (Vector2f vector in CollisionCheck(Players.First())) Players.First().Position += vector;
+
+            await GameClientContext.PlayerPositionModification(connectionId, Players.First().Position);
+        }
+
+        public Task ReceivePlayerRotation(string connectionId, float rotation)
+        {
+            // todo implement this
 
             return Task.CompletedTask;
+        }
+
+        private List<Vector2f> CollisionCheck(Player player)
+        {
+            Map map = TileMaps.First().Value;
+
+            List<Vector2f> collisionOperations = new List<Vector2f>();
+
+            foreach (CollisionQuad quad in map.Colliders.Where(collider => !collider.Mobile))
+                collisionOperations.AddRange(GraphMath.DiagnasticCollision(player.Collider, quad));
+
+            return collisionOperations;
         }
 
         #endregion
@@ -109,19 +109,15 @@ namespace JourneyCore.Server.Net.Services
         {
             foreach (string filePath in Directory.EnumerateFiles($@"{MapLoader.AssetRoot}/Images", "*.png",
                 SearchOption.AllDirectories))
-            {
                 TextureImages.Add(Path.GetFileNameWithoutExtension(filePath).ToLower(), File.ReadAllBytes(filePath));
-            }
         }
 
         private void InitialiseNonMapTileSets()
         {
             foreach (string filePath in Directory.EnumerateFiles($@"{MapLoader.AssetRoot}/TileSets", "*.json",
                 SearchOption.AllDirectories))
-            {
                 TileSets.Add(Path.GetFileNameWithoutExtension(filePath).ToLower(),
                     TileSetLoader.LoadTileSet(filePath, 0));
-            }
         }
 
         private void InitialiseTileMaps()
@@ -198,17 +194,12 @@ namespace JourneyCore.Server.Net.Services
 
             if (coords.X < 0 || coords.Y < 0 || coords.X > TileMaps[mapName].Layers[0].Map.Length - 1 ||
                 coords.Y > TileMaps[mapName].Layers[0].Map[0].Length - 1)
-            {
                 return new DiffieHellmanMessagePackage(CryptoServices[id].PublicKey,
                     await CryptoServices[id]
                         .EncryptAsync(JsonConvert.SerializeObject(
                             new IndexOutOfRangeException($"Specified index: {coords} out of map range."))));
-            }
 
-            foreach (MapLayer layer in TileMaps[mapName].Layers)
-            {
-                chunks.Add(layer.Map[coords.X][coords.Y]);
-            }
+            foreach (MapLayer layer in TileMaps[mapName].Layers) chunks.Add(layer.Map[coords.X][coords.Y]);
 
             string serializedChunksList = JsonConvert.SerializeObject(chunks);
 
@@ -248,7 +239,9 @@ namespace JourneyCore.Server.Net.Services
 
                 Players.Add(player);
             }
-            catch (Exception ex) { }
+            catch (Exception)
+            {
+            }
 
             Status = true;
 

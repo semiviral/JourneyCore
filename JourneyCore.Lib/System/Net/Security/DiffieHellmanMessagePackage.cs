@@ -2,13 +2,13 @@
 {
     public class DiffieHellmanMessagePackage
     {
-        public byte[] RemotePublicKey { get; }
-        public byte[] SecretMessage { get; }
-
         public DiffieHellmanMessagePackage(byte[] remotePublicKey, byte[] secretMessage)
         {
             RemotePublicKey = remotePublicKey;
             SecretMessage = secretMessage;
         }
+
+        public byte[] RemotePublicKey { get; }
+        public byte[] SecretMessage { get; }
     }
 }

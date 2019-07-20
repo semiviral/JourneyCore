@@ -6,13 +6,9 @@ namespace JourneyCore.Lib.Game.Environment.Metadata
 {
     public class TileMetadata
     {
-        public int Gid { get; set; }
-        public string Type { get; set; }
-        public IntRect TextureRect { get; set; }
-        public Color MiniMapColor { get; set; }
-        public List<CollisionQuad> Colliders { get; set; }
-
-        public TileMetadata() { }
+        public TileMetadata()
+        {
+        }
 
         public TileMetadata(int gid, string type, IntRect textureRect, Color miniMapColor,
             List<CollisionQuad> colliders) :
@@ -28,5 +24,11 @@ namespace JourneyCore.Lib.Game.Environment.Metadata
             TextureRect = textureRect;
             MiniMapColor = miniMapColor;
         }
+
+        public int Gid { get; set; }
+        public string Type { get; set; }
+        public IntRect TextureRect { get; set; }
+        public Color MiniMapColor { get; set; }
+        public List<CollisionQuad> Colliders { get; set; }
     }
 }

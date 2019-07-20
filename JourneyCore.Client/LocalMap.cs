@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using JourneyCore.Lib.Display;
@@ -7,8 +6,6 @@ using JourneyCore.Lib.Display.Component;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
 using JourneyCore.Lib.Game.Environment.Tiling;
-using JourneyCore.Lib.Game.Object.Collision;
-using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System.Loaders;
 using JourneyCore.Lib.System.Math;
 using SFML.Graphics;
@@ -21,6 +18,18 @@ namespace JourneyCore.Client
     {
         private readonly Minimap _Minimap;
         private readonly VertexArray _VArray;
+
+        public LocalMap(byte[] mapImage)
+        {
+            VArrayLock = MinimapVArrayLock = new object();
+
+            Image = mapImage;
+            RenderStates = new RenderStates(new Texture(Image));
+            Metadata = new MapMetadata();
+            _VArray = new VertexArray(PrimitiveType.Quads);
+            _Minimap = new Minimap();
+        }
+
         private object VArrayLock { get; }
         private object MinimapVArrayLock { get; }
 
@@ -49,29 +58,18 @@ namespace JourneyCore.Client
                 }
             }
         }
-        
+
         public bool IsHovered { get; private set; }
-
-        public LocalMap(byte[] mapImage)
-        {
-            VArrayLock = MinimapVArrayLock = new object();
-
-            Image = mapImage;
-            RenderStates = new RenderStates(new Texture(Image));
-            Metadata = new MapMetadata();
-            _VArray = new VertexArray(PrimitiveType.Quads);
-            _Minimap = new Minimap();
-        }
 
         public void Update(MapMetadata mapMetadata)
         {
             Metadata = mapMetadata;
 
             VArray.Clear();
-            VArray.Resize((uint)(Metadata.Width * Metadata.Height * 4 * Metadata.LayerCount));
+            VArray.Resize((uint) (Metadata.Width * Metadata.Height * 4 * Metadata.LayerCount));
 
             Minimap.VArray.Clear();
-            Minimap.VArray.Resize((uint)(Metadata.Width * Metadata.Height * 4 * Metadata.LayerCount));
+            Minimap.VArray.Resize((uint) (Metadata.Width * Metadata.Height * 4 * Metadata.LayerCount));
         }
 
         public void LoadChunk(Chunk chunk)
@@ -86,7 +84,7 @@ namespace JourneyCore.Client
             {
                 Vector2f tileCoords = new Vector2f(chunk.Left * MapLoader.ChunkSize + x,
                     chunk.Top * MapLoader.ChunkSize + y);
-                    
+
                 AllocateTileToVArray(chunk[x][y], tileCoords, chunk.Layer);
             }
         }
@@ -101,20 +99,16 @@ namespace JourneyCore.Client
             coordinates *= MapLoader.ChunkSize;
 
             for (int layer = 0; layer < Metadata.LayerCount; layer++)
+            for (int x = 0; x < MapLoader.ChunkSize; x++)
+            for (int y = 0; y < MapLoader.ChunkSize; y++)
             {
-                for (int x = 0; x < MapLoader.ChunkSize; x++)
-                {
-                    for (int y = 0; y < MapLoader.ChunkSize; y++)
-                    {
-                        uint index = (uint)((((int)coordinates.Y + y) * Metadata.Width + (int)coordinates.X + x) * 4 +
-                                            layer * (VArray.VertexCount / Metadata.LayerCount));
+                uint index = (uint) ((((int) coordinates.Y + y) * Metadata.Width + (int) coordinates.X + x) * 4 +
+                                     layer * (VArray.VertexCount / Metadata.LayerCount));
 
-                        VArray[index + 0] = new Vertex();
-                        VArray[index + 1] = new Vertex();
-                        VArray[index + 2] = new Vertex();
-                        VArray[index + 3] = new Vertex();
-                    }
-                }
+                VArray[index + 0] = new Vertex();
+                VArray[index + 1] = new Vertex();
+                VArray[index + 2] = new Vertex();
+                VArray[index + 3] = new Vertex();
             }
         }
 
@@ -124,9 +118,17 @@ namespace JourneyCore.Client
         public event EventHandler<MouseMoveEventArgs> Exited;
         public event EventHandler<MouseWheelScrollEventArgs> Scrolled;
 
-        public void OnParentResized(object sender, SizeEventArgs args) { }
-        public void OnMouseMoved(object sender, MouseMoveEventArgs args) { }
-        public void OnMouseScrolled(object sender, MouseWheelScrollEventArgs args) { }
+        public void OnParentResized(object sender, SizeEventArgs args)
+        {
+        }
+
+        public void OnMouseMoved(object sender, MouseMoveEventArgs args)
+        {
+        }
+
+        public void OnMouseScrolled(object sender, MouseWheelScrollEventArgs args)
+        {
+        }
 
         #endregion
 
@@ -135,10 +137,7 @@ namespace JourneyCore.Client
 
         private void AllocateTileToVArray(TilePrimitive tilePrimitive, Vector2f tileCoords, int drawLayer)
         {
-            if (tilePrimitive.Gid == 0)
-            {
-                return;
-            }
+            if (tilePrimitive.Gid == 0) return;
 
             TileMetadata tileMetadata = GetTileMetadata(tilePrimitive.Gid);
 
@@ -157,8 +156,8 @@ namespace JourneyCore.Client
 
             QuadCoords textureCoords = GetTileTextureCoords(tilePrimitive);
 
-            uint index = (uint)((tileCoords.Y * Metadata.Width + tileCoords.X) * 4 +
-                                (drawLayer - 1) * (VArray.VertexCount / Metadata.LayerCount));
+            uint index = (uint) ((tileCoords.Y * Metadata.Width + tileCoords.X) * 4 +
+                                 (drawLayer - 1) * (VArray.VertexCount / Metadata.LayerCount));
 
             VArray[index + 0] = new Vertex(topLeft, textureCoords.TopLeft);
             VArray[index + 1] = new Vertex(topRight, textureCoords.TopRight);

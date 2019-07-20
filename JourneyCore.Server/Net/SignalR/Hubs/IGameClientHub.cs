@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using JourneyCore.Lib.System.Net;
+﻿using System.Threading.Tasks;
+using SFML.System;
 
 namespace JourneyCore.Server.Net.SignalR.Hubs
 {
@@ -8,6 +7,7 @@ namespace JourneyCore.Server.Net.SignalR.Hubs
     {
         Task RequestReadyStatus();
         Task RequestConnectionId();
-        Task ReceiveUpdatePackages(List<UpdatePackage> updatePackages);
+        Task ReceivePlayerMovement(Vector2f movement);
+        Task ReceivePlayerRotation(float rotation);
     }
 }

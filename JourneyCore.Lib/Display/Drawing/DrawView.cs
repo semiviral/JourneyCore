@@ -13,6 +13,16 @@ namespace JourneyCore.Lib.Display.Drawing
         public const float DefaultPlayerViewRotation = 180f;
         private float _ZoomFactor = 1.0f;
 
+        public DrawView(DrawViewLayer layer, View view, bool visible = false)
+        {
+            Layer = layer;
+            View = view;
+            Visible = visible;
+
+            DrawQueue = new SortedList<int, List<DrawItem>>();
+            DefaultSize = View.Size;
+        }
+
         public DrawViewLayer Layer { get; }
         public View View { get; }
         public bool Visible { get; set; }
@@ -31,16 +41,6 @@ namespace JourneyCore.Lib.Display.Drawing
             }
         }
 
-        public DrawView(DrawViewLayer layer, View view, bool visible = false)
-        {
-            Layer = layer;
-            View = view;
-            Visible = visible;
-
-            DrawQueue = new SortedList<int, List<DrawItem>>();
-            DefaultSize = View.Size;
-        }
-
         public Vector2f Position
         {
             get => View.Center;
@@ -56,20 +56,13 @@ namespace JourneyCore.Lib.Display.Drawing
         public void ModifyOpacity(sbyte alphaModifier)
         {
             foreach ((int layer, List<DrawItem> drawItems) in DrawQueue)
-            {
-                foreach (DrawItem drawItem in drawItems)
-                {
-                    drawItem.DrawSubject.ModifyOpacity?.Invoke(alphaModifier);
-                }
-            }
+            foreach (DrawItem drawItem in drawItems)
+                drawItem.DrawSubject.ModifyOpacity?.Invoke(alphaModifier);
         }
 
         public void AddDrawItem(int layer, DrawItem drawItem)
         {
-            if (!DrawQueue.Keys.Contains(layer))
-            {
-                DrawQueue.Add(layer, new List<DrawItem>());
-            }
+            if (!DrawQueue.Keys.Contains(layer)) DrawQueue.Add(layer, new List<DrawItem>());
 
             DrawQueue[layer].Add(drawItem);
         }
@@ -78,10 +71,7 @@ namespace JourneyCore.Lib.Display.Drawing
         {
             DateTime absoluteNow = DateTime.Now;
 
-            if (DrawQueue.Count <= 0)
-            {
-                return;
-            }
+            if (DrawQueue.Count <= 0) return;
 
             foreach ((int key, List<DrawItem> drawItemsPrelim) in DrawQueue)
             {
@@ -118,10 +108,7 @@ namespace JourneyCore.Lib.Display.Drawing
                         vArray[startIndex + 3] = vertices[3];
                     }
 
-                    if (vArray.VertexCount == 0)
-                    {
-                        continue;
-                    }
+                    if (vArray.VertexCount == 0) continue;
 
                     window.Draw(vArray, renderStates);
                 }

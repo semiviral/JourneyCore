@@ -6,12 +6,12 @@ namespace JourneyCore.Lib.System.Net
 {
     public static class RestClient
     {
-        private static HttpClient HttpClient { get; }
-
         static RestClient()
         {
             HttpClient = new HttpClient();
         }
+
+        private static HttpClient HttpClient { get; }
 
         public static async Task<string> GetAsync(string requestString, bool encode = false)
         {

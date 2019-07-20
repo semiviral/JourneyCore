@@ -52,7 +52,9 @@ namespace JourneyCore.Lib
         AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
         AttributeTargets.Delegate | AttributeTargets.Field | AttributeTargets.Event |
         AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.GenericParameter)]
-    public sealed class CanBeNullAttribute : Attribute { }
+    public sealed class CanBeNullAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     Indicates that the value of the marked element can never be <c>null</c>.
@@ -68,7 +70,9 @@ namespace JourneyCore.Lib
         AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
         AttributeTargets.Delegate | AttributeTargets.Field | AttributeTargets.Event |
         AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.GenericParameter)]
-    public sealed class NotNullAttribute : Attribute { }
+    public sealed class NotNullAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     Can be applied to symbols of types derived from IEnumerable as well as to symbols of Task
@@ -89,7 +93,9 @@ namespace JourneyCore.Lib
     [AttributeUsage(
         AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
         AttributeTargets.Delegate | AttributeTargets.Field)]
-    public sealed class ItemNotNullAttribute : Attribute { }
+    public sealed class ItemNotNullAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     Can be applied to symbols of types derived from IEnumerable as well as to symbols of Task
@@ -111,7 +117,9 @@ namespace JourneyCore.Lib
     [AttributeUsage(
         AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
         AttributeTargets.Delegate | AttributeTargets.Field)]
-    public sealed class ItemCanBeNullAttribute : Attribute { }
+    public sealed class ItemCanBeNullAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     Indicates that the marked method builds string by the format pattern and (optional) arguments.
@@ -133,9 +141,6 @@ namespace JourneyCore.Lib
         AttributeTargets.Property | AttributeTargets.Delegate)]
     public sealed class StringFormatMethodAttribute : Attribute
     {
-        [NotNull]
-        public string FormatParameterName { get; }
-
         /// <param name="formatParameterName">
         ///     Specifies which parameter of an annotated method should be treated as the format string
         /// </param>
@@ -143,6 +148,8 @@ namespace JourneyCore.Lib
         {
             FormatParameterName = formatParameterName;
         }
+
+        [NotNull] public string FormatParameterName { get; }
     }
 
     /// <summary>
@@ -179,13 +186,12 @@ namespace JourneyCore.Lib
         AllowMultiple = true)]
     public sealed class ValueProviderAttribute : Attribute
     {
-        [NotNull]
-        public string Name { get; }
-
         public ValueProviderAttribute([NotNull] string name)
         {
             Name = name;
         }
+
+        [NotNull] public string Name { get; }
     }
 
     /// <summary>
@@ -202,7 +208,9 @@ namespace JourneyCore.Lib
     /// </code>
     /// </example>
     [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class InvokerParameterNameAttribute : Attribute { }
+    public sealed class InvokerParameterNameAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     Indicates that the method is contained in a type that implements
@@ -264,15 +272,16 @@ namespace JourneyCore.Lib
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class NotifyPropertyChangedInvocatorAttribute : Attribute
     {
-        [CanBeNull]
-        public string ParameterName { get; }
-
-        public NotifyPropertyChangedInvocatorAttribute() { }
+        public NotifyPropertyChangedInvocatorAttribute()
+        {
+        }
 
         public NotifyPropertyChangedInvocatorAttribute([NotNull] string parameterName)
         {
             ParameterName = parameterName;
         }
+
+        [CanBeNull] public string ParameterName { get; }
     }
 
     /// <summary>
@@ -334,19 +343,20 @@ namespace JourneyCore.Lib
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public sealed class ContractAnnotationAttribute : Attribute
     {
-        [NotNull]
-        public string Contract { get; }
-
-        public bool ForceFullStates { get; }
-
         public ContractAnnotationAttribute([NotNull] string contract)
-            : this(contract, false) { }
+            : this(contract, false)
+        {
+        }
 
         public ContractAnnotationAttribute([NotNull] string contract, bool forceFullStates)
         {
             Contract = contract;
             ForceFullStates = forceFullStates;
         }
+
+        [NotNull] public string Contract { get; }
+
+        public bool ForceFullStates { get; }
     }
 
     /// <summary>
@@ -363,13 +373,16 @@ namespace JourneyCore.Lib
     [AttributeUsage(AttributeTargets.All)]
     public sealed class LocalizationRequiredAttribute : Attribute
     {
-        public bool Required { get; }
-        public LocalizationRequiredAttribute() : this(true) { }
+        public LocalizationRequiredAttribute() : this(true)
+        {
+        }
 
         public LocalizationRequiredAttribute(bool required)
         {
             Required = required;
         }
+
+        public bool Required { get; }
     }
 
     /// <summary>
@@ -395,7 +408,9 @@ namespace JourneyCore.Lib
     /// </code>
     /// </example>
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class | AttributeTargets.Struct)]
-    public sealed class CannotApplyEqualityOperatorAttribute : Attribute { }
+    public sealed class CannotApplyEqualityOperatorAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     When applied to a target attribute, specifies a requirement for any type marked
@@ -414,13 +429,12 @@ namespace JourneyCore.Lib
     [BaseTypeRequired(typeof(Attribute))]
     public sealed class BaseTypeRequiredAttribute : Attribute
     {
-        [NotNull]
-        public Type BaseType { get; }
-
         public BaseTypeRequiredAttribute([NotNull] Type baseType)
         {
             BaseType = baseType;
         }
+
+        [NotNull] public Type BaseType { get; }
     }
 
     /// <summary>
@@ -430,24 +444,30 @@ namespace JourneyCore.Lib
     [AttributeUsage(AttributeTargets.All)]
     public sealed class UsedImplicitlyAttribute : Attribute
     {
-        public ImplicitUseKindFlags UseKindFlags { get; }
-
-        public ImplicitUseTargetFlags TargetFlags { get; }
-
         public UsedImplicitlyAttribute()
-            : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default) { }
+            : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default)
+        {
+        }
 
         public UsedImplicitlyAttribute(ImplicitUseKindFlags useKindFlags)
-            : this(useKindFlags, ImplicitUseTargetFlags.Default) { }
+            : this(useKindFlags, ImplicitUseTargetFlags.Default)
+        {
+        }
 
         public UsedImplicitlyAttribute(ImplicitUseTargetFlags targetFlags)
-            : this(ImplicitUseKindFlags.Default, targetFlags) { }
+            : this(ImplicitUseKindFlags.Default, targetFlags)
+        {
+        }
 
         public UsedImplicitlyAttribute(ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags)
         {
             UseKindFlags = useKindFlags;
             TargetFlags = targetFlags;
         }
+
+        public ImplicitUseKindFlags UseKindFlags { get; }
+
+        public ImplicitUseTargetFlags TargetFlags { get; }
     }
 
     /// <summary>
@@ -461,26 +481,30 @@ namespace JourneyCore.Lib
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.GenericParameter | AttributeTargets.Parameter)]
     public sealed class MeansImplicitUseAttribute : Attribute
     {
-        [UsedImplicitly]
-        public ImplicitUseKindFlags UseKindFlags { get; }
-
-        [UsedImplicitly]
-        public ImplicitUseTargetFlags TargetFlags { get; }
-
         public MeansImplicitUseAttribute()
-            : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default) { }
+            : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default)
+        {
+        }
 
         public MeansImplicitUseAttribute(ImplicitUseKindFlags useKindFlags)
-            : this(useKindFlags, ImplicitUseTargetFlags.Default) { }
+            : this(useKindFlags, ImplicitUseTargetFlags.Default)
+        {
+        }
 
         public MeansImplicitUseAttribute(ImplicitUseTargetFlags targetFlags)
-            : this(ImplicitUseKindFlags.Default, targetFlags) { }
+            : this(ImplicitUseKindFlags.Default, targetFlags)
+        {
+        }
 
         public MeansImplicitUseAttribute(ImplicitUseKindFlags useKindFlags, ImplicitUseTargetFlags targetFlags)
         {
             UseKindFlags = useKindFlags;
             TargetFlags = targetFlags;
         }
+
+        [UsedImplicitly] public ImplicitUseKindFlags UseKindFlags { get; }
+
+        [UsedImplicitly] public ImplicitUseTargetFlags TargetFlags { get; }
     }
 
     /// <summary>
@@ -532,15 +556,16 @@ namespace JourneyCore.Lib
     [MeansImplicitUse(ImplicitUseTargetFlags.WithMembers)]
     public sealed class PublicAPIAttribute : Attribute
     {
-        [CanBeNull]
-        public string Comment { get; }
-
-        public PublicAPIAttribute() { }
+        public PublicAPIAttribute()
+        {
+        }
 
         public PublicAPIAttribute([NotNull] string comment)
         {
             Comment = comment;
         }
+
+        [CanBeNull] public string Comment { get; }
     }
 
     /// <summary>
@@ -549,7 +574,9 @@ namespace JourneyCore.Lib
     ///     If the parameter is an enumerable, indicates that it is enumerated while the method is executed.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class InstantHandleAttribute : Attribute { }
+    public sealed class InstantHandleAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     Indicates that a method does not make any observable state changes.
@@ -565,7 +592,9 @@ namespace JourneyCore.Lib
     /// </code>
     /// </example>
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class PureAttribute : Attribute { }
+    public sealed class PureAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     Indicates that the return value of the method invocation must be used.
@@ -581,15 +610,16 @@ namespace JourneyCore.Lib
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class MustUseReturnValueAttribute : Attribute
     {
-        [CanBeNull]
-        public string Justification { get; }
-
-        public MustUseReturnValueAttribute() { }
+        public MustUseReturnValueAttribute()
+        {
+        }
 
         public MustUseReturnValueAttribute([NotNull] string justification)
         {
             Justification = justification;
         }
+
+        [CanBeNull] public string Justification { get; }
     }
 
     /// <summary>
@@ -613,7 +643,9 @@ namespace JourneyCore.Lib
         AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Parameter | AttributeTargets.Method |
         AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct |
         AttributeTargets.GenericParameter)]
-    public sealed class ProvidesContextAttribute : Attribute { }
+    public sealed class ProvidesContextAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     Indicates that a parameter is a path to a file or a folder within a web project.
@@ -622,15 +654,16 @@ namespace JourneyCore.Lib
     [AttributeUsage(AttributeTargets.Parameter)]
     public sealed class PathReferenceAttribute : Attribute
     {
-        [CanBeNull]
-        public string BasePath { get; }
-
-        public PathReferenceAttribute() { }
+        public PathReferenceAttribute()
+        {
+        }
 
         public PathReferenceAttribute([NotNull] [PathReference] string basePath)
         {
             BasePath = basePath;
         }
+
+        [CanBeNull] public string BasePath { get; }
     }
 
     /// <summary>
@@ -657,7 +690,9 @@ namespace JourneyCore.Lib
     /// </code>
     /// </example>
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class SourceTemplateAttribute : Attribute { }
+    public sealed class SourceTemplateAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     Allows specifying a macro for a parameter of a <see cref="SourceTemplateAttribute">source template</see>.
@@ -719,78 +754,72 @@ namespace JourneyCore.Lib
         true)]
     public sealed class AspMvcAreaMasterLocationFormatAttribute : Attribute
     {
-        [NotNull]
-        public string Format { get; }
-
         public AspMvcAreaMasterLocationFormatAttribute([NotNull] string format)
         {
             Format = format;
         }
+
+        [NotNull] public string Format { get; }
     }
 
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple =
         true)]
     public sealed class AspMvcAreaPartialViewLocationFormatAttribute : Attribute
     {
-        [NotNull]
-        public string Format { get; }
-
         public AspMvcAreaPartialViewLocationFormatAttribute([NotNull] string format)
         {
             Format = format;
         }
+
+        [NotNull] public string Format { get; }
     }
 
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple =
         true)]
     public sealed class AspMvcAreaViewLocationFormatAttribute : Attribute
     {
-        [NotNull]
-        public string Format { get; }
-
         public AspMvcAreaViewLocationFormatAttribute([NotNull] string format)
         {
             Format = format;
         }
+
+        [NotNull] public string Format { get; }
     }
 
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple =
         true)]
     public sealed class AspMvcMasterLocationFormatAttribute : Attribute
     {
-        [NotNull]
-        public string Format { get; }
-
         public AspMvcMasterLocationFormatAttribute([NotNull] string format)
         {
             Format = format;
         }
+
+        [NotNull] public string Format { get; }
     }
 
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple =
         true)]
     public sealed class AspMvcPartialViewLocationFormatAttribute : Attribute
     {
-        [NotNull]
-        public string Format { get; }
-
         public AspMvcPartialViewLocationFormatAttribute([NotNull] string format)
         {
             Format = format;
         }
+
+        [NotNull] public string Format { get; }
     }
 
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple =
         true)]
     public sealed class AspMvcViewLocationFormatAttribute : Attribute
     {
-        [NotNull]
-        public string Format { get; }
-
         public AspMvcViewLocationFormatAttribute([NotNull] string format)
         {
             Format = format;
         }
+
+        [NotNull] public string Format { get; }
     }
 
     /// <summary>
@@ -803,15 +832,16 @@ namespace JourneyCore.Lib
                     AttributeTargets.Property)]
     public sealed class AspMvcActionAttribute : Attribute
     {
-        [CanBeNull]
-        public string AnonymousProperty { get; }
-
-        public AspMvcActionAttribute() { }
+        public AspMvcActionAttribute()
+        {
+        }
 
         public AspMvcActionAttribute([NotNull] string anonymousProperty)
         {
             AnonymousProperty = anonymousProperty;
         }
+
+        [CanBeNull] public string AnonymousProperty { get; }
     }
 
     /// <summary>
@@ -822,15 +852,16 @@ namespace JourneyCore.Lib
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
     public sealed class AspMvcAreaAttribute : Attribute
     {
-        [CanBeNull]
-        public string AnonymousProperty { get; }
-
-        public AspMvcAreaAttribute() { }
+        public AspMvcAreaAttribute()
+        {
+        }
 
         public AspMvcAreaAttribute([NotNull] string anonymousProperty)
         {
             AnonymousProperty = anonymousProperty;
         }
+
+        [CanBeNull] public string AnonymousProperty { get; }
     }
 
     /// <summary>
@@ -843,15 +874,16 @@ namespace JourneyCore.Lib
                     AttributeTargets.Property)]
     public sealed class AspMvcControllerAttribute : Attribute
     {
-        [CanBeNull]
-        public string AnonymousProperty { get; }
-
-        public AspMvcControllerAttribute() { }
+        public AspMvcControllerAttribute()
+        {
+        }
 
         public AspMvcControllerAttribute([NotNull] string anonymousProperty)
         {
             AnonymousProperty = anonymousProperty;
         }
+
+        [CanBeNull] public string AnonymousProperty { get; }
     }
 
     /// <summary>
@@ -859,14 +891,18 @@ namespace JourneyCore.Lib
     ///     for custom wrappers similar to <c>System.Web.Mvc.Controller.View(String, String)</c>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-    public sealed class AspMvcMasterAttribute : Attribute { }
+    public sealed class AspMvcMasterAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     ASP.NET MVC attribute. Indicates that the marked parameter is an MVC model type. Use this attribute
     ///     for custom wrappers similar to <c>System.Web.Mvc.Controller.View(String, Obj)</c>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class AspMvcModelTypeAttribute : Attribute { }
+    public sealed class AspMvcModelTypeAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter is an MVC
@@ -876,13 +912,17 @@ namespace JourneyCore.Lib
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method | AttributeTargets.Field |
                     AttributeTargets.Property)]
-    public sealed class AspMvcPartialViewAttribute : Attribute { }
+    public sealed class AspMvcPartialViewAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     ASP.NET MVC attribute. Allows disabling inspections for MVC views within a class or a method.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-    public sealed class AspMvcSuppressViewErrorAttribute : Attribute { }
+    public sealed class AspMvcSuppressViewErrorAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     ASP.NET MVC attribute. Indicates that a parameter is an MVC display template.
@@ -890,7 +930,9 @@ namespace JourneyCore.Lib
     ///     <c>System.Web.Mvc.Html.DisplayExtensions.DisplayForModel(HtmlHelper, String)</c>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-    public sealed class AspMvcDisplayTemplateAttribute : Attribute { }
+    public sealed class AspMvcDisplayTemplateAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     ASP.NET MVC attribute. Indicates that the marked parameter is an MVC editor template.
@@ -898,7 +940,9 @@ namespace JourneyCore.Lib
     ///     <c>System.Web.Mvc.Html.EditorExtensions.EditorForModel(HtmlHelper, String)</c>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-    public sealed class AspMvcEditorTemplateAttribute : Attribute { }
+    public sealed class AspMvcEditorTemplateAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     ASP.NET MVC attribute. Indicates that the marked parameter is an MVC template.
@@ -906,7 +950,9 @@ namespace JourneyCore.Lib
     ///     <c>System.ComponentModel.DataAnnotations.UIHintAttribute(System.String)</c>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-    public sealed class AspMvcTemplateAttribute : Attribute { }
+    public sealed class AspMvcTemplateAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter
@@ -916,14 +962,18 @@ namespace JourneyCore.Lib
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method | AttributeTargets.Field |
                     AttributeTargets.Property)]
-    public sealed class AspMvcViewAttribute : Attribute { }
+    public sealed class AspMvcViewAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter
     ///     is an MVC view component name.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-    public sealed class AspMvcViewComponentAttribute : Attribute { }
+    public sealed class AspMvcViewComponentAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter
@@ -931,7 +981,9 @@ namespace JourneyCore.Lib
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method | AttributeTargets.Field |
                     AttributeTargets.Property)]
-    public sealed class AspMvcViewComponentViewAttribute : Attribute { }
+    public sealed class AspMvcViewComponentViewAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     ASP.NET MVC attribute. When applied to a parameter of an attribute,
@@ -947,32 +999,34 @@ namespace JourneyCore.Lib
     /// </code>
     /// </example>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property)]
-    public sealed class AspMvcActionSelectorAttribute : Attribute { }
+    public sealed class AspMvcActionSelectorAttribute : Attribute
+    {
+    }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.Field)]
     public sealed class HtmlElementAttributesAttribute : Attribute
     {
-        [CanBeNull]
-        public string Name { get; }
-
-        public HtmlElementAttributesAttribute() { }
+        public HtmlElementAttributesAttribute()
+        {
+        }
 
         public HtmlElementAttributesAttribute([NotNull] string name)
         {
             Name = name;
         }
+
+        [CanBeNull] public string Name { get; }
     }
 
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
     public sealed class HtmlAttributeValueAttribute : Attribute
     {
-        [NotNull]
-        public string Name { get; }
-
         public HtmlAttributeValueAttribute([NotNull] string name)
         {
             Name = name;
         }
+
+        [NotNull] public string Name { get; }
     }
 
     /// <summary>
@@ -981,7 +1035,9 @@ namespace JourneyCore.Lib
     ///     <c>System.Web.WebPages.WebPageBase.RenderSection(String)</c>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method)]
-    public sealed class RazorSectionAttribute : Attribute { }
+    public sealed class RazorSectionAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     Indicates how method, constructor invocation, or property access
@@ -1015,12 +1071,12 @@ namespace JourneyCore.Lib
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property)]
     public sealed class CollectionAccessAttribute : Attribute
     {
-        public CollectionAccessType CollectionAccessType { get; }
-
         public CollectionAccessAttribute(CollectionAccessType collectionAccessType)
         {
             CollectionAccessType = collectionAccessType;
         }
+
+        public CollectionAccessType CollectionAccessType { get; }
     }
 
     /// <summary>
@@ -1049,7 +1105,9 @@ namespace JourneyCore.Lib
     ///     <see cref="AssertionConditionAttribute" /> attribute.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class AssertionMethodAttribute : Attribute { }
+    public sealed class AssertionMethodAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     Indicates the condition parameter of the assertion method. The method itself should be
@@ -1059,12 +1117,12 @@ namespace JourneyCore.Lib
     [AttributeUsage(AttributeTargets.Parameter)]
     public sealed class AssertionConditionAttribute : Attribute
     {
-        public AssertionConditionType ConditionType { get; }
-
         public AssertionConditionAttribute(AssertionConditionType conditionType)
         {
             ConditionType = conditionType;
         }
+
+        public AssertionConditionType ConditionType { get; }
     }
 
     /// <summary>
@@ -1092,7 +1150,9 @@ namespace JourneyCore.Lib
     /// </summary>
     [Obsolete("Use [ContractAnnotation('=> halt')] instead")]
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class TerminatesProgramAttribute : Attribute { }
+    public sealed class TerminatesProgramAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     Indicates that method is pure LINQ method, with postponed enumeration (like Enumerable.Select,
@@ -1100,7 +1160,9 @@ namespace JourneyCore.Lib
     ///     of delegate type by analyzing LINQ method chains.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class LinqTunnelAttribute : Attribute { }
+    public sealed class LinqTunnelAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     Indicates that IEnumerable passed as a parameter is not enumerated.
@@ -1121,13 +1183,17 @@ namespace JourneyCore.Lib
     /// </code>
     /// </example>
     [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class NoEnumerationAttribute : Attribute { }
+    public sealed class NoEnumerationAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     Indicates that the marked parameter is a regular expression pattern.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class RegexPatternAttribute : Attribute { }
+    public sealed class RegexPatternAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     Prevents the Member Reordering feature from tossing members of the marked class.
@@ -1137,14 +1203,18 @@ namespace JourneyCore.Lib
     /// </remarks>
     [AttributeUsage(
         AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct | AttributeTargets.Enum)]
-    public sealed class NoReorderAttribute : Attribute { }
+    public sealed class NoReorderAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     XAML attribute. Indicates the type that has <c>ItemsSource</c> property and should be treated
     ///     as <c>ItemsControl</c>-derived type, to enable inner items <c>DataContext</c> type resolve.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class XamlItemsControlAttribute : Attribute { }
+    public sealed class XamlItemsControlAttribute : Attribute
+    {
+    }
 
     /// <summary>
     ///     XAML attribute. Indicates the property of some <c>BindingBase</c>-derived type, that
@@ -1156,105 +1226,100 @@ namespace JourneyCore.Lib
     ///     marked with the <see cref="XamlItemsControlAttribute" /> attribute.
     /// </remarks>
     [AttributeUsage(AttributeTargets.Property)]
-    public sealed class XamlItemBindingOfItemsControlAttribute : Attribute { }
+    public sealed class XamlItemBindingOfItemsControlAttribute : Attribute
+    {
+    }
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public sealed class AspChildControlTypeAttribute : Attribute
     {
-        [NotNull]
-        public string TagName { get; }
-
-        [NotNull]
-        public Type ControlType { get; }
-
         public AspChildControlTypeAttribute([NotNull] string tagName, [NotNull] Type controlType)
         {
             TagName = tagName;
             ControlType = controlType;
         }
+
+        [NotNull] public string TagName { get; }
+
+        [NotNull] public Type ControlType { get; }
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
-    public sealed class AspDataFieldAttribute : Attribute { }
+    public sealed class AspDataFieldAttribute : Attribute
+    {
+    }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
-    public sealed class AspDataFieldsAttribute : Attribute { }
+    public sealed class AspDataFieldsAttribute : Attribute
+    {
+    }
 
     [AttributeUsage(AttributeTargets.Property)]
-    public sealed class AspMethodPropertyAttribute : Attribute { }
+    public sealed class AspMethodPropertyAttribute : Attribute
+    {
+    }
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public sealed class AspRequiredAttributeAttribute : Attribute
     {
-        [NotNull]
-        public string Attribute { get; }
-
         public AspRequiredAttributeAttribute([NotNull] string attribute)
         {
             Attribute = attribute;
         }
+
+        [NotNull] public string Attribute { get; }
     }
 
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class AspTypePropertyAttribute : Attribute
     {
-        public bool CreateConstructorReferences { get; }
-
         public AspTypePropertyAttribute(bool createConstructorReferences)
         {
             CreateConstructorReferences = createConstructorReferences;
         }
+
+        public bool CreateConstructorReferences { get; }
     }
 
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public sealed class RazorImportNamespaceAttribute : Attribute
     {
-        [NotNull]
-        public string Name { get; }
-
         public RazorImportNamespaceAttribute([NotNull] string name)
         {
             Name = name;
         }
+
+        [NotNull] public string Name { get; }
     }
 
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public sealed class RazorInjectionAttribute : Attribute
     {
-        [NotNull]
-        public string Type { get; }
-
-        [NotNull]
-        public string FieldName { get; }
-
         public RazorInjectionAttribute([NotNull] string type, [NotNull] string fieldName)
         {
             Type = type;
             FieldName = fieldName;
         }
+
+        [NotNull] public string Type { get; }
+
+        [NotNull] public string FieldName { get; }
     }
 
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public sealed class RazorDirectiveAttribute : Attribute
     {
-        [NotNull]
-        public string Directive { get; }
-
         public RazorDirectiveAttribute([NotNull] string directive)
         {
             Directive = directive;
         }
+
+        [NotNull] public string Directive { get; }
     }
 
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public sealed class RazorPageBaseTypeAttribute : Attribute
     {
-        [NotNull]
-        public string BaseType { get; }
-
-        [CanBeNull]
-        public string PageName { get; }
-
         public RazorPageBaseTypeAttribute([NotNull] string baseType)
         {
             BaseType = baseType;
@@ -1265,20 +1330,34 @@ namespace JourneyCore.Lib
             BaseType = baseType;
             PageName = pageName;
         }
+
+        [NotNull] public string BaseType { get; }
+
+        [CanBeNull] public string PageName { get; }
     }
 
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class RazorHelperCommonAttribute : Attribute { }
+    public sealed class RazorHelperCommonAttribute : Attribute
+    {
+    }
 
     [AttributeUsage(AttributeTargets.Property)]
-    public sealed class RazorLayoutAttribute : Attribute { }
+    public sealed class RazorLayoutAttribute : Attribute
+    {
+    }
 
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class RazorWriteLiteralMethodAttribute : Attribute { }
+    public sealed class RazorWriteLiteralMethodAttribute : Attribute
+    {
+    }
 
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class RazorWriteMethodAttribute : Attribute { }
+    public sealed class RazorWriteMethodAttribute : Attribute
+    {
+    }
 
     [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class RazorWriteMethodParameterAttribute : Attribute { }
+    public sealed class RazorWriteMethodParameterAttribute : Attribute
+    {
+    }
 }

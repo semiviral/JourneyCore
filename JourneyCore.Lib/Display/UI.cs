@@ -8,14 +8,6 @@ namespace JourneyCore.Lib.Display
 {
     public class Ui
     {
-        public static int HpRowWidth { get; } = 6;
-
-        private TileSetMetadata UiTileSet { get; }
-        private byte[] UiSpriteSheetImage { get; }
-        private Texture UiSpriteSheetTexture { get; }
-        public Sprite[] Hearts { get; private set; }
-        private double CurrentHp { get; set; }
-
         public Ui(TileSetMetadata uiTileSet, byte[] uiSpriteSheetImage)
         {
             UiSpriteSheetImage = uiSpriteSheetImage;
@@ -26,16 +18,21 @@ namespace JourneyCore.Lib.Display
             UiSpriteSheetTexture = new Texture(UiSpriteSheetImage);
         }
 
+        public static int HpRowWidth { get; } = 6;
+
+        private TileSetMetadata UiTileSet { get; }
+        private byte[] UiSpriteSheetImage { get; }
+        private Texture UiSpriteSheetTexture { get; }
+        public Sprite[] Hearts { get; private set; }
+        private double CurrentHp { get; set; }
+
         public void UpdateHealth(double newHp)
         {
             double difference = CurrentHp - newHp;
 
             CurrentHp = newHp;
 
-            if (Math.Abs(difference) < 5)
-            {
-                return;
-            }
+            if (Math.Abs(difference) < 5) return;
 
             CalculateHearts();
         }
@@ -56,20 +53,16 @@ namespace JourneyCore.Lib.Display
             // so therefore 2hp = 2 half hearts,
             // and 2 / 2 = 1, so 1 full heart
             // and 2 % 2 = 0, so 0 half hearts
-            int fullHearts = (int)CurrentHp / 2;
-            int halfHearts = (int)CurrentHp % 2;
+            int fullHearts = (int) CurrentHp / 2;
+            int halfHearts = (int) CurrentHp % 2;
 
             Sprite[] newHearts = new Sprite[fullHearts + halfHearts];
 
             for (int i = 0; i < fullHearts; i++)
-            {
                 newHearts[i] = new Sprite(UiSpriteSheetTexture, GetTextureRectByType("HeartFull"));
-            }
 
             if (halfHearts > 0)
-            {
                 newHearts[fullHearts] = new Sprite(UiSpriteSheetTexture, GetTextureRectByType("HeartHalf"));
-            }
 
             for (int i = 0; i < newHearts.Length; i++)
             {

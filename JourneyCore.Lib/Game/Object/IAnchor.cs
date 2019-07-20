@@ -1,11 +1,12 @@
 ﻿using System;
+using JourneyCore.Lib.Game.Object.Entity;
 using SFML.System;
 
 namespace JourneyCore.Lib.Game.Object
 {
     public interface IAnchor
     {
-        event EventHandler<Vector2f> PositionChanged;
+        event EventHandler<EntityPositionChangedEventArgs> PositionChanged;
         event EventHandler<float> RotationChanged;
 
         void AnchorItem(IAnchorable anchorableItem);

@@ -7,13 +7,13 @@ namespace JourneyCore.Client.DrawViews
 {
     public class EscapeMenu
     {
-        private GameWindow GameWindow { get; }
-        private DrawView AppliedDrawView { get; set; }
-
         public EscapeMenu(GameWindow gameWindow)
         {
             GameWindow = gameWindow;
         }
+
+        private GameWindow GameWindow { get; }
+        private DrawView AppliedDrawView { get; set; }
 
         public void Initialise()
         {
@@ -25,19 +25,18 @@ namespace JourneyCore.Client.DrawViews
         {
             GameWindow.CreateDrawView(new DrawView(DrawViewLayer.EscapeMenu,
                 new View(new FloatRect(0f, 0f, GameWindow.Size.X, GameWindow.Size.Y))
-                    { Viewport = new FloatRect(0f, 0f, 1f, 1f) }));
+                    {Viewport = new FloatRect(0f, 0f, 1f, 1f)}));
             AppliedDrawView = GameWindow.GetDrawView(DrawViewLayer.EscapeMenu);
         }
 
         private void PopulateEscapeMenuView()
         {
-
             Button settingsButton = CreateSettingsButton();
             GameWindow.AddDrawItem(DrawViewLayer.EscapeMenu, 10, new DrawItem(new DrawObject(settingsButton)));
 
             Button exitButton = CreateExitButton();
             GameWindow.AddDrawItem(DrawViewLayer.EscapeMenu, 10, new DrawItem(new DrawObject(exitButton)));
-            
+
             UIObjectContainer escapeMenuContainer = new UIObjectContainer
             {
                 HorizontalPositioning = UIObjectHorizontalPositioning.Middle,
@@ -47,7 +46,7 @@ namespace JourneyCore.Client.DrawViews
             };
             escapeMenuContainer.UIObjects.Add(settingsButton);
             escapeMenuContainer.UIObjects.Add(exitButton);
-            
+
             GameWindow.SubscribeUiObject(escapeMenuContainer, null);
         }
 

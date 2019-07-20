@@ -36,10 +36,7 @@ namespace JourneyCore.Lib.Game.Object.Entity
 
         public DrawItem FireProjectile(double centerRelativeMouseX, double centerRelativeMouseY, int tileWidth)
         {
-            if (!CanAttack)
-            {
-                return null;
-            }
+            if (!CanAttack) return null;
 
             ProjectileCooldown = DateTime.Now.AddMilliseconds(AttackCooldownValue);
 
@@ -52,19 +49,24 @@ namespace JourneyCore.Lib.Game.Object.Entity
             projectile.Graphic.Origin = new Vector2f(projectile.Graphic.TextureRect.Width / 2f,
                 projectile.Graphic.TextureRect.Height / 2f);
             projectile.Graphic.Position = Graphic.Position;
-            projectile.Graphic.Rotation = (float)angle + 180f % 360;
+            projectile.Graphic.Rotation = (float) angle + 180f % 360;
             projectile.Graphic.Scale = new Vector2f(0.35f, 0.35f);
 
             DrawItem projectileDrawItem = new DrawItem(
                 new DrawObject(projectile.Graphic, projectile.Graphic.GetVertices), ProjectileRenderStates, frameTime =>
                 {
-                    Vector2f movement = new Vector2f((float)GraphMath.SinFromDegrees(angle),
-                        (float)GraphMath.CosFromDegrees(angle) * -1f);
+                    Vector2f movement = new Vector2f((float) GraphMath.SinFromDegrees(angle),
+                        (float) GraphMath.CosFromDegrees(angle) * -1f);
 
                     projectile.MoveEntity(movement, tileWidth, frameTime);
                 }, projectile.TriggerAlive());
 
             return projectileDrawItem;
+        }
+
+        public void PositionModify(Vector2f offset)
+        {
+            Position += offset;
         }
 
         #region VARIABLES
@@ -73,14 +75,12 @@ namespace JourneyCore.Lib.Game.Object.Entity
 
         public string Guid { get; }
 
-        [JsonIgnore]
-        public Sprite Graphic { get; private set; }
+        [JsonIgnore] public Sprite Graphic { get; private set; }
 
         public byte[] TextureBytes { get; set; }
         public byte[] ProjectileTextureBytes { get; set; }
 
-        [JsonIgnore]
-        public RenderStates ProjectileRenderStates { get; private set; }
+        [JsonIgnore] public RenderStates ProjectileRenderStates { get; private set; }
 
         public long Lifetime { get; }
         public int AttackCooldownValue { get; }
@@ -103,20 +103,16 @@ namespace JourneyCore.Lib.Game.Object.Entity
             get => Graphic?.Position ?? new Vector2f(0f, 0f);
             set
             {
-                if (Graphic == null)
-                {
-                    return;
-                }
+                if (Graphic == null) return;
 
-                if (Graphic.Position == value)
-                {
-                    return;
-                }
+                if (Graphic.Position == value) return;
 
+                Vector2f oldPosition = new Vector2f(Graphic.Position.X, Graphic.Position.Y);
                 Graphic.Position = value;
 
                 NotifyPropertyChanged();
-                PositionChanged?.Invoke(this, Graphic.Position);
+                PositionChanged?.Invoke(this, new EntityPositionChangedEventArgs(oldPosition, Graphic.Position));
+                ;
             }
         }
 
@@ -125,15 +121,9 @@ namespace JourneyCore.Lib.Game.Object.Entity
             get => Graphic?.Rotation ?? 0f;
             set
             {
-                if (Graphic == null)
-                {
-                    return;
-                }
+                if (Graphic == null) return;
 
-                if (Math.Abs(Graphic.Rotation - value) < 0.0001)
-                {
-                    return;
-                }
+                if (Math.Abs(Graphic.Rotation - value) < 0.0001) return;
 
                 Graphic.Rotation = value;
 
@@ -152,10 +142,7 @@ namespace JourneyCore.Lib.Game.Object.Entity
             get => _Strength;
             set
             {
-                if (_Strength == value)
-                {
-                    return;
-                }
+                if (_Strength == value) return;
 
                 _Strength = value;
 
@@ -177,10 +164,7 @@ namespace JourneyCore.Lib.Game.Object.Entity
             get => _CurrentHp;
             set
             {
-                if (Math.Abs(_CurrentHp - value) < 0.01)
-                {
-                    return;
-                }
+                if (Math.Abs(_CurrentHp - value) < 0.01) return;
 
                 _CurrentHp = value;
 
@@ -197,7 +181,7 @@ namespace JourneyCore.Lib.Game.Object.Entity
         #region EVENT
 
         public event PropertyChangedEventHandler PropertyChanged;
-        public event EventHandler<Vector2f> PositionChanged;
+        public event EventHandler<EntityPositionChangedEventArgs> PositionChanged;
         public event EventHandler<float> RotationChanged;
         public event EventHandler<Vector2f> ChunkChanged;
 
@@ -206,18 +190,15 @@ namespace JourneyCore.Lib.Game.Object.Entity
             PropertyChanged?.Invoke(this, new StatedObjectPropertyChangedEventArgs(Guid, propertyName));
         }
 
-        private void CheckChunkChanged(object sender, Vector2f newPosition)
+        private void CheckChunkChanged(object sender, EntityPositionChangedEventArgs args)
         {
-            Vector2f chunkPosition = new Vector2f((int)newPosition.X / MapLoader.ChunkSize,
-                (int)newPosition.Y / MapLoader.ChunkSize);
+            if (args.NewPosition.X - args.OldPosition.X < 16 && args.NewPosition.Y - args.OldPosition.Y < 16) return;
 
-            if (!(Math.Abs(CurrentChunk.X - chunkPosition.X) > 1) && !(Math.Abs(CurrentChunk.Y - chunkPosition.Y) > 1))
-            {
-                return;
-            }
+            Vector2f chunkPosition = new Vector2f((int) args.NewPosition.X / MapLoader.ChunkSize,
+                (int) args.NewPosition.Y / MapLoader.ChunkSize);
 
             // rounds float values towards zero, ensuring remainders are dropped
-            CurrentChunk = new Vector2f((int)chunkPosition.X, (int)chunkPosition.Y);
+            CurrentChunk = new Vector2f((int) chunkPosition.X, (int) chunkPosition.Y);
 
             ChunkChanged?.Invoke(sender, CurrentChunk);
         }
@@ -249,10 +230,7 @@ namespace JourneyCore.Lib.Game.Object.Entity
 
         private void TryInitialiseCollider()
         {
-            if (Graphic == null)
-            {
-                return;
-            }
+            if (Graphic == null) return;
 
             _Collider.Scale = Graphic.Scale;
             _Collider.Mobile = true;
@@ -287,7 +265,6 @@ namespace JourneyCore.Lib.Game.Object.Entity
             Rotation = Graphic.TryRotation(rotation, elapsedTime, isClockwise);
         }
 
-
         public void AnchorItem(IAnchorable anchorableItem)
         {
             AnchorItem(anchorableItem, new Vector2f(0f, 0f));
@@ -303,7 +280,7 @@ namespace JourneyCore.Lib.Game.Object.Entity
         {
             anchorableItem.Position = Graphic.Position + positionOffset;
 
-            PositionChanged += (sender, position) => { anchorableItem.Position = position + positionOffset; };
+            PositionChanged += (sender, args) => { anchorableItem.Position = args.NewPosition + positionOffset; };
         }
 
         public void AnchorItemRotation(IAnchorable anchorableItem)

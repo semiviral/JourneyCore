@@ -12,7 +12,7 @@ namespace JourneyCore.Lib.Display.Component
         Vector2f Origin { get; set; }
 
         event EventHandler<SizeEventArgs> Resized;
-        
+
         IEnumerable<IUIObject> SubscribableObjects();
     }
 }

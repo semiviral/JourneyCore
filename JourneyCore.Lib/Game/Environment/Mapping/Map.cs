@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using JourneyCore.Lib.Game.Environment.Metadata;
@@ -13,6 +12,13 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
 {
     public class Map
     {
+        public Map()
+        {
+            Rand = new Random();
+            UsedTileSets = new List<TileSet>();
+            Colliders = new List<CollisionQuad>();
+        }
+
         private Random Rand { get; }
         public List<MapLayer> Layers { get; set; }
         public int Width { get; set; }
@@ -26,13 +32,6 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
         public float SpawnPointY { get; private set; }
         public List<TileSet> UsedTileSets { get; }
         public List<CollisionQuad> Colliders { get; }
-
-        public Map()
-        {
-            Rand = new Random();
-            UsedTileSets = new List<TileSet>();
-            Colliders = new List<CollisionQuad>();
-        }
 
 
         public List<Tile> GetTiles()
@@ -73,7 +72,7 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
 
         public List<MapLayer> BuildMap()
         {
-            Layers.ForEach(layer => layer.CreateMap((short)MapLoader.ChunkSize, (short)MapLoader.ChunkSize));
+            Layers.ForEach(layer => layer.CreateMap((short) MapLoader.ChunkSize, (short) MapLoader.ChunkSize));
 
             return Layers;
         }
@@ -81,45 +80,32 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
         public List<MapLayer> ProcessTiles()
         {
             foreach (Chunk chunk in Layers.SelectMany(layer => layer.Map).SelectMany(map => map))
-            {
                 for (int x = 0; x < chunk.Length; x++)
                 for (int y = 0; y < chunk[x].Length; y++)
                 {
-                    if (GetTile(chunk[x][y].Gid) == null)
-                    {
-                        continue;
-                    }
+                    if (GetTile(chunk[x][y].Gid) == null) continue;
 
                     if (GetTile(chunk[x][y].Gid).IsRandomizable)
-                    {
                         chunk[x][y] = RandomizeTile(GetTile(chunk[x][y].Gid)).ToPrimitive();
-                    }
 
-                    if (GetTile(chunk[x][y].Gid).IsRandomlyRotatable)
-                    {
-                        chunk[x][y].Rotation = Rand.Next(0, 3);
-                    }
+                    if (GetTile(chunk[x][y].Gid).IsRandomlyRotatable) chunk[x][y].Rotation = Rand.Next(0, 3);
 
                     List<TileMetadata> tileMetadatas = UsedTileSets.SelectMany(tileSet => tileSet.Tiles)
                         .Select(tile => tile.GetMetadata()).ToList();
 
                     Vector2f tileCoords = new Vector2f(chunk.Left * MapLoader.ChunkSize + x,
                         chunk.Top * MapLoader.ChunkSize + y);
-                        
+
                     AllocateTileCollisions(
                         tileMetadatas.FirstOrDefault(tileMetadata => tileMetadata.Gid == chunk[x][y].Gid), tileCoords);
                 }
-            }
 
             return Layers;
         }
 
         private void AllocateTileCollisions(TileMetadata tileMetadata, Vector2f tileCoords)
         {
-            if (tileMetadata?.Colliders == null)
-            {
-                return;
-            }
+            if (tileMetadata?.Colliders == null) return;
 
             foreach (CollisionQuad collider in tileMetadata.Colliders)
             {
@@ -138,24 +124,15 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
                 CustomProperty spawnPointX = GetProperty("SpawnPointX");
                 CustomProperty spawnPointY = GetProperty("SpawnPointY");
 
-                if (spawnPointX != null)
-                {
-                    SpawnPointX = float.Parse(spawnPointX.Value);
-                }
+                if (spawnPointX != null) SpawnPointX = float.Parse(spawnPointX.Value);
 
-                if (spawnPointY != null)
-                {
-                    SpawnPointY = float.Parse(spawnPointY.Value);
-                }
+                if (spawnPointY != null) SpawnPointY = float.Parse(spawnPointY.Value);
             }
         }
 
         private CustomProperty GetProperty(string propertyName)
         {
-            if (Properties == null)
-            {
-                return null;
-            }
+            if (Properties == null) return null;
 
             return !Properties.Any(property => property.Name.Equals(propertyName))
                 ? null
@@ -168,10 +145,7 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
 
         private Tile RandomizeTile(Tile subjectTile)
         {
-            if (subjectTile.Type == null)
-            {
-                return subjectTile;
-            }
+            if (subjectTile.Type == null) return subjectTile;
 
             return !subjectTile.IsRandomizable
                 ? subjectTile
@@ -184,39 +158,29 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
         {
             // optimizations to avoid useless iterating
 
-            if (candidates.Count < 1)
-            {
-                return default;
-            }
+            if (candidates.Count < 1) return default;
 
             // if only one sprite in list
-            if (candidates.Count == 1)
-            {
-                return candidates[0];
-            }
+            if (candidates.Count == 1) return candidates[0];
 
             // in case all have equal weights
             if (candidates.Select(tile => tile.Probability)
                 .All(weight => Math.Abs(weight - candidates[0].Probability) < 0.01))
-            {
                 return candidates[Rand.Next(0, candidates.Count)];
-            }
 
             // end optimizations
 
-            int totalWeight = candidates.Select(sprite => (int)(sprite.Probability * 100)).Sum();
+            int totalWeight = candidates.Select(sprite => (int) (sprite.Probability * 100)).Sum();
 
             Tile[] weightArray = new Tile[totalWeight];
 
             int iterations = 0;
             foreach (Tile tilePackage in candidates)
-            {
                 for (int j = 0; j < tilePackage.Probability * 100; j++)
                 {
                     weightArray[iterations] = tilePackage;
                     iterations += 1;
                 }
-            }
 
             int randSelection = Rand.Next(0, weightArray.Length);
             return weightArray[randSelection];

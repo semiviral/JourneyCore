@@ -15,10 +15,7 @@ namespace JourneyCore.Lib.System.Loaders
                 TileSet tileSet = JsonConvert.DeserializeObject<TileSet>(reader.ReadToEnd());
                 tileSet.TextureName = Path.GetFileNameWithoutExtension(tileSet.Image);
 
-                if (tileSet.Tiles == null)
-                {
-                    return tileSet;
-                }
+                if (tileSet.Tiles == null) return tileSet;
 
                 tileSet.Tiles.ForEach(tile => BuildTile(tileSet, tile, firstGid));
 

@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
+using SFML.System;
 
 namespace JourneyCore.Lib.System.Static
 {
@@ -6,15 +8,9 @@ namespace JourneyCore.Lib.System.Static
     {
         public static float LimitToRange(this float subject, float minimumRange, float maximumRange)
         {
-            if (subject > maximumRange)
-            {
-                return maximumRange;
-            }
+            if (subject > maximumRange) return maximumRange;
 
-            if (subject < minimumRange)
-            {
-                return minimumRange;
-            }
+            if (subject < minimumRange) return minimumRange;
 
             return subject;
         }
@@ -36,6 +32,13 @@ namespace JourneyCore.Lib.System.Static
             string paddingCharacters = new string('=', paddingCount);
 
             return $"{decodedBase64String}{paddingCharacters}";
+        }
+
+        public static Vector2f Sum(this IEnumerable<Vector2f> vectors)
+        {
+            Vector2f collapsed = new Vector2f(0f, 0f);
+
+            return vectors.Aggregate(collapsed, (current, vector) => current + vector);
         }
     }
 }

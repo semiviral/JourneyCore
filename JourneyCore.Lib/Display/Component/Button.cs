@@ -13,11 +13,6 @@ namespace JourneyCore.Lib.Display.Component
         protected Vector2f _ResizeFactor;
         protected Vector2u _Size;
 
-        public bool AutoSize { get; set; }
-        public bool IsPressed { get; set; }
-
-        public Func<bool> Activated { get; set; }
-
         public Button(Font defaultFont, string displayedText, bool autoSize, bool respectsCapture)
         {
             AutoSize = autoSize;
@@ -44,6 +39,11 @@ namespace JourneyCore.Lib.Display.Component
             RespectsCapture = respectsCapture;
         }
 
+        public bool AutoSize { get; set; }
+        public bool IsPressed { get; set; }
+
+        public Func<bool> Activated { get; set; }
+
         public void Draw(RenderTarget target, RenderStates states)
         {
             _BackgroundShape.Draw(target, states);
@@ -64,7 +64,7 @@ namespace JourneyCore.Lib.Display.Component
             set
             {
                 SetSize(value);
-                Resized?.Invoke(this, new SizeEventArgs(new SizeEvent { Width = _Size.X, Height = _Size.Y }));
+                Resized?.Invoke(this, new SizeEventArgs(new SizeEvent {Width = _Size.X, Height = _Size.Y}));
             }
         }
 
@@ -97,8 +97,8 @@ namespace JourneyCore.Lib.Display.Component
             {
                 FloatRect localBounds = newText.GetLocalBounds();
 
-                Size = new Vector2u((uint)(localBounds.Width + localBounds.Left),
-                    (uint)(localBounds.Height + localBounds.Top));
+                Size = new Vector2u((uint) (localBounds.Width + localBounds.Left),
+                    (uint) (localBounds.Height + localBounds.Top));
                 Origin = new Vector2f(Size.X, Size.Y) / 2f;
             }
 
@@ -117,8 +117,8 @@ namespace JourneyCore.Lib.Display.Component
 
         public void OnParentResized(object sender, SizeEventArgs args)
         {
-            _ResizeFactor = new Vector2f((float)args.Width / OriginalParentSize.X,
-                (float)args.Height / OriginalParentSize.Y);
+            _ResizeFactor = new Vector2f((float) args.Width / OriginalParentSize.X,
+                (float) args.Height / OriginalParentSize.Y);
         }
 
         public void OnMouseMoved(object sender, MouseMoveEventArgs args)
@@ -135,10 +135,7 @@ namespace JourneyCore.Lib.Display.Component
             }
             else
             {
-                if (!IsHovered)
-                {
-                    return;
-                }
+                if (!IsHovered) return;
 
                 IsHovered = false;
 
@@ -148,15 +145,9 @@ namespace JourneyCore.Lib.Display.Component
 
         public bool OnMousePressed(MouseButtonEventArgs args)
         {
-            if (!Activated())
-            {
-                return false;
-            }
+            if (!Activated()) return false;
 
-            if (args.Button != Mouse.Button.Left || !Activated() || !IsHovered)
-            {
-                return false;
-            }
+            if (args.Button != Mouse.Button.Left || !Activated() || !IsHovered) return false;
 
             IsPressed = true;
 
@@ -167,15 +158,9 @@ namespace JourneyCore.Lib.Display.Component
 
         public bool OnMouseReleased(MouseButtonEventArgs args)
         {
-            if (!Activated())
-            {
-                return false;
-            }
+            if (!Activated()) return false;
 
-            if (args.Button != Mouse.Button.Left || !Activated() || !IsPressed)
-            {
-                return false;
-            }
+            if (args.Button != Mouse.Button.Left || !Activated() || !IsPressed) return false;
 
             IsPressed = false;
 
@@ -191,8 +176,8 @@ namespace JourneyCore.Lib.Display.Component
 
         protected void SetSize(Vector2u size)
         {
-            BackgroundSprite.Scale = new Vector2f((float)size.X / BackgroundSprite.TextureRect.Width,
-                (float)size.Y / BackgroundSprite.TextureRect.Height);
+            BackgroundSprite.Scale = new Vector2f((float) size.X / BackgroundSprite.TextureRect.Width,
+                (float) size.Y / BackgroundSprite.TextureRect.Height);
             _BackgroundShape.Size = new Vector2f(size.X, size.Y);
 
             _Size = size;

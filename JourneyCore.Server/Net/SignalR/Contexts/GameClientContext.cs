@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using JourneyCore.Lib.System.Net.Security;
 using JourneyCore.Server.Net.SignalR.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using SFML.System;
@@ -25,9 +24,14 @@ namespace JourneyCore.Server.Net.SignalR.Contexts
             await HubContext.Clients.Client(connectionId).SendAsync("ReceiveConnectionId", connectionId);
         }
 
-        public async Task MovePlayer(string connectionId, Vector2f movement)
+        public async Task PlayerPositionModification(string connectionId, Vector2f newPosition)
         {
-            await HubContext.Clients.Client(connectionId).SendAsync("ReceivePlayerMovement", movement);
+            await HubContext.Clients.Client(connectionId).SendAsync("ReceivePlayerMovementModification", newPosition);
+        }
+
+        public async Task PlayerRotationModification(string connectionId, float newRotation)
+        {
+            await HubContext.Clients.Client(connectionId).SendAsync("ReceivePlayerRotationModification", newRotation);
         }
     }
 }

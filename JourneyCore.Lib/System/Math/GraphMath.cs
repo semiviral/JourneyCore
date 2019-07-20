@@ -1,9 +1,7 @@
 ﻿// resolves issue with using global::System.Math
 // within namespace JourneyCore.Lib.System.Math
 
-using System;
 using System.Collections.Generic;
-using System.Transactions;
 using JourneyCore.Lib.Game.Object.Collision;
 using SFML.Graphics;
 using SFML.System;
@@ -15,12 +13,12 @@ namespace JourneyCore.Lib.System.Math
     {
         public static int SquareLength(double x0, double y0, double x1, double y1)
         {
-            return SquareLength((int)x0, (int)y0, (int)x1, (int)y1);
+            return SquareLength((int) x0, (int) y0, (int) x1, (int) y1);
         }
 
         public static int SquareLength(float x0, float y0, float x1, float y1)
         {
-            return SquareLength((int)x0, (int)y0, (int)x1, (int)y1);
+            return SquareLength((int) x0, (int) y0, (int) x1, (int) y1);
         }
 
         public static int SquareLength(int x0, int y0, int x1, int y1)
@@ -49,8 +47,8 @@ namespace JourneyCore.Lib.System.Math
         public static Vector2f RotatePoint(Vector2f outerPoint, Vector2f centerPoint, float rotation)
         {
             double angleInRadians = rotation * (PI / 180);
-            float cosTheta = (float)Cos(angleInRadians);
-            float sinTheta = (float)Sin(angleInRadians);
+            float cosTheta = (float) Cos(angleInRadians);
+            float sinTheta = (float) Sin(angleInRadians);
 
             return new Vector2f(
                 cosTheta * (outerPoint.X - centerPoint.X) - sinTheta * (outerPoint.Y - centerPoint.Y) + centerPoint.X,
@@ -70,7 +68,7 @@ namespace JourneyCore.Lib.System.Math
                 LineSegment line1 = new LineSegment(quad1.CenterPoint, vertex);
 
                 Vector2f displacement = new Vector2f(0f, 0f);
-                
+
                 for (int j = 0; j < quad2.Vertices.Length; j++)
                 {
                     LineSegment line2 = new LineSegment(quad2.Vertices[j],
@@ -83,10 +81,7 @@ namespace JourneyCore.Lib.System.Math
                     float t2 = ((line1.Start.Y - line1.End.Y) * (line1.Start.X - line2.Start.X) +
                                 (line1.End.X - line1.Start.X) * (line1.Start.Y - line2.Start.Y)) / h;
 
-                    if (t1 < 0.0f || t1 >= 1.0f || t2 < 0.0f || t2 >= 1.0f)
-                    {
-                        continue;
-                    }
+                    if (t1 < 0.0f || t1 >= 1.0f || t2 < 0.0f || t2 >= 1.0f) continue;
 
                     displacement.X += (1.0f - t1) * (line1.End.X - line1.Start.X) * -1;
                     displacement.Y += (1.0f - t1) * (line1.End.Y - line1.Start.Y) * -1;

@@ -8,80 +8,9 @@ namespace JourneyCore.Lib.Game.Object.Collision
     public class CollisionQuad : ICollidable, IAnchorable
     {
         private Vector2f _Position;
-        private Vector2f _Size;
         private float _Rotation;
         private Vector2f _Scale;
-
-        public Vector2f Position
-        {
-            get => _Position;
-            set
-            {
-                if (_Position == value)
-                {
-                    return;
-                }
-
-                _Position = value;
-                UpdateShape();
-            }
-        }
-
-        public Vector2f Size
-        {
-            get => _Size;
-            set
-            {
-                if (_Size == value)
-                {
-                    return;
-                }
-
-                _Size = value;
-                UpdateShape();
-            }
-        }
-
-        public float Rotation
-        {
-            get => _Rotation;
-            set
-            {
-                if (_Rotation == value)
-                {
-                    return;
-                }
-
-                _Rotation = value; 
-                UpdateShape();
-            }
-        }
-
-        public Vector2f Scale
-        {
-            get => _Scale;
-            set
-            {
-                if (_Scale == value)
-                {
-                    return;
-                }
-
-                _Scale = value;
-                _Position = new Vector2f(_Position.X * _Scale.X, _Position.Y * _Scale.Y);
-                _Size = new Vector2f(_Size.X * _Scale.X, _Size.Y * _Scale.Y);
-
-                UpdateShape();
-            }
-        }
-
-
-        public Vector2f[] Vertices { get; private set; }
-        public Vector2f CenterPoint { get; private set; }
-
-        public bool Mobile { get; set; }
-
-        public event EventHandler<Vector2f> Colliding; 
+        private Vector2f _Size;
 
         public CollisionQuad()
         {
@@ -115,6 +44,66 @@ namespace JourneyCore.Lib.Game.Object.Collision
             UpdateShape();
         }
 
+        public Vector2f Size
+        {
+            get => _Size;
+            set
+            {
+                if (_Size == value) return;
+
+                _Size = value;
+                UpdateShape();
+            }
+        }
+
+        public Vector2f Scale
+        {
+            get => _Scale;
+            set
+            {
+                if (_Scale == value) return;
+
+                _Scale = value;
+                _Position = new Vector2f(_Position.X * _Scale.X, _Position.Y * _Scale.Y);
+                _Size = new Vector2f(_Size.X * _Scale.X, _Size.Y * _Scale.Y);
+
+                UpdateShape();
+            }
+        }
+
+
+        public Vector2f[] Vertices { get; }
+
+        public bool Mobile { get; set; }
+
+        public float Rotation
+        {
+            get => _Rotation;
+            set
+            {
+                if (_Rotation == value) return;
+
+                _Rotation = value;
+                UpdateShape();
+            }
+        }
+
+        public Vector2f Position
+        {
+            get => _Position;
+            set
+            {
+                if (_Position == value) return;
+
+                _Position = value;
+                UpdateShape();
+            }
+        }
+
+        public Vector2f CenterPoint { get; private set; }
+
+        public event EventHandler<Vector2f> Colliding;
+
         public void FlagCollision(object sender, Vector2f displacement)
         {
             Colliding?.Invoke(sender, displacement);
@@ -124,7 +113,7 @@ namespace JourneyCore.Lib.Game.Object.Collision
 
         private void UpdateShape()
         {
-            CenterPoint = Position + Size/ 2f;
+            CenterPoint = Position + Size / 2f;
 
             // top left point
             Vertices[0] = GraphMath.RotatePoint(Position, CenterPoint, Rotation);

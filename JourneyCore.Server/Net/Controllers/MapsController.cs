@@ -9,12 +9,12 @@ namespace JourneyCore.Server.Net.Controllers
 {
     public class MapsController : Controller
     {
-        private IGameService GameService { get; }
-
         public MapsController(IGameService gameService)
         {
             GameService = gameService;
         }
+
+        private IGameService GameService { get; }
 
         [HttpGet("/maps/{mapNameBase64}")]
         public async Task<IActionResult> GetChunkSpace(string id, string remotePublicKeyBase64, string mapNameBase64,

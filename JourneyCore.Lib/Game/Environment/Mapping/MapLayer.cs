@@ -19,31 +19,21 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
 
             Map = new Chunk[widthInChunks][];
 
-            for (int x = 0; x < widthInChunks; x++)
-            {
-                Map[x] = new Chunk[heightInChunks];
-            }
+            for (int x = 0; x < widthInChunks; x++) Map[x] = new Chunk[heightInChunks];
 
             for (int chunkX = 0; chunkX < widthInChunks; chunkX++)
+            for (int chunkY = 0; chunkY < heightInChunks; chunkY++)
             {
-                for (int chunkY = 0; chunkY < heightInChunks; chunkY++)
-                {
-                    Chunk newChunk = new Chunk((short)MapLoader.ChunkSize, (short)MapLoader.ChunkSize,
-                        chunkX, chunkY, Id);
+                Chunk newChunk = new Chunk((short) MapLoader.ChunkSize, (short) MapLoader.ChunkSize,
+                    chunkX, chunkY, Id);
 
-                    for (int x = 0; x < MapLoader.ChunkSize; x++)
-                    {
-                        for (int y = 0; y < MapLoader.ChunkSize; y++)
+                for (int x = 0; x < MapLoader.ChunkSize; x++)
+                for (int y = 0; y < MapLoader.ChunkSize; y++)
+                    newChunk[x][y] = new TilePrimitive(
+                        Data[(chunkY * MapLoader.ChunkSize + y) * Width + chunkX * MapLoader.ChunkSize + x],
+                        0);
 
-                        {
-                            newChunk[x][y] = new TilePrimitive(
-                                Data[(chunkY * MapLoader.ChunkSize + y) * Width + chunkX * MapLoader.ChunkSize + x],
-                                0);
-                        }
-                    }
-
-                    Map[chunkX][chunkY] = newChunk;
-                }
+                Map[chunkX][chunkY] = newChunk;
             }
 
             return Map;

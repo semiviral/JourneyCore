@@ -33,10 +33,7 @@ namespace JourneyCore.Lib.System.Static
         {
             rotation *= elapsedFrameTime;
 
-            if (!isClockwise)
-            {
-                rotation *= -1f;
-            }
+            if (!isClockwise) rotation *= -1f;
 
             return (transformable.Rotation + rotation) % 360;
         }
@@ -46,10 +43,7 @@ namespace JourneyCore.Lib.System.Static
         {
             rotation *= elapsedFrameTime;
 
-            if (!isClockwise)
-            {
-                rotation *= -1f;
-            }
+            if (!isClockwise) rotation *= -1f;
 
             transformable.Rotation += rotation % 360f;
 

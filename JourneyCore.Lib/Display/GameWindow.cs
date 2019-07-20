@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JourneyCore.Lib.Display.Component;
 using JourneyCore.Lib.Display.Drawing;
-using JourneyCore.Lib.Game.Object.Collision;
-using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System.Event.Input;
-using JourneyCore.Lib.System.Math;
 using JourneyCore.Lib.System.Time;
 using SFML.Graphics;
 using SFML.System;
@@ -28,6 +25,29 @@ namespace JourneyCore.Lib.Display
         public const float WidescreenRatio = 16f / 9f;
         public const float LetterboxRatio = 4f / 3f;
         private static uint _TargetFps;
+
+        public GameWindow(string windowTitle, VideoMode videoMode, uint targetFps, Vector2f contentScale,
+            float positionScale)
+        {
+            ContentScale = contentScale;
+            PositionScale = ContentScale * positionScale;
+            TargetFps = targetFps;
+
+            Window = new RenderWindow(videoMode, windowTitle);
+            Window.Closed += OnClose;
+            Window.Resized += OnResized;
+            Window.GainedFocus += OnGainedFocus;
+            Window.LostFocus += OnLostFocus;
+            Window.MouseWheelScrolled += OnMouseWheelScrolled;
+            Window.MouseMoved += OnMouseMoved;
+            Window.MouseButtonPressed += OnMouseButtonPressed;
+            Window.MouseButtonReleased += OnMouseButtonReleased;
+            Window.SetFramerateLimit(TargetFps);
+
+            DrawViews = new SortedList<DrawViewLayer, DrawView>();
+            DeltaClock = new Delta();
+            ContinuousInputWatcher = new InputWatcher();
+        }
 
         private RenderWindow Window { get; }
         private static Delta DeltaClock { get; set; }
@@ -55,29 +75,6 @@ namespace JourneyCore.Lib.Display
 
         public float ElapsedTime { get; private set; }
         public float IndividualFrameTime { get; private set; }
-
-        public GameWindow(string windowTitle, VideoMode videoMode, uint targetFps, Vector2f contentScale,
-            float positionScale)
-        {
-            ContentScale = contentScale;
-            PositionScale = ContentScale * positionScale;
-            TargetFps = targetFps;
-
-            Window = new RenderWindow(videoMode, windowTitle);
-            Window.Closed += OnClose;
-            Window.Resized += OnResized;
-            Window.GainedFocus += OnGainedFocus;
-            Window.LostFocus += OnLostFocus;
-            Window.MouseWheelScrolled += OnMouseWheelScrolled;
-            Window.MouseMoved += OnMouseMoved;
-            Window.MouseButtonPressed += OnMouseButtonPressed;
-            Window.MouseButtonReleased += OnMouseButtonReleased;
-            Window.SetFramerateLimit(TargetFps);
-
-            DrawViews = new SortedList<DrawViewLayer, DrawView>();
-            DeltaClock = new Delta();
-            ContinuousInputWatcher = new InputWatcher();
-        }
 
         public RenderWindow SetActive(bool activeState)
         {
@@ -108,42 +105,22 @@ namespace JourneyCore.Lib.Display
 
         public void SubscribeUiObject(IUIObject iuiObject, IUIObject parent)
         {
-            if (iuiObject == null)
-            {
-                return;
-            }
+            if (iuiObject == null) return;
 
             if (iuiObject is IResizeResponsive resizeResponsiveUiObject)
-            {
                 SubscribeIResizeResponsive(resizeResponsiveUiObject, parent);
-            }
 
-            if (iuiObject is IHoverable hoverableUiObject)
-            {
-                SubscribeIHoverable(hoverableUiObject);
-            }
+            if (iuiObject is IHoverable hoverableUiObject) SubscribeIHoverable(hoverableUiObject);
 
-            if (iuiObject is IPressable pressableUiObject)
-            {
-                SubscribeIPressable(pressableUiObject);
-            }
+            if (iuiObject is IPressable pressableUiObject) SubscribeIPressable(pressableUiObject);
 
-            if (iuiObject is IScrollable scrollableUiObject)
-            {
-                SubscribeIScrollable(scrollableUiObject);
-            }
+            if (iuiObject is IScrollable scrollableUiObject) SubscribeIScrollable(scrollableUiObject);
 
             List<IUIObject> subscribables = iuiObject.SubscribableObjects().ToList();
 
-            if (subscribables.Count == 0)
-            {
-                return;
-            }
+            if (subscribables.Count == 0) return;
 
-            foreach (IUIObject uiObjectChild in subscribables)
-            {
-                SubscribeUiObject(uiObjectChild, iuiObject);
-            }
+            foreach (IUIObject uiObjectChild in subscribables) SubscribeUiObject(uiObjectChild, iuiObject);
         }
 
         private void SubscribeIResizeResponsive(IResizeResponsive resizeResponsive, IUIObject parent)
@@ -169,19 +146,13 @@ namespace JourneyCore.Lib.Display
         {
             MouseButtonPressed += (sender, args) =>
             {
-                if (pressable.RespectsCapture && PressCaptured)
-                {
-                    return;
-                }
+                if (pressable.RespectsCapture && PressCaptured) return;
 
                 PressCaptured = pressable.OnMousePressed(args);
             };
             MouseButtonReleased += (sender, args) =>
             {
-                if (pressable.RespectsCapture && ReleaseCaptured)
-                {
-                    return;
-                }
+                if (pressable.RespectsCapture && ReleaseCaptured) return;
 
                 ReleaseCaptured = pressable.OnMouseReleased(args);
             };
@@ -223,9 +194,7 @@ namespace JourneyCore.Lib.Display
             ContinuousInputWatcher.CheckWatchedInputs();
 
             foreach ((DrawViewLayer layer, DrawView drawView) in DrawViews.Where(drawView => drawView.Value.Visible))
-            {
                 ProcessDrawView(drawView);
-            }
         }
 
         #endregion
@@ -246,7 +215,7 @@ namespace JourneyCore.Lib.Display
         {
             Closed?.Invoke(sender, args);
 
-            RenderWindow window = (RenderWindow)sender;
+            RenderWindow window = (RenderWindow) sender;
             window.Close();
         }
 
@@ -295,10 +264,7 @@ namespace JourneyCore.Lib.Display
 
         public DrawView CreateDrawView(DrawView drawView)
         {
-            if (DrawViews.Any(dView => dView.Value.Layer.Equals(drawView.Layer)))
-            {
-                return null;
-            }
+            if (DrawViews.Any(dView => dView.Value.Layer.Equals(drawView.Layer))) return null;
 
             DrawViews.Add(drawView.Layer, drawView);
 
@@ -367,10 +333,7 @@ namespace JourneyCore.Lib.Display
         {
             ContinuousInputWatcher.AddWatchedInput(button, () =>
             {
-                if (respectsCapture && PressCaptured)
-                {
-                    return;
-                }
+                if (respectsCapture && PressCaptured) return;
 
                 inputAction();
             }, enabledCheck, singlePress);

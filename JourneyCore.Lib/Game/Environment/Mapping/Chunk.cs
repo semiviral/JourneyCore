@@ -4,6 +4,18 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
 {
     public class Chunk
     {
+        public Chunk(int sizeX, int sizeY, int left, int top, int layer)
+        {
+            Left = left;
+            Top = top;
+            Layer = layer;
+
+            // intiailise internal chunk array
+            InternalChunk = new TilePrimitive[sizeX][];
+
+            for (int y = 0; y < InternalChunk.Length; y++) InternalChunk[y] = new TilePrimitive[sizeY];
+        }
+
         public TilePrimitive[][] InternalChunk { get; set; }
         public int Length => InternalChunk.Length;
         public int Left { get; set; }
@@ -14,21 +26,6 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
         {
             get => InternalChunk[indexX];
             set => InternalChunk[indexX] = value;
-        }
-
-        public Chunk(int sizeX, int sizeY, int left, int top, int layer)
-        {
-            Left = left;
-            Top = top;
-            Layer = layer;
-
-            // intiailise internal chunk array
-            InternalChunk = new TilePrimitive[sizeX][];
-
-            for (int y = 0; y < InternalChunk.Length; y++)
-            {
-                InternalChunk[y] = new TilePrimitive[sizeY];
-            }
         }
     }
 }

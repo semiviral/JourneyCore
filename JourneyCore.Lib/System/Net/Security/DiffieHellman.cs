@@ -12,20 +12,6 @@ namespace JourneyCore.Lib.System.Net.Security
         private byte[] _PublicKey;
         private byte[] _SharedKey;
 
-        public byte[] PublicKey
-        {
-            get => _PublicKey;
-            set
-            {
-                _PublicKey = value;
-                PublicKeyString = Convert.ToBase64String(PublicKey);
-            }
-        }
-
-        public string PublicKeyString { get; private set; }
-        public byte[] IV { get; set; }
-        public string IVString => Convert.ToBase64String(IV);
-
 
         public DiffieHellman()
         {
@@ -55,6 +41,20 @@ namespace JourneyCore.Lib.System.Net.Security
 
             CalculateSharedKey(remotePublicKey);
         }
+
+        public byte[] PublicKey
+        {
+            get => _PublicKey;
+            set
+            {
+                _PublicKey = value;
+                PublicKeyString = Convert.ToBase64String(PublicKey);
+            }
+        }
+
+        public string PublicKeyString { get; private set; }
+        public byte[] IV { get; set; }
+        public string IVString => Convert.ToBase64String(IV);
 
         public void CalculateSharedKey(byte[] remotePublicKey)
         {

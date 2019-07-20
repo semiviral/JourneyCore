@@ -1,4 +1,6 @@
 ﻿namespace JourneyCore.Lib.Display.Component
 {
-    public class TextBox { }
+    public class TextBox
+    {
+    }
 }

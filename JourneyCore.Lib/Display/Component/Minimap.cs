@@ -10,15 +10,16 @@ namespace JourneyCore.Lib.Display.Component
 {
     public class Minimap : IUIObject, IHoverable, IScrollable
     {
-        private Vector2u _Size;
-        public VertexArray VArray { get; }
-        public Dictionary<uint, DrawObject> MinimapObjects { get; }
-
         public Minimap()
         {
             VArray = new VertexArray(PrimitiveType.Quads);
             MinimapObjects = new Dictionary<uint, DrawObject>();
         }
+
+        public VertexArray VArray { get; }
+        public Dictionary<uint, DrawObject> MinimapObjects { get; }
+
+        public Vector2f Size { get; set; }
 
         public bool IsHovered { get; private set; }
         public event EventHandler<MouseMoveEventArgs> Entered;
@@ -36,6 +37,17 @@ namespace JourneyCore.Lib.Display.Component
             throw new NotImplementedException();
         }
 
+        Vector2u IUIObject.Size { get; set; }
+
+        public Vector2f Position { get; set; }
+        public Vector2f Origin { get; set; }
+        public event EventHandler<SizeEventArgs> Resized;
+
+        public IEnumerable<IUIObject> SubscribableObjects()
+        {
+            throw new NotImplementedException();
+        }
+
         public void OnParentResized(object sender, SizeEventArgs args)
         {
             throw new NotImplementedException();
@@ -43,12 +55,9 @@ namespace JourneyCore.Lib.Display.Component
 
         public void AddMinimapEntity(DrawObject drawObj)
         {
-            if (!drawObj.Batchable || !(drawObj.Object is RectangleShape))
-            {
-                return;
-            }
+            if (!drawObj.Batchable || !(drawObj.Object is RectangleShape)) return;
 
-            RectangleShape castedShape = (RectangleShape)drawObj.Object;
+            RectangleShape castedShape = (RectangleShape) drawObj.Object;
 
             drawObj.RecalculateVertices += OnMinimapEntityVerticesUpdated;
 
@@ -58,9 +67,7 @@ namespace JourneyCore.Lib.Display.Component
             VArray.Resize(startIndex + 4);
 
             if (VArray.VertexCount < startIndex)
-            {
                 throw new IndexOutOfRangeException($"Index `{startIndex}` out of range of VArray.");
-            }
 
             drawObj.StartIndex = drawObj.StartIndex == 0 ? startIndex : drawObj.StartIndex;
             MinimapObjects.Add(startIndex, drawObj);
@@ -70,10 +77,7 @@ namespace JourneyCore.Lib.Display.Component
 
         public void CalculateVerticesAtIndex(uint startIndex)
         {
-            if (!MinimapObjects.Keys.Contains(startIndex))
-            {
-                return;
-            }
+            if (!MinimapObjects.Keys.Contains(startIndex)) return;
 
             Vertex[] vertices = MinimapObjects[startIndex].GetVertices();
 
@@ -86,23 +90,6 @@ namespace JourneyCore.Lib.Display.Component
         public void OnMinimapEntityVerticesUpdated(object sender, uint startIndex)
         {
             CalculateVerticesAtIndex(startIndex);
-        }
-
-        public Vector2f Size { get; set; }
-
-        Vector2u IUIObject.Size
-        {
-            get => _Size;
-            set => _Size = value;
-        }
-
-        public Vector2f Position { get; set; }
-        public Vector2f Origin { get; set; }
-        public event EventHandler<SizeEventArgs> Resized;
-
-        public IEnumerable<IUIObject> SubscribableObjects()
-        {
-            throw new NotImplementedException();
         }
     }
 }

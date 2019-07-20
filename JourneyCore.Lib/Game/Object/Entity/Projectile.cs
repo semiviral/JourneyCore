@@ -10,8 +10,6 @@ namespace JourneyCore.Lib.Game.Object.Entity
 {
     public class Projectile : IEntity, IEntityTemporary
     {
-        public int Speed { get; }
-
         public Projectile(Sprite graphic, int speed, long lifetime = 0, string guid = "")
         {
             Graphic = graphic;
@@ -20,6 +18,8 @@ namespace JourneyCore.Lib.Game.Object.Entity
             MaximumLifetime = DateTime.MinValue;
             Guid = string.IsNullOrWhiteSpace(guid) ? global::System.Guid.NewGuid().ToString() : guid;
         }
+
+        public int Speed { get; }
 
         public string Guid { get; }
         public Sprite Graphic { get; }
@@ -30,10 +30,7 @@ namespace JourneyCore.Lib.Game.Object.Entity
             get => Graphic.Position;
             set
             {
-                if (Graphic.Position == value)
-                {
-                    return;
-                }
+                if (Graphic.Position == value) return;
 
                 Graphic.Position = value;
 
@@ -46,10 +43,7 @@ namespace JourneyCore.Lib.Game.Object.Entity
             get => Graphic.Rotation;
             set
             {
-                if (Math.Abs(Graphic.Rotation - value) < 0.0001)
-                {
-                    return;
-                }
+                if (Math.Abs(Graphic.Rotation - value) < 0.0001) return;
 
                 Graphic.Rotation = value;
 
