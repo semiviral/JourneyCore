@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using JourneyCore.Lib.Game.Object.Collision;
 using JourneyCore.Lib.System.Loaders;
 
 namespace JourneyCore.Lib.Game.Environment.Metadata
@@ -10,7 +11,7 @@ namespace JourneyCore.Lib.Game.Environment.Metadata
         }
 
         public MapMetadata(string name, int width, int height, int layerCount, List<TileSetMetadata> tileSets,
-            int tileWidth, int tileHeight, float spawnPointX, float spawnPointY)
+            int tileWidth, int tileHeight, float spawnPointX, float spawnPointY, List<CollisionQuad> colliders)
         {
             Name = name;
             Width = width;
@@ -21,6 +22,7 @@ namespace JourneyCore.Lib.Game.Environment.Metadata
             TileHeight = tileHeight;
             SpawnPointX = spawnPointX * MapLoader.TileSize;
             SpawnPointY = spawnPointY * MapLoader.TileSize;
+            Colliders = colliders;
         }
 
         public string Name { get; set; }
@@ -32,5 +34,6 @@ namespace JourneyCore.Lib.Game.Environment.Metadata
         public int TileHeight { get; set; }
         public float SpawnPointX { get; set; }
         public float SpawnPointY { get; set; }
+        public List<CollisionQuad> Colliders { get; set; }
     }
 }

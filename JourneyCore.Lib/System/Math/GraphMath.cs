@@ -67,7 +67,7 @@ namespace JourneyCore.Lib.System.Math
         {
             foreach (Vector2f vertex in quad1.Vertices)
             {
-                LineSegment line1 = new LineSegment(quad1.CenterPoint, vertex);
+                LineSegment line1 = new LineSegment(quad1.Origin, vertex);
 
                 Vector2f displacement = new Vector2f(0f, 0f);
 
@@ -96,10 +96,21 @@ namespace JourneyCore.Lib.System.Math
             }
         }
 
-        public static bool CircleIntersect(Vector2f circleCenter, IntRect bounds)
+        public static IEnumerable<Vector2f> CollisionCheck(CollisionQuad subjectQuad,
+            IEnumerable<CollisionQuad> collisionQuads)
         {
-            // todo implement this
-            return false;
+            foreach (CollisionQuad quad in collisionQuads)
+            {
+                FloatRect overlap = new FloatRect();
+                bool intersects = subjectQuad.Intersects(quad, out overlap);
+
+                if (!intersects)
+                {
+                    continue;
+                }
+
+                yield return new Vector2f(overlap.Width, overlap.Height);
+            }
         }
     }
 }

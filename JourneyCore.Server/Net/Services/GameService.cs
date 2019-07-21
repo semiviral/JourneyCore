@@ -21,6 +21,8 @@ namespace JourneyCore.Server.Net.Services
 {
     public class GameService : IGameService
     {
+        private CollisionQuad _PlayerQuad;
+
         public GameService(IGameClientContext gameClientContext)
         {
             GameClientContext = gameClientContext;
@@ -46,50 +48,56 @@ namespace JourneyCore.Server.Net.Services
             await GameClientContext.SendConnectionId(connectionId);
         }
 
-        public async Task ReceivePlayerMovement(string connectionId, Vector2f movement)
+        private object _PlayerQuadLock { get; set; }
+
+        private CollisionQuad playerQuad
         {
-            Players.First().Position += movement;
-
-            bool hasModified = false;
-
-            foreach (Vector2f vector in CollisionCheck(Players.First()))
+            get
             {
-                Players.First().Position += vector;
+                lock (_PlayerQuadLock)
+                {
+                    return _PlayerQuad;
+                }
+            }
+            set
+            {
+                lock (_PlayerQuadLock)
+                {
+                    _PlayerQuad = value;
+                }
+            }
+        }
 
-                if (hasModified)
+        public async Task ReceivePlayerPositions(string connectionId, IEnumerable<Vector2f> positions)
+        {
+            bool hasAdjusted = false;
+
+            foreach (Vector2f position in positions)
+            {
+                playerQuad.Position = position;
+
+                // todo select map colliders dynamically
+                foreach (Vector2f adjustment in GraphMath.CollisionCheck(playerQuad, TileMaps.First().Value.Colliders))
+                {
+                    hasAdjusted = true;
+
+                    playerQuad.Position += adjustment;
+                }
+
+                if (!hasAdjusted)
                 {
                     continue;
                 }
 
-                hasModified = true;
+                await GameClientContext.PlayerPositionModification(connectionId, playerQuad.Position);
             }
-
-            if (!hasModified)
-            {
-                return;
-            }
-
-            await GameClientContext.PlayerPositionModification(connectionId, Players.First().Position);
         }
 
-        public Task ReceivePlayerRotation(string connectionId, float rotation)
+        public Task ReceivePlayerRotations(string connectionId, IEnumerable<float> rotations)
         {
-            // todo implement this
+            playerQuad.Rotation = rotations.Last();
 
             return Task.CompletedTask;
-        }
-
-        private IEnumerable<Vector2f> CollisionCheck(IEntity entity)
-        {
-            Map map = TileMaps.First().Value;
-
-            foreach (CollisionQuad quad in map.Colliders.Where(collider => !collider.Mobile))
-            {
-                foreach (Vector2f adjustment in GraphMath.DiagnasticCollision(entity.Collider, quad))
-                {
-                    yield return adjustment;
-                }
-            }
         }
 
         #endregion
@@ -192,7 +200,9 @@ namespace JourneyCore.Server.Net.Services
             byte[] mapNameEncrypted)
         {
             string mapName = await CryptoServices[id].DecryptAsync(remotePublicKey, mapNameEncrypted);
-            string serializedMapMetadata = JsonConvert.SerializeObject(TileMaps[mapName].GetMetadata());
+
+            MapMetadata mapMetadata = TileMaps[mapName].GetMetadata();
+            string serializedMapMetadata = JsonConvert.SerializeObject(mapMetadata);
 
             return new DiffieHellmanMessagePackage(CryptoServices[id].PublicKey,
                 await CryptoServices[id].EncryptAsync(serializedMapMetadata));
@@ -253,6 +263,11 @@ namespace JourneyCore.Server.Net.Services
                     .First(tile => (tile.TextureRect.Left == 3) && (tile.TextureRect.Top == 1))?
                     .Colliders.First();
 
+                _PlayerQuadLock = new object();
+                playerQuad = playerMetadata.Tiles
+                    .First(tile => (tile.TextureRect.Left == 3) && (tile.TextureRect.Top == 1))?
+                    .Colliders.First();
+
                 // todo no hard coding for player texture size
                 Player player = new Player(TextureImages["avatar"], TextureImages["projectiles"], 0)
                 {
@@ -261,7 +276,7 @@ namespace JourneyCore.Server.Net.Services
 
                 Players.Add(player);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
             }
 

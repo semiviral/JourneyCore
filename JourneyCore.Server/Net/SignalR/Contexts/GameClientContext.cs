@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using JourneyCore.Server.Net.SignalR.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using SFML.System;
@@ -19,10 +20,15 @@ namespace JourneyCore.Server.Net.SignalR.Contexts
             await HubContext.Clients.Client(connectionId).SendAsync("ReceiveConnectionId", connectionId);
         }
 
-        public async Task PlayerPositionModification(string connectionId, Vector2f movementModification)
+        public async Task PlayerPositionModification(string connectionId, Vector2f positionModification)
         {
+            if (string.IsNullOrWhiteSpace(connectionId))
+            {
+                throw new NullReferenceException("Parameter `connectionId` cannot be null or whitespace.");
+            }
+
             await HubContext.Clients.Client(connectionId)
-                .SendAsync("ReceivePlayerMovementModification", movementModification);
+                .SendAsync("ReceivePlayerPositionModification", positionModification);
         }
 
         public async Task PlayerRotationModification(string connectionId, float rotationModification)

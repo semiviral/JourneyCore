@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.Game.Object.Collision;
@@ -15,7 +16,7 @@ namespace JourneyCore.Lib.Game.Object.Entity
 {
     public class Player : IEntity, IEntityLiving, IEntityAttacker, IAnchor
     {
-        public Player(byte[] humanTextureBytes, byte[] projectilesTextureBytes, long lifetime)
+        public Player(byte[] humanAvatarTextureBytes, byte[] projectilesTextureBytes, long lifetime)
         {
             Guid = global::System.Guid.NewGuid().ToString();
 
@@ -24,7 +25,9 @@ namespace JourneyCore.Lib.Game.Object.Entity
             ProjectileTextureBytes = projectilesTextureBytes;
             CurrentChunk = new Vector2f(0f, 0f);
 
-            TextureBytes = humanTextureBytes;
+            AvatarTextureBytes = humanAvatarTextureBytes;
+            Graphic = new Sprite();
+
             InitialiseDefaultAttributes();
 
             // todo set up inventory stat stuff
@@ -75,17 +78,16 @@ namespace JourneyCore.Lib.Game.Object.Entity
 
         #region VARIABLES
 
+        private double _CurrentHp;
+        private CollisionQuad _Collider;
         private DateTime ProjectileCooldown { get; set; }
+        private CollisionQuad _DummyCollider { get; set; }
 
         public string Guid { get; }
-
         [JsonIgnore] public Sprite Graphic { get; private set; }
-
-        public byte[] TextureBytes { get; set; }
+        public byte[] AvatarTextureBytes { get; set; }
         public byte[] ProjectileTextureBytes { get; set; }
-
         [JsonIgnore] public RenderStates ProjectileRenderStates { get; private set; }
-
         public long Lifetime { get; }
         public int AttackCooldownValue { get; }
         public bool CanAttack => ProjectileCooldown < DateTime.Now;
@@ -101,6 +103,9 @@ namespace JourneyCore.Lib.Game.Object.Entity
                 TryInitialiseCollider();
             }
         }
+
+        public GetCollisionAdjustments GetCollisionAdjustments { get; set; }
+
 
         public Vector2f Position
         {
@@ -118,11 +123,19 @@ namespace JourneyCore.Lib.Game.Object.Entity
                 }
 
                 Vector2f oldPosition = new Vector2f(Graphic.Position.X, Graphic.Position.Y);
+
+                _DummyCollider.Position = value;
+
+                if (GetCollisionAdjustments != null)
+                {
+                    value = GetCollisionAdjustments(_DummyCollider)
+                        .Aggregate(value, (current, adjustment) => current + adjustment);
+                }
+
                 Graphic.Position = value;
 
                 NotifyPropertyChanged();
                 PositionChanged?.Invoke(this, new EntityPositionChangedEventArgs(oldPosition, Graphic.Position));
-                ;
             }
         }
 
@@ -136,11 +149,12 @@ namespace JourneyCore.Lib.Game.Object.Entity
                     return;
                 }
 
-                if (Math.Abs(Graphic.Rotation - value) < 0.0001)
+                if (Graphic.Rotation == value)
                 {
                     return;
                 }
 
+                _DummyCollider.Rotation = value;
                 Graphic.Rotation = value;
 
                 NotifyPropertyChanged();
@@ -194,9 +208,6 @@ namespace JourneyCore.Lib.Game.Object.Entity
             }
         }
 
-        private double _CurrentHp;
-        private CollisionQuad _Collider;
-
         #endregion
 
 
@@ -241,7 +252,7 @@ namespace JourneyCore.Lib.Game.Object.Entity
 
         private void InitialiseGraphics()
         {
-            Graphic = new Sprite(new Texture(TextureBytes), new IntRect(3 * 64, 1 * 64, 64, 64))
+            Graphic = new Sprite(new Texture(AvatarTextureBytes), new IntRect(3 * 64, 1 * 64, 64, 64))
             {
                 Scale = new Vector2f(0.5f, 0.5f)
             };
@@ -263,7 +274,9 @@ namespace JourneyCore.Lib.Game.Object.Entity
             _Collider.Scale = Graphic.Scale;
             _Collider.Mobile = true;
             _Collider.Colliding += (sender, args) => { Position += args; };
-            AnchorItem(_Collider, _Collider.CenterPoint - _Collider.Position);
+            AnchorItem(_Collider, _Collider.Origin - _Collider.Position);
+
+            _DummyCollider = new CollisionQuad(_Collider);
         }
 
 

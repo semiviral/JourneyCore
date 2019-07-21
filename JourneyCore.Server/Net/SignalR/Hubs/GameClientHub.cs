@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using JourneyCore.Server.Net.Services;
 using Microsoft.AspNetCore.SignalR;
 using SFML.System;
@@ -30,14 +31,14 @@ namespace JourneyCore.Server.Net.SignalR.Hubs
             await GameService.RelayConnectionId(Context.ConnectionId);
         }
 
-        public async Task ReceivePlayerMovement(Vector2f movement)
+        public async Task ReceivePlayerPositions(IEnumerable<Vector2f> positions)
         {
-            await GameService.ReceivePlayerMovement(Context.ConnectionId, movement);
+            await GameService.ReceivePlayerPositions(Context.ConnectionId, positions);
         }
 
-        public async Task ReceivePlayerRotation(float rotation)
+        public async Task ReceivePlayerRotations(IEnumerable<float> rotations)
         {
-            await GameService.ReceivePlayerRotation(Context.ConnectionId, rotation);
+            await GameService.ReceivePlayerRotations(Context.ConnectionId, rotations);
         }
 
         #endregion

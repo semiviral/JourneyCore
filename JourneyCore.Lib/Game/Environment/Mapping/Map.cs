@@ -48,7 +48,7 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
         {
             return new MapMetadata(Name, Width, Height, Layers.Count,
                 UsedTileSets.Select(tileSet => tileSet.GetMetadata()).ToList(), PixelTileWidth, PixelTileHeight,
-                SpawnPointX, SpawnPointY);
+                SpawnPointX, SpawnPointY, Colliders);
         }
 
 

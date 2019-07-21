@@ -7,27 +7,28 @@ namespace JourneyCore.Lib.Game.Object.Collision
 {
     public class CollisionQuad : ICollidable, IAnchorable
     {
-        private Vector2f _Position;
-        private float _Rotation;
-        private Vector2f _Scale;
-        private Vector2f _Size;
-
         public CollisionQuad()
         {
             Vertices = new Vector2f[4];
 
-            _Position = _Size = CenterPoint = new Vector2f(0f, 0f);
-            _Rotation = 0f;
+            InnerRect = new RectangleShape
+            {
+                Position = Size = new Vector2f(0f, 0f),
+                Rotation = 0f
+            };
         }
 
         public CollisionQuad(FloatRect square, float rotation)
         {
             Vertices = new Vector2f[4];
 
-            _Position = new Vector2f(square.Left, square.Top);
-            _Size = new Vector2f(square.Width, square.Height);
-            _Rotation = rotation;
-            CenterPoint = new Vector2f(0f, 0f);
+            InnerRect = new RectangleShape
+            {
+                Size = new Vector2f(square.Width, square.Height),
+                Position = new Vector2f(square.Left + (square.Width / 2f), square.Top + (square.Height / 2f)),
+                Rotation = rotation
+            };
+            InnerRect.Origin = InnerRect.Size / 2f;
 
             UpdateShape();
         }
@@ -36,42 +37,46 @@ namespace JourneyCore.Lib.Game.Object.Collision
         {
             Vertices = new Vector2f[4];
 
-            Position = copy.Position;
-            Size = copy.Size;
-            CenterPoint = copy.CenterPoint;
-            CenterPoint = new Vector2f(0f, 0f);
+            InnerRect = new RectangleShape
+            {
+                Size = copy.Size,
+                Position = copy.Position,
+                Rotation = copy.Rotation
+            };
+            InnerRect.Origin = copy.Size / 2f;
 
             UpdateShape();
         }
 
+        private RectangleShape InnerRect { get; }
+
         public Vector2f Size
         {
-            get => _Size;
+            get => InnerRect.Size;
             set
             {
-                if (_Size == value)
+                if (InnerRect.Size == value)
                 {
                     return;
                 }
 
-                _Size = value;
+                InnerRect.Size = value;
+
                 UpdateShape();
             }
         }
 
         public Vector2f Scale
         {
-            get => _Scale;
+            get => InnerRect.Scale;
             set
             {
-                if (_Scale == value)
+                if (InnerRect.Scale == value)
                 {
                     return;
                 }
 
-                _Scale = value;
-                _Position = new Vector2f(_Position.X * _Scale.X, _Position.Y * _Scale.Y);
-                _Size = new Vector2f(_Size.X * _Scale.X, _Size.Y * _Scale.Y);
+                InnerRect.Scale = value;
 
                 UpdateShape();
             }
@@ -84,60 +89,95 @@ namespace JourneyCore.Lib.Game.Object.Collision
 
         public float Rotation
         {
-            get => _Rotation;
+            get => InnerRect.Rotation;
             set
             {
-                if (_Rotation == value)
+                if (InnerRect.Rotation == value)
                 {
                     return;
                 }
 
-                _Rotation = value;
+                InnerRect.Rotation = value;
+
                 UpdateShape();
             }
         }
 
         public Vector2f Position
         {
-            get => _Position;
+            get => InnerRect.Position;
             set
             {
-                if (_Position == value)
+                if (InnerRect.Position == value)
                 {
                     return;
                 }
 
-                _Position = value;
+                InnerRect.Position = value;
+
                 UpdateShape();
             }
         }
 
-        public Vector2f CenterPoint { get; private set; }
+        public Vector2f Origin
+        {
+            get
+                => InnerRect.Origin;
+
+            private set
+            {
+                if (InnerRect.Origin == value)
+                {
+                    return;
+                }
+
+                InnerRect.Origin = value;
+
+                UpdateShape();
+            }
+        }
 
         public event EventHandler<Vector2f> Colliding;
+
+        private void UpdateShape()
+        {
+            Origin = Size / 2f;
+
+
+            // top left point
+            Vertices[0] = GraphMath.RotatePoint(Position, Origin, Rotation);
+            // top right point
+            Vertices[1] = GraphMath.RotatePoint(new Vector2f(Position.X + Size.X, Position.Y), Origin, Rotation);
+            // bottom right point
+            Vertices[2] = GraphMath.RotatePoint(new Vector2f(Position.X + Size.X, Position.Y + Size.Y), Origin,
+                Rotation);
+            // bottom left point
+            Vertices[3] = GraphMath.RotatePoint(new Vector2f(Position.X, Position.Y + Size.Y), Origin, Rotation);
+        }
+
+        public FloatRect GetGlobalBounds()
+        {
+            return InnerRect.GetGlobalBounds();
+        }
+
+        public FloatRect GetLocalBounds()
+        {
+            return InnerRect.GetLocalBounds();
+        }
+
+        public bool Intserects(CollisionQuad testQuad)
+        {
+            return GetGlobalBounds().Intersects(testQuad.GetGlobalBounds());
+        }
+
+        public bool Intersects(CollisionQuad quad, out FloatRect overlap)
+        {
+            return GetGlobalBounds().Intersects(quad.GetGlobalBounds(), out overlap);
+        }
 
         public void FlagCollision(object sender, Vector2f displacement)
         {
             Colliding?.Invoke(sender, displacement);
         }
-
-        #region PRIVATE
-
-        private void UpdateShape()
-        {
-            CenterPoint = Position + (Size / 2f);
-
-            // top left point
-            Vertices[0] = GraphMath.RotatePoint(Position, CenterPoint, Rotation);
-            // top right point
-            Vertices[1] = GraphMath.RotatePoint(new Vector2f(Position.X + Size.X, Position.Y), CenterPoint, Rotation);
-            // bottom right point
-            Vertices[2] = GraphMath.RotatePoint(new Vector2f(Position.X + Size.X, Position.Y + Size.Y), CenterPoint,
-                Rotation);
-            // bottom left point
-            Vertices[3] = GraphMath.RotatePoint(new Vector2f(Position.X, Position.Y + Size.Y), CenterPoint, Rotation);
-        }
-
-        #endregion
     }
 }

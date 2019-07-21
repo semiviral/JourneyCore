@@ -1,5 +1,7 @@
 ﻿using System;
+using JourneyCore.Lib.Game.Object.Collision;
 using Serilog;
+using SFML.Graphics;
 
 namespace JourneyCore.Client
 {
@@ -11,6 +13,8 @@ namespace JourneyCore.Client
         {
             try
             {
+                CollisionTest();
+
                 InitialiseStaticLogger();
 
                 GLoop = new GameLoop(60);
@@ -26,6 +30,16 @@ namespace JourneyCore.Client
         private static void InitialiseStaticLogger()
         {
             Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+        }
+
+        private static void CollisionTest()
+        {
+            CollisionQuad quad1 = new CollisionQuad(new FloatRect(0f, 0f, 10f, 10f), 0f);
+            CollisionQuad quad2 = new CollisionQuad(new FloatRect(5f, 5f, 10f, 10f), 45f);
+
+            FloatRect overlap = new FloatRect();
+
+            bool intersects = quad1.Intersects(quad2, out overlap);
         }
     }
 }

@@ -58,6 +58,7 @@ namespace JourneyCore.Lib.Game.Object.Entity
         }
 
         public CollisionQuad Collider { get; set; }
+        public GetCollisionAdjustments GetCollisionAdjustments { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

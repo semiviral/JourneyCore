@@ -10,18 +10,8 @@ namespace JourneyCore.Lib.System.Net
         /// <summary>
         /// </summary>
         /// <param name="tickRate">Time interval in milliseconds to dequeue all state updates</param>
-        /// <param name="updateType"></param>
         public AutoResetTimer(int tickRate)
         {
-            // todo
-            //      move to a design whereby the server tells the client
-            //      it is ready to receive updates
-            //      this will allow for automatic synchronization.
-            //      
-            //      when the client receives the update callback,
-            //      wait until the next frame update to begin sending them
-            //                      maybe?????
-
             TickRate = tickRate;
             AutoReset = new AutoResetEvent(false);
             TickTimer = new Timer(OnTimerTickElapsed, AutoReset, TickRate, 0);
@@ -36,7 +26,7 @@ namespace JourneyCore.Lib.System.Net
 
         public event AsyncEventHandler<float> ElapsedAsync;
 
-        public void OnTimerTickElapsed(object state)
+        private void OnTimerTickElapsed(object state)
         {
             Task.Run(() => OnTickTimerElapsedAsyncRespective(state));
         }

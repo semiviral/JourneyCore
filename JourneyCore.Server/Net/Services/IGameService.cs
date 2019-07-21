@@ -16,8 +16,8 @@ namespace JourneyCore.Server.Net.Services
         Dictionary<string, Map> TileMaps { get; }
 
         Task RelayConnectionId(string connectionId);
-        Task ReceivePlayerMovement(string connectionId, Vector2f movement);
-        Task ReceivePlayerRotation(string connectionId, float rotation);
+        Task ReceivePlayerPositions(string connectionId, IEnumerable<Vector2f> positions);
+        Task ReceivePlayerRotations(string connectionId, IEnumerable<float> rotations);
 
         EncryptionTicket RegisterEncryptedConnection(string id, EncryptionTicket ticket);
         Task<DiffieHellmanMessagePackage> GetImage(string id, byte[] remotePublicKey, byte[] textureNameEncrypted);

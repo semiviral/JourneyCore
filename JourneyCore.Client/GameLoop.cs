@@ -8,13 +8,13 @@ using JourneyCore.Lib.Display;
 using JourneyCore.Lib.Display.Drawing;
 using JourneyCore.Lib.Game.Environment.Mapping;
 using JourneyCore.Lib.Game.Environment.Metadata;
+using JourneyCore.Lib.Game.Object.Collision;
 using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System.Loaders;
 using JourneyCore.Lib.System.Math;
 using JourneyCore.Lib.System.Net;
 using JourneyCore.Lib.System.Net.Security;
 using JourneyCore.Lib.System.Static;
-using Microsoft.AspNetCore.SignalR.Client;
 using Newtonsoft.Json;
 using Serilog;
 using SFML.Graphics;
@@ -26,8 +26,6 @@ namespace JourneyCore.Client
     public class GameLoop : Context
     {
         private static Tuple<int, string> _FatalExit;
-        private readonly object _MovementListLock;
-        private Queue<Vector2f> _Movements;
 
         public GameLoop(uint maximumFrameRate)
         {
@@ -45,8 +43,6 @@ namespace JourneyCore.Client
 
             CreateGameWindow(maximumFrameRate);
 
-            _MovementListLock = new object();
-            Movements = new Queue<Vector2f>();
 
             Log.Information("Game loop started.");
         }
@@ -59,27 +55,8 @@ namespace JourneyCore.Client
         private Ui UserInterface { get; set; }
         private LocalMap ActivateMap { get; set; }
         private Player Player { get; set; }
+        private ServerStateUpdater ServerUpdater { get; set; }
 
-        private AutoResetTimer ServerTickClock { get; set; }
-        private AutoResetTimer RotationUpdater { get; set; }
-
-        private Queue<Vector2f> Movements
-        {
-            get
-            {
-                lock (_MovementListLock)
-                {
-                    return _Movements;
-                }
-            }
-            set
-            {
-                lock (_MovementListLock)
-                {
-                    _Movements = value;
-                }
-            }
-        }
 
         public static Font DefaultFont { get; set; }
 
@@ -124,6 +101,11 @@ namespace JourneyCore.Client
             });
         }
 
+        private IEnumerable<Vector2f> PositionPreCheck(CollisionQuad quad)
+        {
+            return GraphMath.CollisionCheck(quad, ActivateMap.Metadata.Colliders);
+        }
+
 
         #region INITIALISATION
 
@@ -145,21 +127,7 @@ namespace JourneyCore.Client
                 await CreateUserInterface();
                 SetupMinimap();
 
-                ServerTickClock = new AutoResetTimer(33);
-                ServerTickClock.ElapsedAsync += async (sender, args) =>
-                {
-                    if (Movements.Count > 0)
-                    {
-                        Vector2f movementTotal = new Vector2f(0f, 0f);
-
-                        while (Movements.Count > 0)
-                        {
-                            movementTotal += Movements.Dequeue();
-                        }
-
-                        await NetManager.Connection.InvokeAsync("ReceivePlayerMovement", movementTotal);
-                    }
-                };
+                ServerUpdater = new ServerStateUpdater(NetManager, 33);
 
                 EscapeMenu escapeMenu = new EscapeMenu(GameWindow);
                 escapeMenu.Initialise();
@@ -197,7 +165,7 @@ namespace JourneyCore.Client
             };
             await NetManager.InitialiseAsync(servicePath);
 
-            NetManager.On<Vector2f>("ReceivePlayerMovementModification",
+            NetManager.On<Vector2f>("ReceivePlayerPositionModification",
                 modification => { Player.Position = modification; });
             NetManager.On<float>("ReceivePlayerRotationModification", rotation => { });
         }
@@ -268,6 +236,8 @@ namespace JourneyCore.Client
 
             Player.AnchorItem(GameWindow.GetDrawView(DrawViewLayer.Game));
             Player.AnchorItem(GameWindow.GetDrawView(DrawViewLayer.Minimap));
+
+            Player.GetCollisionAdjustments = PositionPreCheck;
 
             GameWindow.AddDrawItem(DrawViewLayer.Game, 10,
                 new DrawItem(new DrawObject(Player.Graphic, Player.Graphic.GetVertices),
@@ -530,11 +500,6 @@ namespace JourneyCore.Client
             return tileSetMetadata;
         }
 
-        private async Task<List<Chunk>> RequestChunk(Vector2f coords)
-        {
-            return await RequestChunk((Vector2i) coords);
-        }
-
         private async Task<List<Chunk>> RequestChunk(Vector2i coords)
         {
             string retVal = await NetManager.GetResponseAsync(
@@ -554,13 +519,13 @@ namespace JourneyCore.Client
             }
             catch
             {
-                // todo unignore
+                Log.Error($"Failed to request chunk with coordinates {coords.X}:{coords.Y}");
             }
 
             return chunks ?? new List<Chunk>();
         }
 
-        public async Task<Player> RequestPlayer(string connectionId)
+        private async Task<Player> RequestPlayer(string connectionId)
         {
             string retVal = await NetManager.GetResponseAsync(
                 $"gameservice/playerData?id={connectionId}&remotePublicKeyBase64={NetManager.CryptoService.PublicKeyString.HtmlEncodeBase64()}");
@@ -577,9 +542,9 @@ namespace JourneyCore.Client
             {
                 player = JsonConvert.DeserializeObject<Player>(serializedString);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // todo unignored
+                CallFatality("Failed to receive player data from server. Exiting game.");
             }
 
             return player;
@@ -592,12 +557,12 @@ namespace JourneyCore.Client
 
         private void PlayerPositionChanged(object sender, EntityPositionChangedEventArgs args)
         {
-            Movements.Enqueue(args.NewPosition - args.OldPosition);
+            ServerUpdater.Positions.Enqueue(args.NewPosition);
         }
 
         private void PlayerRotationChanged(object sender, float rotation)
         {
-            //RotationUpdater.AllocateStateUpdate(rotation);
+            ServerUpdater.Rotations.Enqueue(rotation);
         }
 
         private void PlayerPropertyChanged(object sender, PropertyChangedEventArgs args)
