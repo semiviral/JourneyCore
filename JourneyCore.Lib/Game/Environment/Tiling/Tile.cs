@@ -26,10 +26,15 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
             CustomProperty isRandomlyRotatable = GetProperty("IsRandomlyRotatable");
             CustomProperty miniMapColor = GetProperty("MiniMapColor");
 
-            if (isRandomizable != null) IsRandomizable = (bool) Convert.ChangeType(isRandomizable.Value, typeof(bool));
+            if (isRandomizable != null)
+            {
+                IsRandomizable = (bool) Convert.ChangeType(isRandomizable.Value, typeof(bool));
+            }
 
             if (isRandomlyRotatable != null)
+            {
                 IsRandomlyRotatable = (bool) Convert.ChangeType(isRandomlyRotatable.Value, typeof(bool));
+            }
 
             if (miniMapColor != null)
             {
@@ -43,7 +48,10 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
 
         public CustomProperty GetProperty(string propertyName)
         {
-            if (Properties == null) return null;
+            if (Properties == null)
+            {
+                return null;
+            }
 
             return !Properties.Any(property => property.Name.Equals(propertyName))
                 ? null
@@ -52,7 +60,10 @@ namespace JourneyCore.Lib.Game.Environment.Tiling
 
         public TileMetadata GetMetadata()
         {
-            if (ObjectGroup == null) return new TileMetadata(Gid, Type, TextureRect, MiniMapColor);
+            if (ObjectGroup == null)
+            {
+                return new TileMetadata(Gid, Type, TextureRect, MiniMapColor);
+            }
 
             return new TileMetadata(Gid, Type, TextureRect, MiniMapColor, ObjectGroup.Objects.Select(tileObject =>
                 new CollisionQuad(new FloatRect(tileObject.X, tileObject.Y, tileObject.Width, tileObject.Height),

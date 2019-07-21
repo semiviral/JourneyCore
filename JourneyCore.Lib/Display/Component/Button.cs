@@ -135,7 +135,10 @@ namespace JourneyCore.Lib.Display.Component
             }
             else
             {
-                if (!IsHovered) return;
+                if (!IsHovered)
+                {
+                    return;
+                }
 
                 IsHovered = false;
 
@@ -145,9 +148,15 @@ namespace JourneyCore.Lib.Display.Component
 
         public bool OnMousePressed(MouseButtonEventArgs args)
         {
-            if (!Activated()) return false;
+            if (!Activated())
+            {
+                return false;
+            }
 
-            if (args.Button != Mouse.Button.Left || !Activated() || !IsHovered) return false;
+            if ((args.Button != Mouse.Button.Left) || !Activated() || !IsHovered)
+            {
+                return false;
+            }
 
             IsPressed = true;
 
@@ -158,9 +167,15 @@ namespace JourneyCore.Lib.Display.Component
 
         public bool OnMouseReleased(MouseButtonEventArgs args)
         {
-            if (!Activated()) return false;
+            if (!Activated())
+            {
+                return false;
+            }
 
-            if (args.Button != Mouse.Button.Left || !Activated() || !IsPressed) return false;
+            if ((args.Button != Mouse.Button.Left) || !Activated() || !IsPressed)
+            {
+                return false;
+            }
 
             IsPressed = false;
 

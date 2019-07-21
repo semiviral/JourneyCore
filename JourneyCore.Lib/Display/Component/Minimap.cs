@@ -55,7 +55,10 @@ namespace JourneyCore.Lib.Display.Component
 
         public void AddMinimapEntity(DrawObject drawObj)
         {
-            if (!drawObj.Batchable || !(drawObj.Object is RectangleShape)) return;
+            if (!drawObj.Batchable || !(drawObj.Object is RectangleShape))
+            {
+                return;
+            }
 
             RectangleShape castedShape = (RectangleShape) drawObj.Object;
 
@@ -67,7 +70,9 @@ namespace JourneyCore.Lib.Display.Component
             VArray.Resize(startIndex + 4);
 
             if (VArray.VertexCount < startIndex)
+            {
                 throw new IndexOutOfRangeException($"Index `{startIndex}` out of range of VArray.");
+            }
 
             drawObj.StartIndex = drawObj.StartIndex == 0 ? startIndex : drawObj.StartIndex;
             MinimapObjects.Add(startIndex, drawObj);
@@ -77,7 +82,10 @@ namespace JourneyCore.Lib.Display.Component
 
         public void CalculateVerticesAtIndex(uint startIndex)
         {
-            if (!MinimapObjects.Keys.Contains(startIndex)) return;
+            if (!MinimapObjects.Keys.Contains(startIndex))
+            {
+                return;
+            }
 
             Vertex[] vertices = MinimapObjects[startIndex].GetVertices();
 

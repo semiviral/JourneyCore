@@ -25,7 +25,10 @@ namespace JourneyCore.Lib.System.Event.Input
 
         public bool ActivatePress(bool pressed)
         {
-            if (!CheckActivationRequirements(pressed)) return false;
+            if (!CheckActivationRequirements(pressed))
+            {
+                return false;
+            }
 
             IterateActions();
 
@@ -34,11 +37,17 @@ namespace JourneyCore.Lib.System.Event.Input
 
         private bool CheckActivationRequirements(bool pressed)
         {
-            if (EnabledCheck == null || !EnabledCheck()) return false;
+            if ((EnabledCheck == null) || !EnabledCheck())
+            {
+                return false;
+            }
 
             bool invokePress = pressed && HasReleased;
 
-            if (SinglePress) HasReleased = !pressed;
+            if (SinglePress)
+            {
+                HasReleased = !pressed;
+            }
 
             return invokePress;
         }

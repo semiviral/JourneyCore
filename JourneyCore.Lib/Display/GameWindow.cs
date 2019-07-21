@@ -105,27 +105,47 @@ namespace JourneyCore.Lib.Display
 
         public void SubscribeUiObject(IUIObject iuiObject, IUIObject parent)
         {
-            if (iuiObject == null) return;
+            if (iuiObject == null)
+            {
+                return;
+            }
 
             if (iuiObject is IResizeResponsive resizeResponsiveUiObject)
+            {
                 SubscribeIResizeResponsive(resizeResponsiveUiObject, parent);
+            }
 
-            if (iuiObject is IHoverable hoverableUiObject) SubscribeIHoverable(hoverableUiObject);
+            if (iuiObject is IHoverable hoverableUiObject)
+            {
+                SubscribeIHoverable(hoverableUiObject);
+            }
 
-            if (iuiObject is IPressable pressableUiObject) SubscribeIPressable(pressableUiObject);
+            if (iuiObject is IPressable pressableUiObject)
+            {
+                SubscribeIPressable(pressableUiObject);
+            }
 
-            if (iuiObject is IScrollable scrollableUiObject) SubscribeIScrollable(scrollableUiObject);
+            if (iuiObject is IScrollable scrollableUiObject)
+            {
+                SubscribeIScrollable(scrollableUiObject);
+            }
 
             List<IUIObject> subscribables = iuiObject.SubscribableObjects().ToList();
 
-            if (subscribables.Count == 0) return;
+            if (subscribables.Count == 0)
+            {
+                return;
+            }
 
-            foreach (IUIObject uiObjectChild in subscribables) SubscribeUiObject(uiObjectChild, iuiObject);
+            foreach (IUIObject uiObjectChild in subscribables)
+            {
+                SubscribeUiObject(uiObjectChild, iuiObject);
+            }
         }
 
         private void SubscribeIResizeResponsive(IResizeResponsive resizeResponsive, IUIObject parent)
         {
-            if (parent == null || resizeResponsive is Button)
+            if ((parent == null) || resizeResponsive is Button)
             {
                 resizeResponsive.OriginalParentSize = Size;
                 Resized += resizeResponsive.OnParentResized;
@@ -146,13 +166,19 @@ namespace JourneyCore.Lib.Display
         {
             MouseButtonPressed += (sender, args) =>
             {
-                if (pressable.RespectsCapture && PressCaptured) return;
+                if (pressable.RespectsCapture && PressCaptured)
+                {
+                    return;
+                }
 
                 PressCaptured = pressable.OnMousePressed(args);
             };
             MouseButtonReleased += (sender, args) =>
             {
-                if (pressable.RespectsCapture && ReleaseCaptured) return;
+                if (pressable.RespectsCapture && ReleaseCaptured)
+                {
+                    return;
+                }
 
                 ReleaseCaptured = pressable.OnMouseReleased(args);
             };
@@ -194,7 +220,9 @@ namespace JourneyCore.Lib.Display
             ContinuousInputWatcher.CheckWatchedInputs();
 
             foreach ((DrawViewLayer layer, DrawView drawView) in DrawViews.Where(drawView => drawView.Value.Visible))
+            {
                 ProcessDrawView(drawView);
+            }
         }
 
         #endregion
@@ -264,7 +292,10 @@ namespace JourneyCore.Lib.Display
 
         public DrawView CreateDrawView(DrawView drawView)
         {
-            if (DrawViews.Any(dView => dView.Value.Layer.Equals(drawView.Layer))) return null;
+            if (DrawViews.Any(dView => dView.Value.Layer.Equals(drawView.Layer)))
+            {
+                return null;
+            }
 
             DrawViews.Add(drawView.Layer, drawView);
 
@@ -333,7 +364,10 @@ namespace JourneyCore.Lib.Display
         {
             ContinuousInputWatcher.AddWatchedInput(button, () =>
             {
-                if (respectsCapture && PressCaptured) return;
+                if (respectsCapture && PressCaptured)
+                {
+                    return;
+                }
 
                 inputAction();
             }, enabledCheck, singlePress);

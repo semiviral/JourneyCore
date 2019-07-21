@@ -21,7 +21,10 @@ namespace JourneyCore.Lib.Game.Object.Item
             get => _StackSize;
             set
             {
-                if (_StackSize == value) return;
+                if (_StackSize == value)
+                {
+                    return;
+                }
 
                 ModifyStackSize(value);
             }
@@ -31,7 +34,10 @@ namespace JourneyCore.Lib.Game.Object.Item
 
         private void ModifyStackSize(int newSize)
         {
-            if (newSize >= 0 && newSize <= MaxStackSize) return;
+            if ((newSize >= 0) && (newSize <= MaxStackSize))
+            {
+                return;
+            }
 
             _StackSize = newSize;
         }

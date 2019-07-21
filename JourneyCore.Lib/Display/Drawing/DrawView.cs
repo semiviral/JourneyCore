@@ -50,19 +50,24 @@ namespace JourneyCore.Lib.Display.Drawing
         public float Rotation
         {
             get => View.Rotation;
-            set => View.Rotation = value + DefaultPlayerViewRotation % 360;
+            set => View.Rotation = value + (DefaultPlayerViewRotation % 360);
         }
 
         public void ModifyOpacity(sbyte alphaModifier)
         {
             foreach ((int layer, List<DrawItem> drawItems) in DrawQueue)
             foreach (DrawItem drawItem in drawItems)
+            {
                 drawItem.DrawSubject.ModifyOpacity?.Invoke(alphaModifier);
+            }
         }
 
         public void AddDrawItem(int layer, DrawItem drawItem)
         {
-            if (!DrawQueue.Keys.Contains(layer)) DrawQueue.Add(layer, new List<DrawItem>());
+            if (!DrawQueue.Keys.Contains(layer))
+            {
+                DrawQueue.Add(layer, new List<DrawItem>());
+            }
 
             DrawQueue[layer].Add(drawItem);
         }
@@ -71,14 +76,17 @@ namespace JourneyCore.Lib.Display.Drawing
         {
             DateTime absoluteNow = DateTime.Now;
 
-            if (DrawQueue.Count <= 0) return;
+            if (DrawQueue.Count <= 0)
+            {
+                return;
+            }
 
             foreach ((int key, List<DrawItem> drawItemsPrelim) in DrawQueue)
             {
                 drawItemsPrelim.RemoveAll(drawItem =>
-                    drawItem == null ||
-                    drawItem.MaxLifetime.Ticks != DateTime.MinValue.Ticks &&
-                    drawItem.MaxLifetime.Ticks < absoluteNow.Ticks);
+                    (drawItem == null) ||
+                    ((drawItem.MaxLifetime.Ticks != DateTime.MinValue.Ticks) &&
+                     (drawItem.MaxLifetime.Ticks < absoluteNow.Ticks)));
 
                 foreach ((RenderStates renderStates, List<DrawItem> drawItems) in drawItemsPrelim.GroupBy(item =>
                         item.SubjectRenderStates, item => item,
@@ -108,7 +116,10 @@ namespace JourneyCore.Lib.Display.Drawing
                         vArray[startIndex + 3] = vertices[3];
                     }
 
-                    if (vArray.VertexCount == 0) continue;
+                    if (vArray.VertexCount == 0)
+                    {
+                        continue;
+                    }
 
                     window.Draw(vArray, renderStates);
                 }

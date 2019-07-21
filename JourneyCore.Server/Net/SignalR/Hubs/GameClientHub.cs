@@ -25,11 +25,6 @@ namespace JourneyCore.Server.Net.SignalR.Hubs
 
         #region CLIENT-TO-SERVER RELAY METHODS
 
-        public async Task RequestReadyStatus()
-        {
-            await GameService.RelayReadyStatus(Context.ConnectionId);
-        }
-
         public async Task RequestConnectionId()
         {
             await GameService.RelayConnectionId(Context.ConnectionId);

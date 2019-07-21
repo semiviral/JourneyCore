@@ -36,11 +36,15 @@ namespace JourneyCore.Lib.Game.Object.Entity
 
         public DrawItem FireProjectile(double centerRelativeMouseX, double centerRelativeMouseY, int tileWidth)
         {
-            if (!CanAttack) return null;
+            if (!CanAttack)
+            {
+                return null;
+            }
 
             ProjectileCooldown = DateTime.Now.AddMilliseconds(AttackCooldownValue);
 
-            double angle = (180 / Math.PI * Math.Atan2(centerRelativeMouseY, centerRelativeMouseX) + Graphic.Rotation +
+            double angle = (((180 / Math.PI) * Math.Atan2(centerRelativeMouseY, centerRelativeMouseX)) +
+                            Graphic.Rotation +
                             DrawView.DefaultPlayerViewRotation + 90d) % 360;
 
             Projectile projectile = new Projectile(
@@ -49,7 +53,7 @@ namespace JourneyCore.Lib.Game.Object.Entity
             projectile.Graphic.Origin = new Vector2f(projectile.Graphic.TextureRect.Width / 2f,
                 projectile.Graphic.TextureRect.Height / 2f);
             projectile.Graphic.Position = Graphic.Position;
-            projectile.Graphic.Rotation = (float) angle + 180f % 360;
+            projectile.Graphic.Rotation = (float) angle + (180f % 360);
             projectile.Graphic.Scale = new Vector2f(0.35f, 0.35f);
 
             DrawItem projectileDrawItem = new DrawItem(
@@ -103,9 +107,15 @@ namespace JourneyCore.Lib.Game.Object.Entity
             get => Graphic?.Position ?? new Vector2f(0f, 0f);
             set
             {
-                if (Graphic == null) return;
+                if (Graphic == null)
+                {
+                    return;
+                }
 
-                if (Graphic.Position == value) return;
+                if (Graphic.Position == value)
+                {
+                    return;
+                }
 
                 Vector2f oldPosition = new Vector2f(Graphic.Position.X, Graphic.Position.Y);
                 Graphic.Position = value;
@@ -121,9 +131,15 @@ namespace JourneyCore.Lib.Game.Object.Entity
             get => Graphic?.Rotation ?? 0f;
             set
             {
-                if (Graphic == null) return;
+                if (Graphic == null)
+                {
+                    return;
+                }
 
-                if (Math.Abs(Graphic.Rotation - value) < 0.0001) return;
+                if (Math.Abs(Graphic.Rotation - value) < 0.0001)
+                {
+                    return;
+                }
 
                 Graphic.Rotation = value;
 
@@ -142,7 +158,10 @@ namespace JourneyCore.Lib.Game.Object.Entity
             get => _Strength;
             set
             {
-                if (_Strength == value) return;
+                if (_Strength == value)
+                {
+                    return;
+                }
 
                 _Strength = value;
 
@@ -164,7 +183,10 @@ namespace JourneyCore.Lib.Game.Object.Entity
             get => _CurrentHp;
             set
             {
-                if (Math.Abs(_CurrentHp - value) < 0.01) return;
+                if (Math.Abs(_CurrentHp - value) < 0.01)
+                {
+                    return;
+                }
 
                 _CurrentHp = value;
 
@@ -192,7 +214,10 @@ namespace JourneyCore.Lib.Game.Object.Entity
 
         private void CheckChunkChanged(object sender, EntityPositionChangedEventArgs args)
         {
-            if (args.NewPosition.X - args.OldPosition.X < 16 && args.NewPosition.Y - args.OldPosition.Y < 16) return;
+            if (((args.NewPosition.X - args.OldPosition.X) < 16) && ((args.NewPosition.Y - args.OldPosition.Y) < 16))
+            {
+                return;
+            }
 
             Vector2f chunkPosition = new Vector2f((int) args.NewPosition.X / MapLoader.ChunkSize,
                 (int) args.NewPosition.Y / MapLoader.ChunkSize);
@@ -230,7 +255,10 @@ namespace JourneyCore.Lib.Game.Object.Entity
 
         private void TryInitialiseCollider()
         {
-            if (Graphic == null) return;
+            if (Graphic == null)
+            {
+                return;
+            }
 
             _Collider.Scale = Graphic.Scale;
             _Collider.Mobile = true;

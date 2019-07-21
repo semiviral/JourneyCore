@@ -13,7 +13,10 @@ namespace JourneyCore.Lib.Game.Environment.Mapping
             // intiailise internal chunk array
             InternalChunk = new TilePrimitive[sizeX][];
 
-            for (int y = 0; y < InternalChunk.Length; y++) InternalChunk[y] = new TilePrimitive[sizeY];
+            for (int y = 0; y < InternalChunk.Length; y++)
+            {
+                InternalChunk[y] = new TilePrimitive[sizeY];
+            }
         }
 
         public TilePrimitive[][] InternalChunk { get; set; }

@@ -21,7 +21,10 @@ namespace JourneyCore.Lib.System.Event.Input
         public void AddWatchedInput(Keyboard.Key key, Action inputAction, Func<bool> enabledCheck = null,
             bool singlePress = false)
         {
-            if (!GetWatchedKeys().Contains(key)) WatchedKeys.Add(key, new InputActionList(enabledCheck, singlePress));
+            if (!GetWatchedKeys().Contains(key))
+            {
+                WatchedKeys.Add(key, new InputActionList(enabledCheck, singlePress));
+            }
 
             WatchedKeys[key].AddInputAction(inputAction);
         }
@@ -30,7 +33,9 @@ namespace JourneyCore.Lib.System.Event.Input
             bool singlePress = false)
         {
             if (!GetWatchedButtons().Contains(button))
+            {
                 WatchedButtons.Add(button, new InputActionList(enabledCheck, singlePress));
+            }
 
             WatchedButtons[button].AddInputAction(inputAction);
         }

@@ -26,7 +26,7 @@ namespace JourneyCore.Lib.System.Math
             int x2 = x0 - x1;
             int y2 = y0 - y1;
 
-            return x2 * x2 + y2 * y2;
+            return (x2 * x2) + (y2 * y2);
         }
 
         public static double CosFromDegrees(double degrees)
@@ -41,7 +41,7 @@ namespace JourneyCore.Lib.System.Math
 
         public static double ToRadians(double degrees)
         {
-            return PI * degrees / 180d;
+            return (PI * degrees) / 180d;
         }
 
         public static Vector2f RotatePoint(Vector2f outerPoint, Vector2f centerPoint, float rotation)
@@ -51,8 +51,10 @@ namespace JourneyCore.Lib.System.Math
             float sinTheta = (float) Sin(angleInRadians);
 
             return new Vector2f(
-                cosTheta * (outerPoint.X - centerPoint.X) - sinTheta * (outerPoint.Y - centerPoint.Y) + centerPoint.X,
-                sinTheta * (outerPoint.X - centerPoint.X) + cosTheta * (outerPoint.Y - centerPoint.Y) + centerPoint.Y);
+                ((cosTheta * (outerPoint.X - centerPoint.X)) - (sinTheta * (outerPoint.Y - centerPoint.Y))) +
+                centerPoint.X,
+                (sinTheta * (outerPoint.X - centerPoint.X)) + (cosTheta * (outerPoint.Y - centerPoint.Y)) +
+                centerPoint.Y);
         }
 
         /// <summary>
@@ -74,14 +76,17 @@ namespace JourneyCore.Lib.System.Math
                     LineSegment line2 = new LineSegment(quad2.Vertices[j],
                         quad2.Vertices[(j + 1) % quad2.Vertices.Length]);
 
-                    float h = (line2.End.X - line2.Start.X) * (line1.Start.Y - line1.End.Y) -
-                              (line1.Start.X - line1.End.X) * (line2.End.Y - line2.Start.Y);
-                    float t1 = ((line2.Start.Y - line2.End.Y) * (line1.Start.X - line2.Start.X) +
-                                (line2.End.X - line2.Start.X) * (line1.Start.Y - line2.Start.Y)) / h;
-                    float t2 = ((line1.Start.Y - line1.End.Y) * (line1.Start.X - line2.Start.X) +
-                                (line1.End.X - line1.Start.X) * (line1.Start.Y - line2.Start.Y)) / h;
+                    float h = ((line2.End.X - line2.Start.X) * (line1.Start.Y - line1.End.Y)) -
+                              ((line1.Start.X - line1.End.X) * (line2.End.Y - line2.Start.Y));
+                    float t1 = (((line2.Start.Y - line2.End.Y) * (line1.Start.X - line2.Start.X)) +
+                                ((line2.End.X - line2.Start.X) * (line1.Start.Y - line2.Start.Y))) / h;
+                    float t2 = (((line1.Start.Y - line1.End.Y) * (line1.Start.X - line2.Start.X)) +
+                                ((line1.End.X - line1.Start.X) * (line1.Start.Y - line2.Start.Y))) / h;
 
-                    if (t1 < 0.0f || t1 >= 1.0f || t2 < 0.0f || t2 >= 1.0f) continue;
+                    if ((t1 < 0.0f) || (t1 >= 1.0f) || (t2 < 0.0f) || (t2 >= 1.0f))
+                    {
+                        continue;
+                    }
 
                     displacement.X += (1.0f - t1) * (line1.End.X - line1.Start.X) * -1;
                     displacement.Y += (1.0f - t1) * (line1.End.Y - line1.Start.Y) * -1;

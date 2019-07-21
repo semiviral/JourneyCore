@@ -9,9 +9,8 @@ namespace JourneyCore.Server.Net.SignalR.Contexts
     {
         IHubContext<GameClientHub> HubContext { get; }
 
-        Task SendServerStatus(string connectionId, bool serverReady);
         Task SendConnectionId(string connectionId);
-        Task PlayerPositionModification(string connectionId, Vector2f updatePackage);
-        Task PlayerRotationModification(string connectionId, float newRotation);
+        Task PlayerPositionModification(string connectionId, Vector2f movementModification);
+        Task PlayerRotationModification(string connectionId, float rotationModification);
     }
 }

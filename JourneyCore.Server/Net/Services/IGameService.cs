@@ -15,7 +15,6 @@ namespace JourneyCore.Server.Net.Services
         List<Player> Players { get; }
         Dictionary<string, Map> TileMaps { get; }
 
-        Task RelayReadyStatus(string connectionId);
         Task RelayConnectionId(string connectionId);
         Task ReceivePlayerMovement(string connectionId, Vector2f movement);
         Task ReceivePlayerRotation(string connectionId, float rotation);

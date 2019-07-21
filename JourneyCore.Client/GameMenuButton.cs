@@ -17,7 +17,10 @@ namespace JourneyCore.Client
             Entered += (sender, args) => { ForegroundColor = IsPressed ? Color.Red : Color.Cyan; };
             Exited += (sender, args) =>
             {
-                if (!IsPressed) ForegroundColor = Color.White;
+                if (!IsPressed)
+                {
+                    ForegroundColor = Color.White;
+                }
             };
             Pressed += (sender, args) => { ForegroundColor = Color.Red; };
             Released += (sender, args) => { ForegroundColor = IsHovered ? Color.Cyan : Color.White; };

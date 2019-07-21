@@ -47,11 +47,6 @@ namespace JourneyCore.Lib.System.Net
             return true;
         }
 
-        public void InvokeHubAsync(string methodName, params object[] args)
-        {
-            Connection?.InvokeAsync(methodName, args);
-        }
-
 
         #region INIT
 
@@ -71,7 +66,8 @@ namespace JourneyCore.Lib.System.Net
             bool connected = false;
             int tries = 0;
 
-            while (!connected && tries < 5)
+            while (!connected && (tries < 5))
+            {
                 try
                 {
                     Connection = new HubConnectionBuilder().WithUrl($"{ServerUrl}/{servicePath}").Build();
@@ -100,6 +96,7 @@ namespace JourneyCore.Lib.System.Net
                         tries += 1;
                     }
                 }
+            }
 
             On<string>("ReceiveConnectionId", connectionId => { ConnectionId = connectionId; });
             On<bool>("ReceiveServerStatus", status => { IsServerReady = status; });
@@ -179,14 +176,20 @@ namespace JourneyCore.Lib.System.Net
 
         private async Task OnFatalExit(object sender, string fatalityDescription)
         {
-            if (FatalExit == null) return;
+            if (FatalExit == null)
+            {
+                return;
+            }
 
             await FatalExit.Invoke(sender, fatalityDescription);
         }
 
         private async Task OnClosed(object sender, Exception ex)
         {
-            if (Closed == null) return;
+            if (Closed == null)
+            {
+                return;
+            }
 
             await Closed.Invoke(sender, ex);
         }
@@ -208,7 +211,10 @@ namespace JourneyCore.Lib.System.Net
             string retVal = await GetResponseAsync("gameservice/tickrate");
             int tickRate = JsonConvert.DeserializeObject<int>(retVal);
 
-            if (tickRate > 0) return tickRate;
+            if (tickRate > 0)
+            {
+                return tickRate;
+            }
 
             await OnFatalExit(this,
                 "Request for server tick interval returned an illegal value. Aborting game launch.");

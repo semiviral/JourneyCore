@@ -8,9 +8,15 @@ namespace JourneyCore.Lib.System.Static
     {
         public static float LimitToRange(this float subject, float minimumRange, float maximumRange)
         {
-            if (subject > maximumRange) return maximumRange;
+            if (subject > maximumRange)
+            {
+                return maximumRange;
+            }
 
-            if (subject < minimumRange) return minimumRange;
+            if (subject < minimumRange)
+            {
+                return minimumRange;
+            }
 
             return subject;
         }

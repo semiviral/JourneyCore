@@ -14,24 +14,21 @@ namespace JourneyCore.Server.Net.SignalR.Contexts
 
         public IHubContext<GameClientHub> HubContext { get; }
 
-        public async Task SendServerStatus(string connectionId, bool serverStatus)
-        {
-            await HubContext.Clients.Client(connectionId).SendAsync("ReceiveServerStatus", serverStatus);
-        }
-
         public async Task SendConnectionId(string connectionId)
         {
             await HubContext.Clients.Client(connectionId).SendAsync("ReceiveConnectionId", connectionId);
         }
 
-        public async Task PlayerPositionModification(string connectionId, Vector2f newPosition)
+        public async Task PlayerPositionModification(string connectionId, Vector2f movementModification)
         {
-            await HubContext.Clients.Client(connectionId).SendAsync("ReceivePlayerMovementModification", newPosition);
+            await HubContext.Clients.Client(connectionId)
+                .SendAsync("ReceivePlayerMovementModification", movementModification);
         }
 
-        public async Task PlayerRotationModification(string connectionId, float newRotation)
+        public async Task PlayerRotationModification(string connectionId, float rotationModification)
         {
-            await HubContext.Clients.Client(connectionId).SendAsync("ReceivePlayerRotationModification", newRotation);
+            await HubContext.Clients.Client(connectionId)
+                .SendAsync("ReceivePlayerRotationModification", rotationModification);
         }
     }
 }

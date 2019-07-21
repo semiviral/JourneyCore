@@ -31,7 +31,7 @@ namespace JourneyCore.Server.Net.Services
             TileMaps = new Dictionary<string, Map>();
             Players = new List<Player>();
 
-            TickRate = (int) (1f / 30f * 1000f);
+            TickRate = (int) ((1f / 30f) * 1000f);
         }
 
         public DiffieHellmanMessagePackage PackageMessage(string connectionId, byte[] secretMessage)
@@ -40,11 +40,6 @@ namespace JourneyCore.Server.Net.Services
         }
 
         #region CLIENT-TO-SERVER REQUESTS
-
-        public async Task RelayReadyStatus(string connectionId)
-        {
-            await GameClientContext.SendServerStatus(connectionId, Status);
-        }
 
         public async Task RelayConnectionId(string connectionId)
         {
@@ -55,7 +50,24 @@ namespace JourneyCore.Server.Net.Services
         {
             Players.First().Position += movement;
 
-            foreach (Vector2f vector in CollisionCheck(Players.First())) Players.First().Position += vector;
+            bool hasModified = false;
+
+            foreach (Vector2f vector in CollisionCheck(Players.First()))
+            {
+                Players.First().Position += vector;
+
+                if (hasModified)
+                {
+                    continue;
+                }
+
+                hasModified = true;
+            }
+
+            if (!hasModified)
+            {
+                return;
+            }
 
             await GameClientContext.PlayerPositionModification(connectionId, Players.First().Position);
         }
@@ -67,16 +79,17 @@ namespace JourneyCore.Server.Net.Services
             return Task.CompletedTask;
         }
 
-        private List<Vector2f> CollisionCheck(Player player)
+        private IEnumerable<Vector2f> CollisionCheck(IEntity entity)
         {
             Map map = TileMaps.First().Value;
 
-            List<Vector2f> collisionOperations = new List<Vector2f>();
-
             foreach (CollisionQuad quad in map.Colliders.Where(collider => !collider.Mobile))
-                collisionOperations.AddRange(GraphMath.DiagnasticCollision(player.Collider, quad));
-
-            return collisionOperations;
+            {
+                foreach (Vector2f adjustment in GraphMath.DiagnasticCollision(entity.Collider, quad))
+                {
+                    yield return adjustment;
+                }
+            }
         }
 
         #endregion
@@ -109,15 +122,19 @@ namespace JourneyCore.Server.Net.Services
         {
             foreach (string filePath in Directory.EnumerateFiles($@"{MapLoader.AssetRoot}/Images", "*.png",
                 SearchOption.AllDirectories))
+            {
                 TextureImages.Add(Path.GetFileNameWithoutExtension(filePath).ToLower(), File.ReadAllBytes(filePath));
+            }
         }
 
         private void InitialiseNonMapTileSets()
         {
             foreach (string filePath in Directory.EnumerateFiles($@"{MapLoader.AssetRoot}/TileSets", "*.json",
                 SearchOption.AllDirectories))
+            {
                 TileSets.Add(Path.GetFileNameWithoutExtension(filePath).ToLower(),
                     TileSetLoader.LoadTileSet(filePath, 0));
+            }
         }
 
         private void InitialiseTileMaps()
@@ -192,14 +209,19 @@ namespace JourneyCore.Server.Net.Services
             // todo upgrade to C# 8.0 for (yield return in async)
             List<Chunk> chunks = new List<Chunk>();
 
-            if (coords.X < 0 || coords.Y < 0 || coords.X > TileMaps[mapName].Layers[0].Map.Length - 1 ||
-                coords.Y > TileMaps[mapName].Layers[0].Map[0].Length - 1)
+            if ((coords.X < 0) || (coords.Y < 0) || (coords.X > (TileMaps[mapName].Layers[0].Map.Length - 1)) ||
+                (coords.Y > (TileMaps[mapName].Layers[0].Map[0].Length - 1)))
+            {
                 return new DiffieHellmanMessagePackage(CryptoServices[id].PublicKey,
                     await CryptoServices[id]
                         .EncryptAsync(JsonConvert.SerializeObject(
                             new IndexOutOfRangeException($"Specified index: {coords} out of map range."))));
+            }
 
-            foreach (MapLayer layer in TileMaps[mapName].Layers) chunks.Add(layer.Map[coords.X][coords.Y]);
+            foreach (MapLayer layer in TileMaps[mapName].Layers)
+            {
+                chunks.Add(layer.Map[coords.X][coords.Y]);
+            }
 
             string serializedChunksList = JsonConvert.SerializeObject(chunks);
 
@@ -228,7 +250,7 @@ namespace JourneyCore.Server.Net.Services
 
                 TileSetMetadata playerMetadata = TileSets["avatar"].GetMetadata();
                 CollisionQuad collider = playerMetadata.Tiles
-                    .First(tile => tile.TextureRect.Left == 3 && tile.TextureRect.Top == 1)?
+                    .First(tile => (tile.TextureRect.Left == 3) && (tile.TextureRect.Top == 1))?
                     .Colliders.First();
 
                 // todo no hard coding for player texture size

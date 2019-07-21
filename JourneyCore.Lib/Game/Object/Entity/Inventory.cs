@@ -21,7 +21,10 @@
 
         public void MoveInventorySlot(int slot, int newSlot)
         {
-            if (Items[slot] == null) return;
+            if (Items[slot] == null)
+            {
+                return;
+            }
 
             bool emptyTempIndex = false;
 
@@ -38,7 +41,10 @@
             DelInventoryItem(slot);
 
             // Empties temporary item slot
-            if (!emptyTempIndex) return;
+            if (!emptyTempIndex)
+            {
+                return;
+            }
 
             Items[slot] = Items[10];
             DelInventoryItem(10);
@@ -47,8 +53,12 @@
         public int FindFirstOpenItemSlot()
         {
             for (int i = 0; i < Items.Length; i++)
+            {
                 if (Items[i] == null)
+                {
                     return i;
+                }
+            }
 
             return -1;
         }

@@ -49,7 +49,10 @@ namespace JourneyCore.Lib.Game.Object.Collision
             get => _Size;
             set
             {
-                if (_Size == value) return;
+                if (_Size == value)
+                {
+                    return;
+                }
 
                 _Size = value;
                 UpdateShape();
@@ -61,7 +64,10 @@ namespace JourneyCore.Lib.Game.Object.Collision
             get => _Scale;
             set
             {
-                if (_Scale == value) return;
+                if (_Scale == value)
+                {
+                    return;
+                }
 
                 _Scale = value;
                 _Position = new Vector2f(_Position.X * _Scale.X, _Position.Y * _Scale.Y);
@@ -81,7 +87,10 @@ namespace JourneyCore.Lib.Game.Object.Collision
             get => _Rotation;
             set
             {
-                if (_Rotation == value) return;
+                if (_Rotation == value)
+                {
+                    return;
+                }
 
                 _Rotation = value;
                 UpdateShape();
@@ -93,7 +102,10 @@ namespace JourneyCore.Lib.Game.Object.Collision
             get => _Position;
             set
             {
-                if (_Position == value) return;
+                if (_Position == value)
+                {
+                    return;
+                }
 
                 _Position = value;
                 UpdateShape();
@@ -113,7 +125,7 @@ namespace JourneyCore.Lib.Game.Object.Collision
 
         private void UpdateShape()
         {
-            CenterPoint = Position + Size / 2f;
+            CenterPoint = Position + (Size / 2f);
 
             // top left point
             Vertices[0] = GraphMath.RotatePoint(Position, CenterPoint, Rotation);

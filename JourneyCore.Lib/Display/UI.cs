@@ -32,7 +32,10 @@ namespace JourneyCore.Lib.Display
 
             CurrentHp = newHp;
 
-            if (Math.Abs(difference) < 5) return;
+            if (Math.Abs(difference) < 5)
+            {
+                return;
+            }
 
             CalculateHearts();
         }
@@ -59,17 +62,21 @@ namespace JourneyCore.Lib.Display
             Sprite[] newHearts = new Sprite[fullHearts + halfHearts];
 
             for (int i = 0; i < fullHearts; i++)
+            {
                 newHearts[i] = new Sprite(UiSpriteSheetTexture, GetTextureRectByType("HeartFull"));
+            }
 
             if (halfHearts > 0)
+            {
                 newHearts[fullHearts] = new Sprite(UiSpriteSheetTexture, GetTextureRectByType("HeartHalf"));
+            }
 
             for (int i = 0; i < newHearts.Length; i++)
             {
                 newHearts[i].Scale = new Vector2f(4f, 4f);
 
-                float posX = i % HpRowWidth * newHearts[i].TextureRect.Width * newHearts[i].Scale.X;
-                float posY = i / HpRowWidth * newHearts[i].TextureRect.Height * newHearts[i].Scale.Y;
+                float posX = (i % HpRowWidth) * newHearts[i].TextureRect.Width * newHearts[i].Scale.X;
+                float posY = (i / HpRowWidth) * newHearts[i].TextureRect.Height * newHearts[i].Scale.Y;
 
                 newHearts[i].Position = new Vector2f(posX, posY);
             }

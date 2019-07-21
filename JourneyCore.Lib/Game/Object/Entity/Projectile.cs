@@ -30,7 +30,10 @@ namespace JourneyCore.Lib.Game.Object.Entity
             get => Graphic.Position;
             set
             {
-                if (Graphic.Position == value) return;
+                if (Graphic.Position == value)
+                {
+                    return;
+                }
 
                 Graphic.Position = value;
 
@@ -43,7 +46,10 @@ namespace JourneyCore.Lib.Game.Object.Entity
             get => Graphic.Rotation;
             set
             {
-                if (Math.Abs(Graphic.Rotation - value) < 0.0001) return;
+                if (Math.Abs(Graphic.Rotation - value) < 0.0001)
+                {
+                    return;
+                }
 
                 Graphic.Rotation = value;
 

@@ -68,42 +68,62 @@ namespace JourneyCore.Lib.Display.Drawing
         private void AssignSetOpacityMethod(object obj)
         {
             if (obj is VertexArray vArrayObj)
+            {
                 ModifyOpacity = arg1 => { vArrayObj.ModifyOpacity(arg1, 10); };
+            }
             else if (obj is Shape shapeObj)
+            {
                 ModifyOpacity = arg1 =>
                 {
                     Color modifiedColor = shapeObj.FillColor;
 
-                    if (modifiedColor.A + arg1 < 10)
+                    if ((modifiedColor.A + arg1) < 10)
+                    {
                         modifiedColor.A = 10;
-                    else if (modifiedColor.A + arg1 > 255)
+                    }
+                    else if ((modifiedColor.A + arg1) > 255)
+                    {
                         modifiedColor.A = 255;
+                    }
                     else
+                    {
                         modifiedColor.A = (byte) (modifiedColor.A + arg1);
+                    }
 
                     shapeObj.FillColor = modifiedColor;
                 };
+            }
             else if (obj is Sprite spriteObj)
+            {
                 ModifyOpacity = arg1 =>
                 {
                     Color modifiedColor = spriteObj.Color;
 
-                    if (modifiedColor.A + arg1 < 10)
+                    if ((modifiedColor.A + arg1) < 10)
+                    {
                         modifiedColor.A = 10;
-                    else if (modifiedColor.A + arg1 > 255)
+                    }
+                    else if ((modifiedColor.A + arg1) > 255)
+                    {
                         modifiedColor.A = 255;
+                    }
                     else
+                    {
                         modifiedColor.A = (byte) (modifiedColor.A + arg1);
+                    }
 
                     spriteObj.Color = modifiedColor;
                 };
+            }
         }
 
         private static void ObjectTypeChecks(object obj)
         {
             if (!(obj is Drawable))
+            {
                 throw new InvalidCastException(
                     "Provided object is not safely castable to required type (Drawable).");
+            }
         }
 
 

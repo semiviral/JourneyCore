@@ -82,8 +82,8 @@ namespace JourneyCore.Client
             for (int x = 0; x < chunk.Length; x++)
             for (int y = 0; y < chunk[0].Length; y++)
             {
-                Vector2f tileCoords = new Vector2f(chunk.Left * MapLoader.ChunkSize + x,
-                    chunk.Top * MapLoader.ChunkSize + y);
+                Vector2f tileCoords = new Vector2f((chunk.Left * MapLoader.ChunkSize) + x,
+                    (chunk.Top * MapLoader.ChunkSize) + y);
 
                 AllocateTileToVArray(chunk[x][y], tileCoords, chunk.Layer);
             }
@@ -102,8 +102,8 @@ namespace JourneyCore.Client
             for (int x = 0; x < MapLoader.ChunkSize; x++)
             for (int y = 0; y < MapLoader.ChunkSize; y++)
             {
-                uint index = (uint) ((((int) coordinates.Y + y) * Metadata.Width + (int) coordinates.X + x) * 4 +
-                                     layer * (VArray.VertexCount / Metadata.LayerCount));
+                uint index = (uint) ((((((int) coordinates.Y + y) * Metadata.Width) + (int) coordinates.X + x) * 4) +
+                                     (layer * (VArray.VertexCount / Metadata.LayerCount)));
 
                 VArray[index + 0] = new Vertex();
                 VArray[index + 1] = new Vertex();
@@ -137,7 +137,10 @@ namespace JourneyCore.Client
 
         private void AllocateTileToVArray(TilePrimitive tilePrimitive, Vector2f tileCoords, int drawLayer)
         {
-            if (tilePrimitive.Gid == 0) return;
+            if (tilePrimitive.Gid == 0)
+            {
+                return;
+            }
 
             TileMetadata tileMetadata = GetTileMetadata(tilePrimitive.Gid);
 
@@ -156,8 +159,8 @@ namespace JourneyCore.Client
 
             QuadCoords textureCoords = GetTileTextureCoords(tilePrimitive);
 
-            uint index = (uint) ((tileCoords.Y * Metadata.Width + tileCoords.X) * 4 +
-                                 (drawLayer - 1) * (VArray.VertexCount / Metadata.LayerCount));
+            uint index = (uint) ((((tileCoords.Y * Metadata.Width) + tileCoords.X) * 4) +
+                                 ((drawLayer - 1) * (VArray.VertexCount / Metadata.LayerCount)));
 
             VArray[index + 0] = new Vertex(topLeft, textureCoords.TopLeft);
             VArray[index + 1] = new Vertex(topRight, textureCoords.TopRight);
