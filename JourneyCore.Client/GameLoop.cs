@@ -346,13 +346,65 @@ namespace JourneyCore.Client
                 Player.MoveEntity(movement, MapLoader.TilePixelSize, GameWindow.ElapsedTime);
             }, () => IsFocused);
 
-            GameWindow.AddWatchedInput(Keyboard.Key.G,
-                () => { GameWindow.GetDrawView(DrawViewLayer.Minimap).ModifyOpacity(-25); },
-                () => IsFocused);
+            GameWindow.AddWatchedInput(Keyboard.Key.Equal,
+                () =>
+                {
+                    if ((Keyboard.IsKeyPressed(Keyboard.Key.LControl) ||
+                         Keyboard.IsKeyPressed(Keyboard.Key.RControl)) &&
+                        (Keyboard.IsKeyPressed(Keyboard.Key.LShift) ||
+                         Keyboard.IsKeyPressed(Keyboard.Key.RShift)))
+                    {
+                        GameWindow.GetDrawView(DrawViewLayer.Minimap).ModifyOpacity(25);
+                    }
+                },
+                () => IsFocused, true);
 
-            GameWindow.AddWatchedInput(Keyboard.Key.H,
-                () => { GameWindow.GetDrawView(DrawViewLayer.Minimap).ModifyOpacity(25); },
-                () => IsFocused);
+            GameWindow.AddWatchedInput(Keyboard.Key.Hyphen,
+                () =>
+                {
+                    if ((Keyboard.IsKeyPressed(Keyboard.Key.LControl) ||
+                         Keyboard.IsKeyPressed(Keyboard.Key.RControl)) &&
+                        (Keyboard.IsKeyPressed(Keyboard.Key.LShift) ||
+                         Keyboard.IsKeyPressed(Keyboard.Key.RShift)))
+                    {
+                        GameWindow.GetDrawView(DrawViewLayer.Minimap).ModifyOpacity(-25);
+                    }
+                },
+                () => IsFocused, true);
+
+            GameWindow.AddWatchedInput(Keyboard.Key.Equal, () =>
+            {
+                // stops key action from continuing when trying to
+                // change opacity
+                if (Keyboard.IsKeyPressed(Keyboard.Key.LShift) ||
+                    Keyboard.IsKeyPressed(Keyboard.Key.RShift))
+                {
+                    return;
+                }
+
+                if (Keyboard.IsKeyPressed(Keyboard.Key.LControl) ||
+                    Keyboard.IsKeyPressed(Keyboard.Key.RControl))
+                {
+                    GameWindow.GetDrawView(DrawViewLayer.Minimap).ZoomFactor += 2f * -1f;
+                }
+            }, () => IsFocused, true);
+
+            GameWindow.AddWatchedInput(Keyboard.Key.Hyphen, () =>
+            {
+                // stops key action from continuing when trying to
+                // change opacity
+                if (Keyboard.IsKeyPressed(Keyboard.Key.LShift) ||
+                    Keyboard.IsKeyPressed(Keyboard.Key.RShift))
+                {
+                    return;
+                }
+
+                if (Keyboard.IsKeyPressed(Keyboard.Key.LControl) ||
+                    Keyboard.IsKeyPressed(Keyboard.Key.RControl))
+                {
+                    GameWindow.GetDrawView(DrawViewLayer.Minimap).ZoomFactor += -2f * -1f;
+                }
+            }, () => IsFocused, true);
 
             GameWindow.AddWatchedInput(Keyboard.Key.Q,
                 () => { Player.RotateEntity(GameWindow.ElapsedTime, 180f, false); }, () => IsFocused);
