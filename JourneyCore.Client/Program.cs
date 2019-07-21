@@ -3,9 +3,9 @@ using Serilog;
 
 namespace JourneyCore.Client
 {
-    public class Program
+    public static class Program
     {
-        public static GameLoop GLoop { get; private set; }
+        private static GameLoop GLoop { get; set; }
 
         private static void Main()
         {

@@ -22,6 +22,7 @@ namespace JourneyCore.Lib.Display.Component
             _BackgroundShape = new RectangleShape();
             _TextObject = new Text();
 
+            Margins = new Margin();
             Size = new Vector2u(0, 0);
             Position = new Vector2f(0f, 0f);
             Origin = new Vector2f(0f, 0f);
@@ -80,6 +81,8 @@ namespace JourneyCore.Lib.Display.Component
             set => SetOrigin(value);
         }
 
+        public Margin Margins { get; set; }
+
         public event EventHandler<SizeEventArgs> Resized;
 
         public IEnumerable<IUIObject> SubscribableObjects()
@@ -97,8 +100,7 @@ namespace JourneyCore.Lib.Display.Component
             {
                 FloatRect localBounds = newText.GetLocalBounds();
 
-                Size = new Vector2u((uint) (localBounds.Width + localBounds.Left),
-                    (uint) (localBounds.Height + localBounds.Top));
+                Size = _TextObject.Size;
                 Origin = new Vector2f(Size.X, Size.Y) / 2f;
             }
 
@@ -191,6 +193,9 @@ namespace JourneyCore.Lib.Display.Component
 
         protected void SetSize(Vector2u size)
         {
+            size.X += Margins.Left + Margins.Right;
+            size.Y += Margins.Top + Margins.Bottom;
+
             BackgroundSprite.Scale = new Vector2f((float) size.X / BackgroundSprite.TextureRect.Width,
                 (float) size.Y / BackgroundSprite.TextureRect.Height);
             _BackgroundShape.Size = new Vector2f(size.X, size.Y);

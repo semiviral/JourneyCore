@@ -41,6 +41,7 @@ namespace JourneyCore.Lib.Display.Component
 
         public Vector2f Position { get; set; }
         public Vector2f Origin { get; set; }
+        public Margin Margins { get; set; }
         public event EventHandler<SizeEventArgs> Resized;
 
         public IEnumerable<IUIObject> SubscribableObjects()

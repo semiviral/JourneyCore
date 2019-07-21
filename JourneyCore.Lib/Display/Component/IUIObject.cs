@@ -10,6 +10,7 @@ namespace JourneyCore.Lib.Display.Component
         Vector2u Size { get; set; }
         Vector2f Position { get; set; }
         Vector2f Origin { get; set; }
+        Margin Margins { get; set; }
 
         event EventHandler<SizeEventArgs> Resized;
 

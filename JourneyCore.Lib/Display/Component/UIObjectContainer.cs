@@ -11,6 +11,7 @@ namespace JourneyCore.Lib.Display.Component
     public class UIObjectContainer : IUIObject, IResizeResponsive
     {
         private UIObjectHorizontalPositioning _HorizontalPositioning;
+        private Margin _Margins;
         private Vector2u _OriginalParentSize;
         private Vector2f _Position;
         private Vector2u _Size;
@@ -20,6 +21,7 @@ namespace JourneyCore.Lib.Display.Component
         {
             UIObjects = new ObservableCollection<IUIObject>();
             UIObjects.CollectionChanged += OnCollectionChanged;
+            Margins = new Margin();
         }
 
         public Vector2u ParentSize { get; private set; }
@@ -66,6 +68,9 @@ namespace JourneyCore.Lib.Display.Component
             get => _Size;
             set
             {
+                value.X += Margins.Left + Margins.Right;
+                value.Y += Margins.Top + Margins.Bottom;
+
                 _Size = value;
                 OnSizeChanged(this, new SizeEventArgs(new SizeEvent {Height = _Size.X, Width = _Size.Y}));
             }
@@ -82,6 +87,17 @@ namespace JourneyCore.Lib.Display.Component
         }
 
         public Vector2f Origin { get; set; }
+
+        public Margin Margins
+        {
+            get => _Margins;
+            set
+            {
+                _Margins = value;
+
+                Size = _Size;
+            }
+        }
 
 
         public IEnumerable<IUIObject> SubscribableObjects()
@@ -107,18 +123,21 @@ namespace JourneyCore.Lib.Display.Component
                 {
                     case UIObjectHorizontalPositioning.Left:
                         xPos = HorizontalAutoStacking
-                            ? cumulativeWidth + UIObjects[i].Size.X / 2f
+                            ? cumulativeWidth + (UIObjects[i].Size.X / 2f)
                             : UIObjects[i].Size.X / 2f;
                         break;
                     case UIObjectHorizontalPositioning.Middle:
                         xPos = HorizontalAutoStacking
-                            ? Size.X / 2f - totalObjectsSizeX / 2f + cumulativeWidth + UIObjects[i].Size.X / 2f
+                            ? ((Size.X / 2f) - (totalObjectsSizeX / 2f)) + cumulativeWidth + (UIObjects[i].Size.X / 2f)
                             : Size.X / 2f;
                         break;
                     case UIObjectHorizontalPositioning.Right:
                         xPos = HorizontalAutoStacking
-                            ? Size.X - (cumulativeWidth + UIObjects[i].Size.X / 2f)
-                            : Size.X - UIObjects[i].Size.X / 2f;
+                            ? Size.X - (cumulativeWidth + (UIObjects[i].Size.X / 2f))
+                            : Size.X - (UIObjects[i].Size.X / 2f);
+                        break;
+                    case UIObjectHorizontalPositioning.Justify:
+                        xPos = (autoStackMiddleSpacingX * (i + 1)) - (UIObjects[i].Size.X / 2f);
                         break;
                     case UIObjectHorizontalPositioning.None:
                         break;
@@ -130,18 +149,21 @@ namespace JourneyCore.Lib.Display.Component
                 {
                     case UIObjectVerticalPositioning.Top:
                         yPos = VerticalAutoStacking
-                            ? cumulativeHeight + UIObjects[i].Size.Y / 2f
+                            ? cumulativeHeight + (UIObjects[i].Size.Y / 2f)
                             : UIObjects[i].Size.Y / 2f;
                         break;
                     case UIObjectVerticalPositioning.Middle:
                         yPos = VerticalAutoStacking
-                            ? Size.Y / 2f - totalObjectsSizeY / 2f + cumulativeHeight + UIObjects[i].Size.Y / 2f
+                            ? ((Size.Y / 2f) - (totalObjectsSizeY / 2f)) + cumulativeHeight + (UIObjects[i].Size.Y / 2f)
                             : Size.Y / 2f;
                         break;
                     case UIObjectVerticalPositioning.Bottom:
                         yPos = VerticalAutoStacking
-                            ? Size.Y - (cumulativeHeight + UIObjects[i].Size.Y / 2f)
-                            : Size.Y - UIObjects[i].Size.Y / 2f;
+                            ? Size.Y - (cumulativeHeight + (UIObjects[i].Size.Y / 2f))
+                            : Size.Y - (UIObjects[i].Size.Y / 2f);
+                        break;
+                    case UIObjectVerticalPositioning.Justify:
+                        yPos = (autoStackMiddleSpacingY * (i + 1)) - (UIObjects[i].Size.Y / 2f);
                         break;
                     case UIObjectVerticalPositioning.None:
                         break;

@@ -5,7 +5,8 @@ namespace JourneyCore.Lib.Display.Component
         None,
         Top,
         Middle,
-        Bottom
+        Bottom,
+        Justify
     }
 
     public enum UIObjectHorizontalPositioning
@@ -13,6 +14,7 @@ namespace JourneyCore.Lib.Display.Component
         None,
         Left,
         Middle,
-        Right
+        Right,
+        Justify
     }
 }

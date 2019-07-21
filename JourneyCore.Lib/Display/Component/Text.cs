@@ -14,29 +14,36 @@ namespace JourneyCore.Lib.Display.Component
 
         public Text(Text copy) : base(copy)
         {
-            Size = copy.Size;
+            Margins = copy.Margins;
+            AutoCalculateSize();
         }
 
         public Text(string str, Font font) : base(str, font)
         {
-            FloatRect localBounds = GetLocalBounds();
-            Size = new Vector2u((uint) (localBounds.Width + localBounds.Left),
-                (uint) (localBounds.Height + localBounds.Top));
+            Margins = new Margin();
+            AutoCalculateSize();
         }
 
         public Text(string str, Font font, uint characterSize) : base(str, font, characterSize)
         {
-            FloatRect localBounds = GetLocalBounds();
-            Size = new Vector2u((uint) (localBounds.Width + localBounds.Left),
-                (uint) (localBounds.Height + localBounds.Top));
+            Margins = new Margin();
+            AutoCalculateSize();
         }
 
         public Vector2u Size { get; set; }
+        public Margin Margins { get; set; }
         public event EventHandler<SizeEventArgs> Resized;
 
         public IEnumerable<IUIObject> SubscribableObjects()
         {
             return new IUIObject[] { };
+        }
+
+        private void AutoCalculateSize()
+        {
+            FloatRect localBounds = GetLocalBounds();
+            Size = new Vector2u((uint) (localBounds.Width + localBounds.Left) + Margins.Left + Margins.Right,
+                CharacterSize + Margins.Top + Margins.Bottom);
         }
     }
 }

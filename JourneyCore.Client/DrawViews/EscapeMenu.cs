@@ -39,7 +39,7 @@ namespace JourneyCore.Client.DrawViews
 
             UIObjectContainer escapeMenuContainer = new UIObjectContainer
             {
-                HorizontalPositioning = UIObjectHorizontalPositioning.Middle,
+                HorizontalPositioning = UIObjectHorizontalPositioning.Justify,
                 VerticalPositioning = UIObjectVerticalPositioning.Bottom,
                 HorizontalAutoStacking = true,
                 Size = GameWindow.Size
@@ -56,6 +56,7 @@ namespace JourneyCore.Client.DrawViews
         {
             GameMenuButton exitButton = new GameMenuButton(GameLoop.DefaultFont, "Exit", true, true)
             {
+                Margins = new Margin(0, 25),
                 Activated = () => AppliedDrawView.Visible
             };
             exitButton.Released += (sender, args) => { GameLoop.CallFatality("Game exited."); };
@@ -67,6 +68,7 @@ namespace JourneyCore.Client.DrawViews
         {
             GameMenuButton settingsButton = new GameMenuButton(GameLoop.DefaultFont, "Settings", true, true)
             {
+                Margins = new Margin(0, 25),
                 Activated = () => AppliedDrawView.Visible
             };
             settingsButton.Released += (sender, args) =>

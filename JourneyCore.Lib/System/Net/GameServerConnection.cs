@@ -40,11 +40,9 @@ namespace JourneyCore.Lib.System.Net
             return Convert.ToBase64String(await CryptoService.EncryptAsync(target)).HtmlEncodeBase64();
         }
 
-        public bool On<T>(string methodName, Action<T> action)
+        public void On<T>(string methodName, Action<T> action)
         {
             Connection.On(methodName, action);
-
-            return true;
         }
 
 
@@ -87,7 +85,7 @@ namespace JourneyCore.Lib.System.Net
                 {
                     if (tries == 4)
                     {
-                        await OnFatalExit(this, ex.Message);
+                        await OnFatalExit(this, $"{ex.Message}.. exiting game.");
                     }
                     else
                     {
