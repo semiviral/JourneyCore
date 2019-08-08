@@ -32,19 +32,19 @@ namespace JourneyCore.Server.Net.Controllers
         [HttpGet("gameservice/tilesets")]
         public async Task<IActionResult> GetTileSet(string id, string remotePublicKeyBase64, string tileSetNameBase64)
         {
-            byte[] remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
-            byte[] tileSetNameEncrypted = Convert.FromBase64String(tileSetNameBase64.HtmlDecodeBase64());
+            byte[] _remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
+            byte[] _tileSetNameEncrypted = Convert.FromBase64String(tileSetNameBase64.HtmlDecodeBase64());
 
-            return new JsonResult(await GameService.GetTileSetMetadata(id, remotePublicKey, tileSetNameEncrypted));
+            return new JsonResult(await GameService.GetTileSetMetadata(id, _remotePublicKey, _tileSetNameEncrypted));
         }
 
         [HttpGet("gameservice/images")]
         public async Task<IActionResult> GetImage(string id, string remotePublicKeyBase64, string imageNameBase64)
         {
-            byte[] remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
-            byte[] imageNameEncrypted = Convert.FromBase64String(imageNameBase64.HtmlDecodeBase64());
+            byte[] _remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
+            byte[] _imageNameEncrypted = Convert.FromBase64String(imageNameBase64.HtmlDecodeBase64());
 
-            return new JsonResult(await GameService.GetImage(id, remotePublicKey, imageNameEncrypted));
+            return new JsonResult(await GameService.GetImage(id, _remotePublicKey, _imageNameEncrypted));
         }
 
         [HttpGet("gameservice/tickrate")]
@@ -56,9 +56,9 @@ namespace JourneyCore.Server.Net.Controllers
         [HttpGet("gameservice/playerData")]
         public async Task<IActionResult> GetPlayer(string id, string remotePublicKeyBase64)
         {
-            byte[] remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
+            byte[] _remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
 
-            return new JsonResult(await GameService.GetPlayer(id, remotePublicKey));
+            return new JsonResult(await GameService.GetPlayer(id, _remotePublicKey));
         }
     }
 }

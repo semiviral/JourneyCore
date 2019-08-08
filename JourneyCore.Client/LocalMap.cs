@@ -79,13 +79,13 @@ namespace JourneyCore.Client
 
         private void LoadChunkTask(Chunk chunk)
         {
-            for (int x = 0; x < chunk.Length; x++)
-            for (int y = 0; y < chunk[0].Length; y++)
+            for (int _x = 0; _x < chunk.Length; _x++)
+            for (int _y = 0; _y < chunk[0].Length; _y++)
             {
-                Vector2f tileCoords = new Vector2f((chunk.Left * MapLoader.ChunkSize) + x,
-                    (chunk.Top * MapLoader.ChunkSize) + y);
+                Vector2f _tileCoords = new Vector2f((chunk.Left * MapLoader.ChunkSize) + _x,
+                    (chunk.Top * MapLoader.ChunkSize) + _y);
 
-                AllocateTileToVArray(chunk[x][y], tileCoords, chunk.Layer);
+                AllocateTileToVArray(chunk[_x][_y], _tileCoords, chunk.Layer);
             }
         }
 
@@ -98,17 +98,17 @@ namespace JourneyCore.Client
         {
             coordinates *= MapLoader.ChunkSize;
 
-            for (int layer = 0; layer < Metadata.LayerCount; layer++)
-            for (int x = 0; x < MapLoader.ChunkSize; x++)
-            for (int y = 0; y < MapLoader.ChunkSize; y++)
+            for (int _layer = 0; _layer < Metadata.LayerCount; _layer++)
+            for (int _x = 0; _x < MapLoader.ChunkSize; _x++)
+            for (int _y = 0; _y < MapLoader.ChunkSize; _y++)
             {
-                uint index = (uint) ((((((int) coordinates.Y + y) * Metadata.Width) + (int) coordinates.X + x) * 4) +
-                                     (layer * (VArray.VertexCount / Metadata.LayerCount)));
+                uint _index = (uint) ((((((int) coordinates.Y + _y) * Metadata.Width) + (int) coordinates.X + _x) * 4) +
+                                     (_layer * (VArray.VertexCount / Metadata.LayerCount)));
 
-                VArray[index + 0] = new Vertex();
-                VArray[index + 1] = new Vertex();
-                VArray[index + 2] = new Vertex();
-                VArray[index + 3] = new Vertex();
+                VArray[_index + 0] = new Vertex();
+                VArray[_index + 1] = new Vertex();
+                VArray[_index + 2] = new Vertex();
+                VArray[_index + 3] = new Vertex();
             }
         }
 
@@ -142,35 +142,35 @@ namespace JourneyCore.Client
                 return;
             }
 
-            TileMetadata tileMetadata = GetTileMetadata(tilePrimitive.Gid);
+            TileMetadata _tileMetadata = GetTileMetadata(tilePrimitive.Gid);
 
-            int scaledSizeX = tileMetadata.TextureRect.Width * MapLoader.Scale;
-            int scaledSizeY = tileMetadata.TextureRect.Height * MapLoader.Scale;
+            int _scaledSizeX = _tileMetadata.TextureRect.Width * MapLoader.Scale;
+            int _scaledSizeY = _tileMetadata.TextureRect.Height * MapLoader.Scale;
 
-            Vector2f topLeft = VertexMath.CalculateVertexPosition(VertexCorner.TopLeft, tileCoords.X, tileCoords.Y,
-                scaledSizeX, scaledSizeY);
-            Vector2f topRight = VertexMath.CalculateVertexPosition(VertexCorner.TopRight, tileCoords.X, tileCoords.Y,
-                scaledSizeX, scaledSizeY);
-            Vector2f bottomRight = VertexMath.CalculateVertexPosition(VertexCorner.BottomRight, tileCoords.X,
-                tileCoords.Y, scaledSizeX, scaledSizeY);
-            Vector2f bottomLeft = VertexMath.CalculateVertexPosition(VertexCorner.BottomLeft, tileCoords.X,
+            Vector2f _topLeft = VertexMath.CalculateVertexPosition(VertexCorner.TopLeft, tileCoords.X, tileCoords.Y,
+                _scaledSizeX, _scaledSizeY);
+            Vector2f _topRight = VertexMath.CalculateVertexPosition(VertexCorner.TopRight, tileCoords.X, tileCoords.Y,
+                _scaledSizeX, _scaledSizeY);
+            Vector2f _bottomRight = VertexMath.CalculateVertexPosition(VertexCorner.BottomRight, tileCoords.X,
+                tileCoords.Y, _scaledSizeX, _scaledSizeY);
+            Vector2f _bottomLeft = VertexMath.CalculateVertexPosition(VertexCorner.BottomLeft, tileCoords.X,
                 tileCoords.Y,
-                scaledSizeX, scaledSizeY);
+                _scaledSizeX, _scaledSizeY);
 
-            QuadCoords textureCoords = GetTileTextureCoords(tilePrimitive);
+            QuadCoords _textureCoords = GetTileTextureCoords(tilePrimitive);
 
-            uint index = (uint) ((((tileCoords.Y * Metadata.Width) + tileCoords.X) * 4) +
+            uint _index = (uint) ((((tileCoords.Y * Metadata.Width) + tileCoords.X) * 4) +
                                  ((drawLayer - 1) * (VArray.VertexCount / Metadata.LayerCount)));
 
-            VArray[index + 0] = new Vertex(topLeft, textureCoords.TopLeft);
-            VArray[index + 1] = new Vertex(topRight, textureCoords.TopRight);
-            VArray[index + 2] = new Vertex(bottomRight, textureCoords.BottomRight);
-            VArray[index + 3] = new Vertex(bottomLeft, textureCoords.BottomLeft);
+            VArray[_index + 0] = new Vertex(_topLeft, _textureCoords.TopLeft);
+            VArray[_index + 1] = new Vertex(_topRight, _textureCoords.TopRight);
+            VArray[_index + 2] = new Vertex(_bottomRight, _textureCoords.BottomRight);
+            VArray[_index + 3] = new Vertex(_bottomLeft, _textureCoords.BottomLeft);
 
-            Minimap.VArray[index + 0] = new Vertex(topLeft, tileMetadata.MiniMapColor);
-            Minimap.VArray[index + 1] = new Vertex(topRight, tileMetadata.MiniMapColor);
-            Minimap.VArray[index + 2] = new Vertex(bottomRight, tileMetadata.MiniMapColor);
-            Minimap.VArray[index + 3] = new Vertex(bottomLeft, tileMetadata.MiniMapColor);
+            Minimap.VArray[_index + 0] = new Vertex(_topLeft, _tileMetadata.MiniMapColor);
+            Minimap.VArray[_index + 1] = new Vertex(_topRight, _tileMetadata.MiniMapColor);
+            Minimap.VArray[_index + 2] = new Vertex(_bottomRight, _tileMetadata.MiniMapColor);
+            Minimap.VArray[_index + 3] = new Vertex(_bottomLeft, _tileMetadata.MiniMapColor);
         }
 
         private TileMetadata GetTileMetadata(int gid)
@@ -180,55 +180,55 @@ namespace JourneyCore.Client
 
         private QuadCoords GetTileTextureCoords(TilePrimitive tilePrimitive)
         {
-            TileMetadata tileMetadata = GetTileMetadata(tilePrimitive.Gid);
+            TileMetadata _tileMetadata = GetTileMetadata(tilePrimitive.Gid);
 
             // width and height of all textures in a map will be the same
-            int actualPixelLeft = tileMetadata.TextureRect.Left * tileMetadata.TextureRect.Width;
-            int actualPixelTop = tileMetadata.TextureRect.Top * tileMetadata.TextureRect.Height;
+            int _actualPixelLeft = _tileMetadata.TextureRect.Left * _tileMetadata.TextureRect.Width;
+            int _actualPixelTop = _tileMetadata.TextureRect.Top * _tileMetadata.TextureRect.Height;
 
-            QuadCoords finalCoords = new QuadCoords();
+            QuadCoords _finalCoords = new QuadCoords();
 
             switch (tilePrimitive.Rotation)
             {
                 case 0:
-                    finalCoords.TopLeft = new Vector2f(actualPixelLeft, actualPixelTop);
-                    finalCoords.TopRight =
-                        new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width, actualPixelTop);
-                    finalCoords.BottomRight = new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width,
-                        actualPixelTop + tileMetadata.TextureRect.Height);
-                    finalCoords.BottomLeft =
-                        new Vector2f(actualPixelLeft, actualPixelTop + tileMetadata.TextureRect.Height);
+                    _finalCoords.TopLeft = new Vector2f(_actualPixelLeft, _actualPixelTop);
+                    _finalCoords.TopRight =
+                        new Vector2f(_actualPixelLeft + _tileMetadata.TextureRect.Width, _actualPixelTop);
+                    _finalCoords.BottomRight = new Vector2f(_actualPixelLeft + _tileMetadata.TextureRect.Width,
+                        _actualPixelTop + _tileMetadata.TextureRect.Height);
+                    _finalCoords.BottomLeft =
+                        new Vector2f(_actualPixelLeft, _actualPixelTop + _tileMetadata.TextureRect.Height);
                     break;
                 case 1:
-                    finalCoords.TopLeft =
-                        new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width, actualPixelTop);
-                    finalCoords.TopRight = new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width,
-                        actualPixelTop + tileMetadata.TextureRect.Height);
-                    finalCoords.BottomRight =
-                        new Vector2f(actualPixelLeft, actualPixelTop + tileMetadata.TextureRect.Height);
-                    finalCoords.BottomLeft = new Vector2f(actualPixelLeft, actualPixelTop);
+                    _finalCoords.TopLeft =
+                        new Vector2f(_actualPixelLeft + _tileMetadata.TextureRect.Width, _actualPixelTop);
+                    _finalCoords.TopRight = new Vector2f(_actualPixelLeft + _tileMetadata.TextureRect.Width,
+                        _actualPixelTop + _tileMetadata.TextureRect.Height);
+                    _finalCoords.BottomRight =
+                        new Vector2f(_actualPixelLeft, _actualPixelTop + _tileMetadata.TextureRect.Height);
+                    _finalCoords.BottomLeft = new Vector2f(_actualPixelLeft, _actualPixelTop);
                     break;
                 case 2:
-                    finalCoords.TopLeft = new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width,
-                        actualPixelTop + tileMetadata.TextureRect.Height);
-                    finalCoords.TopRight =
-                        new Vector2f(actualPixelLeft, actualPixelTop + tileMetadata.TextureRect.Height);
-                    finalCoords.BottomRight = new Vector2f(actualPixelLeft, actualPixelTop);
-                    finalCoords.BottomLeft =
-                        new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width, actualPixelTop);
+                    _finalCoords.TopLeft = new Vector2f(_actualPixelLeft + _tileMetadata.TextureRect.Width,
+                        _actualPixelTop + _tileMetadata.TextureRect.Height);
+                    _finalCoords.TopRight =
+                        new Vector2f(_actualPixelLeft, _actualPixelTop + _tileMetadata.TextureRect.Height);
+                    _finalCoords.BottomRight = new Vector2f(_actualPixelLeft, _actualPixelTop);
+                    _finalCoords.BottomLeft =
+                        new Vector2f(_actualPixelLeft + _tileMetadata.TextureRect.Width, _actualPixelTop);
                     break;
                 case 3:
-                    finalCoords.TopLeft =
-                        new Vector2f(actualPixelLeft, actualPixelTop + tileMetadata.TextureRect.Height);
-                    finalCoords.TopRight = new Vector2f(actualPixelLeft, actualPixelTop);
-                    finalCoords.BottomRight =
-                        new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width, actualPixelTop);
-                    finalCoords.BottomLeft = new Vector2f(actualPixelLeft + tileMetadata.TextureRect.Width,
-                        actualPixelTop + tileMetadata.TextureRect.Height);
+                    _finalCoords.TopLeft =
+                        new Vector2f(_actualPixelLeft, _actualPixelTop + _tileMetadata.TextureRect.Height);
+                    _finalCoords.TopRight = new Vector2f(_actualPixelLeft, _actualPixelTop);
+                    _finalCoords.BottomRight =
+                        new Vector2f(_actualPixelLeft + _tileMetadata.TextureRect.Width, _actualPixelTop);
+                    _finalCoords.BottomLeft = new Vector2f(_actualPixelLeft + _tileMetadata.TextureRect.Width,
+                        _actualPixelTop + _tileMetadata.TextureRect.Height);
                     break;
             }
 
-            return finalCoords;
+            return _finalCoords;
         }
 
         #endregion

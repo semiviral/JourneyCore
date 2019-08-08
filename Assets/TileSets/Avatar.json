@@ -1,19 +1,13 @@
 { "columns":6,
- "grid":
-    {
-     "height":32,
-     "orientation":"orthogonal",
-     "width":32
-    },
  "image":"..\/Images\/Sprites\/Avatar.png",
- "imageheight":128,
- "imagewidth":384,
+ "imageheight":72,
+ "imagewidth":216,
  "margin":0,
  "name":"JourneyCore-Avatar",
  "spacing":0,
  "tilecount":12,
  "tiledversion":"1.2.4",
- "tileheight":64,
+ "tileheight":36,
  "tiles":[
         {
          "id":3,
@@ -105,8 +99,8 @@
                      "type":"",
                      "visible":true,
                      "width":26,
-                     "x":19,
-                     "y":14
+                     "x":5,
+                     "y":0
                     }],
              "opacity":1,
              "type":"objectgroup",
@@ -165,7 +159,7 @@
              "y":0
             }
         }],
- "tilewidth":64,
+ "tilewidth":36,
  "type":"tileset",
  "version":1.2
 }

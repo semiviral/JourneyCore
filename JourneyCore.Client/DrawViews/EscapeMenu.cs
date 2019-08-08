@@ -31,53 +31,53 @@ namespace JourneyCore.Client.DrawViews
 
         private void PopulateEscapeMenuView()
         {
-            Button settingsButton = CreateSettingsButton();
-            GameWindow.AddDrawItem(DrawViewLayer.EscapeMenu, 10, new DrawItem(new DrawObject(settingsButton)));
+            Button _settingsButton = CreateSettingsButton();
+            GameWindow.AddDrawItem(DrawViewLayer.EscapeMenu, 10, new DrawItem(new DrawObject(_settingsButton)));
 
-            Button exitButton = CreateExitButton();
-            GameWindow.AddDrawItem(DrawViewLayer.EscapeMenu, 10, new DrawItem(new DrawObject(exitButton)));
+            Button _exitButton = CreateExitButton();
+            GameWindow.AddDrawItem(DrawViewLayer.EscapeMenu, 10, new DrawItem(new DrawObject(_exitButton)));
 
-            UIObjectContainer escapeMenuContainer = new UIObjectContainer
+            UiObjectContainer _escapeMenuContainer = new UiObjectContainer
             {
-                HorizontalPositioning = UIObjectHorizontalPositioning.Justify,
-                VerticalPositioning = UIObjectVerticalPositioning.Bottom,
+                HorizontalPositioning = UiObjectHorizontalPositioning.Justify,
+                VerticalPositioning = UiObjectVerticalPositioning.Bottom,
                 HorizontalAutoStacking = true,
                 Size = GameWindow.Size
             };
-            escapeMenuContainer.UIObjects.Add(settingsButton);
-            escapeMenuContainer.UIObjects.Add(exitButton);
+            _escapeMenuContainer.UiObjects.Add(_settingsButton);
+            _escapeMenuContainer.UiObjects.Add(_exitButton);
 
-            GameWindow.SubscribeUiObject(escapeMenuContainer, null);
+            GameWindow.SubscribeUiObject(_escapeMenuContainer, null);
         }
 
         #region OBJECT CREATION
 
         private Button CreateExitButton()
         {
-            GameMenuButton exitButton = new GameMenuButton(GameLoop.DefaultFont, "Exit", true, true)
+            GameMenuButton _exitButton = new GameMenuButton(GameLoop.DefaultFont, "Exit", true, true)
             {
                 Margins = new Margin(0, 25),
                 Activated = () => AppliedDrawView.Visible
             };
-            exitButton.Released += (sender, args) => { GameLoop.CallFatality("Game exited."); };
+            _exitButton.Released += (sender, args) => { GameLoop.CallFatality("Game exited."); };
 
-            return exitButton;
+            return _exitButton;
         }
 
         private Button CreateSettingsButton()
         {
-            GameMenuButton settingsButton = new GameMenuButton(GameLoop.DefaultFont, "Settings", true, true)
+            GameMenuButton _settingsButton = new GameMenuButton(GameLoop.DefaultFont, "Settings", true, true)
             {
                 Margins = new Margin(0, 25),
                 Activated = () => AppliedDrawView.Visible
             };
-            settingsButton.Released += (sender, args) =>
+            _settingsButton.Released += (sender, args) =>
             {
                 AppliedDrawView.Visible = false;
                 GameWindow.GetDrawView(DrawViewLayer.Settings).Visible = true;
             };
 
-            return settingsButton;
+            return _settingsButton;
         }
 
         #endregion

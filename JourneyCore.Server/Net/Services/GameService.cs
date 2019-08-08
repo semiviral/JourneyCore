@@ -11,7 +11,6 @@ using JourneyCore.Lib.Game.Environment.Tiling;
 using JourneyCore.Lib.Game.Object.Collision;
 using JourneyCore.Lib.Game.Object.Entity;
 using JourneyCore.Lib.System.Loaders;
-using JourneyCore.Lib.System.Math;
 using JourneyCore.Lib.System.Net.Security;
 using JourneyCore.Server.Net.SignalR.Contexts;
 using Newtonsoft.Json;
@@ -48,20 +47,20 @@ namespace JourneyCore.Server.Net.Services
             await GameClientContext.SendConnectionId(connectionId);
         }
 
-        private object _PlayerQuadLock { get; set; }
+        private object PlayerQuadLock { get; set; }
 
-        private CollisionQuad playerQuad
+        private CollisionQuad PlayerQuad
         {
             get
             {
-                lock (_PlayerQuadLock)
+                lock (PlayerQuadLock)
                 {
                     return _PlayerQuad;
                 }
             }
             set
             {
-                lock (_PlayerQuadLock)
+                lock (PlayerQuadLock)
                 {
                     _PlayerQuad = value;
                 }
@@ -70,32 +69,32 @@ namespace JourneyCore.Server.Net.Services
 
         public async Task ReceivePlayerPositions(string connectionId, IEnumerable<Vector2f> positions)
         {
-            bool hasAdjusted = false;
+            bool _hasAdjusted = false;
 
-            foreach (Vector2f position in positions)
+            foreach (Vector2f _position in positions)
             {
-                playerQuad.Position = position;
+                PlayerQuad.Position = _position;
 
                 // todo select map colliders dynamically
-                foreach (Vector2f adjustment in GraphMath.CollisionCheck(playerQuad, TileMaps.First().Value.Colliders))
-                {
-                    hasAdjusted = true;
+//                foreach (Vector2f adjustment in GraphMath.GetOverlaps(playerQuad, TileMaps.First().Value.Colliders))
+//                {
+//                    hasAdjusted = true;
+//
+//                    playerQuad.Position += adjustment;
+//                }
 
-                    playerQuad.Position += adjustment;
-                }
-
-                if (!hasAdjusted)
+                if (!_hasAdjusted)
                 {
                     continue;
                 }
 
-                await GameClientContext.PlayerPositionModification(connectionId, playerQuad.Position);
+                await GameClientContext.PlayerPositionModification(connectionId, PlayerQuad.Position);
             }
         }
 
         public Task ReceivePlayerRotations(string connectionId, IEnumerable<float> rotations)
         {
-            playerQuad.Rotation = rotations.Last();
+            PlayerQuad.Rotation = rotations.Last();
 
             return Task.CompletedTask;
         }
@@ -128,33 +127,33 @@ namespace JourneyCore.Server.Net.Services
 
         private void InitialiseTextures()
         {
-            foreach (string filePath in Directory.EnumerateFiles($@"{MapLoader.AssetRoot}/Images", "*.png",
+            foreach (string _filePath in Directory.EnumerateFiles($@"{MapLoader.ASSET_ROOT}/Images", "*.png",
                 SearchOption.AllDirectories))
             {
-                TextureImages.Add(Path.GetFileNameWithoutExtension(filePath).ToLower(), File.ReadAllBytes(filePath));
+                TextureImages.Add(Path.GetFileNameWithoutExtension(_filePath).ToLower(), File.ReadAllBytes(_filePath));
             }
         }
 
         private void InitialiseNonMapTileSets()
         {
-            foreach (string filePath in Directory.EnumerateFiles($@"{MapLoader.AssetRoot}/TileSets", "*.json",
+            foreach (string _filePath in Directory.EnumerateFiles($@"{MapLoader.ASSET_ROOT}/TileSets", "*.json",
                 SearchOption.AllDirectories))
             {
-                TileSets.Add(Path.GetFileNameWithoutExtension(filePath).ToLower(),
-                    TileSetLoader.LoadTileSet(filePath, 0));
+                TileSets.Add(Path.GetFileNameWithoutExtension(_filePath).ToLower(),
+                    TileSetLoader.LoadTileSet(_filePath, 0));
             }
         }
 
         private void InitialiseTileMaps()
         {
-            short scale = 2;
+            short _scale = 2;
 
-            foreach (string filePath in Directory.EnumerateFiles($@"{MapLoader.AssetRoot}/Maps", "*.json",
+            foreach (string _filePath in Directory.EnumerateFiles($@"{MapLoader.ASSET_ROOT}/Maps", "*.json",
                 SearchOption.TopDirectoryOnly))
             {
-                Map map = MapLoader.LoadMap(filePath, scale);
+                Map _map = MapLoader.LoadMap(_filePath, _scale);
 
-                TileMaps.Add(Path.GetFileNameWithoutExtension(filePath), map);
+                TileMaps.Add(Path.GetFileNameWithoutExtension(_filePath), _map);
             }
         }
 
@@ -165,78 +164,78 @@ namespace JourneyCore.Server.Net.Services
 
         public EncryptionTicket RegisterEncryptedConnection(string id, EncryptionTicket ticket)
         {
-            using (Aes aes = new AesCryptoServiceProvider())
+            using (Aes _aes = new AesCryptoServiceProvider())
             {
                 CryptoServices.Add(id, new DiffieHellman(ticket.PublicKey)
                 {
-                    IV = aes.IV
+                    Iv = _aes.IV
                 });
             }
 
-            return new EncryptionTicket(CryptoServices[id].PublicKey, CryptoServices[id].IV);
+            return new EncryptionTicket(CryptoServices[id].PublicKey, CryptoServices[id].Iv);
         }
 
         public async Task<DiffieHellmanMessagePackage> GetImage(string id, byte[] remotePublicKey,
             byte[] textureNameEncrypted)
         {
-            string textureName = await CryptoServices[id].DecryptAsync(remotePublicKey, textureNameEncrypted);
-            string serializedImageBytes = JsonConvert.SerializeObject(TextureImages[textureName]);
+            string _textureName = await CryptoServices[id].DecryptAsync(remotePublicKey, textureNameEncrypted);
+            string _serializedImageBytes = JsonConvert.SerializeObject(TextureImages[_textureName]);
 
             return new DiffieHellmanMessagePackage(CryptoServices[id].PublicKey,
-                await CryptoServices[id].EncryptAsync(serializedImageBytes));
+                await CryptoServices[id].EncryptAsync(_serializedImageBytes));
         }
 
         public async Task<DiffieHellmanMessagePackage> GetTileSetMetadata(string id, byte[] remotePublicKey,
             byte[] tileSetNameEncrypted)
         {
-            string tileSetName = await CryptoServices[id].DecryptAsync(remotePublicKey, tileSetNameEncrypted);
-            string serializedTileSetMetadata = JsonConvert.SerializeObject(TileSets[tileSetName].GetMetadata());
+            string _tileSetName = await CryptoServices[id].DecryptAsync(remotePublicKey, tileSetNameEncrypted);
+            string _serializedTileSetMetadata = JsonConvert.SerializeObject(TileSets[_tileSetName].GetMetadata());
 
             return new DiffieHellmanMessagePackage(CryptoServices[id].PublicKey,
-                await CryptoServices[id].EncryptAsync(serializedTileSetMetadata));
+                await CryptoServices[id].EncryptAsync(_serializedTileSetMetadata));
         }
 
         public async Task<DiffieHellmanMessagePackage> GetMapMetadata(string id, byte[] remotePublicKey,
             byte[] mapNameEncrypted)
         {
-            string mapName = await CryptoServices[id].DecryptAsync(remotePublicKey, mapNameEncrypted);
+            string _mapName = await CryptoServices[id].DecryptAsync(remotePublicKey, mapNameEncrypted);
 
-            MapMetadata mapMetadata = TileMaps[mapName].GetMetadata();
-            string serializedMapMetadata = JsonConvert.SerializeObject(mapMetadata);
+            MapMetadata _mapMetadata = TileMaps[_mapName].GetMetadata();
+            string _serializedMapMetadata = JsonConvert.SerializeObject(_mapMetadata);
 
             return new DiffieHellmanMessagePackage(CryptoServices[id].PublicKey,
-                await CryptoServices[id].EncryptAsync(serializedMapMetadata));
+                await CryptoServices[id].EncryptAsync(_serializedMapMetadata));
         }
 
         public async Task<DiffieHellmanMessagePackage> GetChunk(string id, byte[] remotePublicKey,
             byte[] mapNameEncrypted,
             byte[] coordsEncrypted)
         {
-            string mapName = await CryptoServices[id].DecryptAsync(remotePublicKey, mapNameEncrypted);
-            string coordsJson = await CryptoServices[id].DecryptAsync(remotePublicKey, coordsEncrypted);
-            Vector2i coords = JsonConvert.DeserializeObject<Vector2i>(coordsJson);
+            string _mapName = await CryptoServices[id].DecryptAsync(remotePublicKey, mapNameEncrypted);
+            string _coordsJson = await CryptoServices[id].DecryptAsync(remotePublicKey, coordsEncrypted);
+            Vector2i _coords = JsonConvert.DeserializeObject<Vector2i>(_coordsJson);
 
             // todo upgrade to C# 8.0 for (yield return in async)
-            List<Chunk> chunks = new List<Chunk>();
+            List<Chunk> _chunks = new List<Chunk>();
 
-            if ((coords.X < 0) || (coords.Y < 0) || (coords.X > (TileMaps[mapName].Layers[0].Map.Length - 1)) ||
-                (coords.Y > (TileMaps[mapName].Layers[0].Map[0].Length - 1)))
+            if ((_coords.X < 0) || (_coords.Y < 0) || (_coords.X > (TileMaps[_mapName].Layers[0].Map.Length - 1)) ||
+                (_coords.Y > (TileMaps[_mapName].Layers[0].Map[0].Length - 1)))
             {
                 return new DiffieHellmanMessagePackage(CryptoServices[id].PublicKey,
                     await CryptoServices[id]
                         .EncryptAsync(JsonConvert.SerializeObject(
-                            new IndexOutOfRangeException($"Specified index: {coords} out of map range."))));
+                            new IndexOutOfRangeException($"Specified index: {_coords} out of map range."))));
             }
 
-            foreach (MapLayer layer in TileMaps[mapName].Layers)
+            foreach (MapLayer _layer in TileMaps[_mapName].Layers)
             {
-                chunks.Add(layer.Map[coords.X][coords.Y]);
+                _chunks.Add(_layer.Map[_coords.X][_coords.Y]);
             }
 
-            string serializedChunksList = JsonConvert.SerializeObject(chunks);
+            string _serializedChunksList = JsonConvert.SerializeObject(_chunks);
 
             return new DiffieHellmanMessagePackage(CryptoServices[id].PublicKey,
-                await CryptoServices[id].EncryptAsync(serializedChunksList));
+                await CryptoServices[id].EncryptAsync(_serializedChunksList));
         }
 
         public async Task<DiffieHellmanMessagePackage> GetPlayer(string id, byte[] remotePublicKey)
@@ -258,25 +257,25 @@ namespace JourneyCore.Server.Net.Services
                 InitialiseNonMapTileSets();
                 InitialiseTileMaps();
 
-                TileSetMetadata playerMetadata = TileSets["avatar"].GetMetadata();
-                CollisionQuad collider = playerMetadata.Tiles
+                TileSetMetadata _playerMetadata = TileSets["avatar"].GetMetadata();
+                CollisionQuad _collider = _playerMetadata.Tiles
                     .First(tile => (tile.TextureRect.Left == 3) && (tile.TextureRect.Top == 1))?
                     .Colliders.First();
 
-                _PlayerQuadLock = new object();
-                playerQuad = playerMetadata.Tiles
+                PlayerQuadLock = new object();
+                PlayerQuad = _playerMetadata.Tiles
                     .First(tile => (tile.TextureRect.Left == 3) && (tile.TextureRect.Top == 1))?
                     .Colliders.First();
 
                 // todo no hard coding for player texture size
-                Player player = new Player(TextureImages["avatar"], TextureImages["projectiles"], 0)
+                Player _player = new Player(TextureImages["avatar"], TextureImages["projectiles"], 0)
                 {
-                    Collider = collider
+                    Collider = _collider
                 };
 
-                Players.Add(player);
+                Players.Add(_player);
             }
-            catch (Exception ex)
+            catch (Exception _ex)
             {
             }
 

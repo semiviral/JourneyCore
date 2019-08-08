@@ -20,32 +20,32 @@ namespace JourneyCore.Server.Net.Controllers
         public async Task<IActionResult> GetChunkSpace(string id, string remotePublicKeyBase64, string mapNameBase64,
             string coordsBase64)
         {
-            byte[] remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
-            byte[] mapNameEncrypted = Convert.FromBase64String(mapNameBase64.HtmlDecodeBase64());
-            byte[] coordsEncrypted = Convert.FromBase64String(coordsBase64.HtmlDecodeBase64());
+            byte[] _remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
+            byte[] _mapNameEncrypted = Convert.FromBase64String(mapNameBase64.HtmlDecodeBase64());
+            byte[] _coordsEncrypted = Convert.FromBase64String(coordsBase64.HtmlDecodeBase64());
 
-            DiffieHellmanMessagePackage encryptedMessagePackage;
+            DiffieHellmanMessagePackage _encryptedMessagePackage;
 
             try
             {
-                encryptedMessagePackage =
-                    await GameService.GetChunk(id, remotePublicKey, mapNameEncrypted, coordsEncrypted);
+                _encryptedMessagePackage =
+                    await GameService.GetChunk(id, _remotePublicKey, _mapNameEncrypted, _coordsEncrypted);
             }
-            catch (Exception ex)
+            catch (Exception _ex)
             {
-                return new JsonResult(ex);
+                return new JsonResult(_ex);
             }
 
-            return new JsonResult(encryptedMessagePackage);
+            return new JsonResult(_encryptedMessagePackage);
         }
 
         [HttpGet("/maps/{mapNameBase64}/metadata")]
         public async Task<IActionResult> GetMapMetadata(string id, string remotePublicKeyBase64, string mapNameBase64)
         {
-            byte[] remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
-            byte[] mapNameEncrypted = Convert.FromBase64String(mapNameBase64.HtmlDecodeBase64());
+            byte[] _remotePublicKey = Convert.FromBase64String(remotePublicKeyBase64.HtmlDecodeBase64());
+            byte[] _mapNameEncrypted = Convert.FromBase64String(mapNameBase64.HtmlDecodeBase64());
 
-            return new JsonResult(await GameService.GetMapMetadata(id, remotePublicKey, mapNameEncrypted));
+            return new JsonResult(await GameService.GetMapMetadata(id, _remotePublicKey, _mapNameEncrypted));
         }
     }
 }

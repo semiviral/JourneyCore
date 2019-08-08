@@ -21,7 +21,7 @@ namespace JourneyCore.Client
             Positions = new Queue<Vector2f>();
             _RotationsLock = new object();
             Rotations = new Queue<float>();
-            _NetManager = netManager;
+            this._NetManager = netManager;
 
             ServerTickClock = new AutoResetTimer(tickRate);
             ServerTickClock.ElapsedAsync += DeallocatePositions;
@@ -67,14 +67,14 @@ namespace JourneyCore.Client
                 return;
             }
 
-            List<Vector2f> positions = new List<Vector2f>();
+            List<Vector2f> _positions = new List<Vector2f>();
 
             while (Positions.Count > 0)
             {
-                positions.Add(Positions.Dequeue());
+                _positions.Add(Positions.Dequeue());
             }
 
-            await _NetManager.Connection.InvokeAsync("ReceivePlayerPositions", positions);
+            await _NetManager.Connection.InvokeAsync("ReceivePlayerPositions", _positions);
         }
 
 
@@ -85,11 +85,11 @@ namespace JourneyCore.Client
                 return;
             }
 
-            List<float> rotations = new List<float>();
+            List<float> _rotations = new List<float>();
 
             while (Rotations.Count > 0)
             {
-                rotations.Add(Rotations.Dequeue());
+                _rotations.Add(Rotations.Dequeue());
             }
 
             //await _NetManager.Connection.InvokeAsync("ReceivePlayerRotations", rotations);

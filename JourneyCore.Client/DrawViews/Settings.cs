@@ -37,106 +37,106 @@ namespace JourneyCore.Client.DrawViews
                 new DrawItem(new DrawObject(new RectangleShape((Vector2f) GameWindow.Size)
                     {FillColor = new Color(0, 0, 0, 155)})));
 
-            Button increaseBrightness = CreateBrightnessIncreaseButton();
+            Button _increaseBrightness = CreateBrightnessIncreaseButton();
             GameWindow.AddDrawItem(DrawViewLayer.Settings, 10,
-                new DrawItem(new DrawObject(increaseBrightness)));
+                new DrawItem(new DrawObject(_increaseBrightness)));
 
-            Button decreaseBrightness = CreateBrightnessDecreaseButton();
+            Button _decreaseBrightness = CreateBrightnessDecreaseButton();
             GameWindow.AddDrawItem(DrawViewLayer.Settings, 10,
-                new DrawItem(new DrawObject(decreaseBrightness)));
+                new DrawItem(new DrawObject(_decreaseBrightness)));
 
-            Text vSyncText = CreateVSyncText();
-            GameWindow.AddDrawItem(DrawViewLayer.Settings, 10, new DrawItem(new DrawObject(vSyncText)));
+            Text _vSyncText = CreateVSyncText();
+            GameWindow.AddDrawItem(DrawViewLayer.Settings, 10, new DrawItem(new DrawObject(_vSyncText)));
 
-            Button vSyncButton = CreateVSyncButton();
-            GameWindow.AddDrawItem(DrawViewLayer.Settings, 10, new DrawItem(new DrawObject(vSyncButton)));
+            Button _vSyncButton = CreateVSyncButton();
+            GameWindow.AddDrawItem(DrawViewLayer.Settings, 10, new DrawItem(new DrawObject(_vSyncButton)));
 
-            UIObjectContainer vSyncContainer = new UIObjectContainer
+            UiObjectContainer _vSyncContainer = new UiObjectContainer
             {
-                HorizontalPositioning = UIObjectHorizontalPositioning.Middle,
-                VerticalPositioning = UIObjectVerticalPositioning.Middle,
+                HorizontalPositioning = UiObjectHorizontalPositioning.Middle,
+                VerticalPositioning = UiObjectVerticalPositioning.Middle,
                 HorizontalAutoStacking = true
             };
-            vSyncContainer.UIObjects.Add(vSyncText);
-            vSyncContainer.UIObjects.Add(vSyncButton);
+            _vSyncContainer.UiObjects.Add(_vSyncText);
+            _vSyncContainer.UiObjects.Add(_vSyncButton);
 
 
-            UIObjectContainer objectContainer = new UIObjectContainer
+            UiObjectContainer _objectContainer = new UiObjectContainer
             {
                 VerticalAutoStacking = true,
-                HorizontalPositioning = UIObjectHorizontalPositioning.Middle,
-                VerticalPositioning = UIObjectVerticalPositioning.Middle
+                HorizontalPositioning = UiObjectHorizontalPositioning.Middle,
+                VerticalPositioning = UiObjectVerticalPositioning.Middle
             };
-            objectContainer.UIObjects.Add(increaseBrightness);
-            objectContainer.UIObjects.Add(decreaseBrightness);
-            objectContainer.UIObjects.Add(vSyncContainer);
+            _objectContainer.UiObjects.Add(_increaseBrightness);
+            _objectContainer.UiObjects.Add(_decreaseBrightness);
+            _objectContainer.UiObjects.Add(_vSyncContainer);
 
-            GameWindow.SubscribeUiObject(objectContainer, null);
+            GameWindow.SubscribeUiObject(_objectContainer, null);
 
-            vSyncContainer.Size = vSyncText.Size + vSyncButton.Size + new Vector2u(30, 0);
-            objectContainer.Size = GameWindow.Size;
+            _vSyncContainer.Size = _vSyncText.Size + _vSyncButton.Size + new Vector2u(30, 0);
+            _objectContainer.Size = GameWindow.Size;
         }
 
         private Button CreateBrightnessIncreaseButton()
         {
-            GameMenuButton increaseBrightness = new GameMenuButton(GameLoop.DefaultFont, "Brightness +", true, true)
+            GameMenuButton _increaseBrightness = new GameMenuButton(GameLoop.DefaultFont, "Brightness +", true, true)
             {
                 Activated = () => AppliedDrawView.Visible
             };
-            increaseBrightness.Released += (sender, args) =>
+            _increaseBrightness.Released += (sender, args) =>
             {
                 GameWindow.GetDrawView(DrawViewLayer.Minimap).ModifyOpacity(10);
             };
 
-            return increaseBrightness;
+            return _increaseBrightness;
         }
 
         private Button CreateBrightnessDecreaseButton()
         {
-            GameMenuButton decreaseBrightness = new GameMenuButton(GameLoop.DefaultFont, "Brightness -", true, true)
+            GameMenuButton _decreaseBrightness = new GameMenuButton(GameLoop.DefaultFont, "Brightness -", true, true)
             {
                 Activated = () => AppliedDrawView.Visible
             };
-            decreaseBrightness.Released += (sender, args) =>
+            _decreaseBrightness.Released += (sender, args) =>
             {
                 GameWindow.GetDrawView(DrawViewLayer.Minimap).ModifyOpacity(-10);
             };
 
-            return decreaseBrightness;
+            return _decreaseBrightness;
         }
 
         private Text CreateVSyncText()
         {
-            Text vSyncText = new Text("VSync:", GameLoop.DefaultFont)
+            Text _vSyncText = new Text("VSync:", GameLoop.DefaultFont)
             {
                 OutlineColor = Color.Black,
                 OutlineThickness = 2f
             };
 
-            FloatRect localBounds = vSyncText.GetLocalBounds();
-            vSyncText.Origin = new Vector2f((localBounds.Width + localBounds.Left) / 2f,
-                (localBounds.Height + localBounds.Top) / 2f);
+            FloatRect _localBounds = _vSyncText.GetLocalBounds();
+            _vSyncText.Origin = new Vector2f((_localBounds.Width + _localBounds.Left) / 2f,
+                (_localBounds.Height + _localBounds.Top) / 2f);
 
-            return vSyncText;
+            return _vSyncText;
         }
 
         private Button CreateVSyncButton()
         {
-            bool vSyncEnabled = false;
+            bool _vSyncEnabled = false;
 
-            GameMenuButton vSyncButton = new GameMenuButton(GameLoop.DefaultFont, "Off", true, true)
+            GameMenuButton _vSyncButton = new GameMenuButton(GameLoop.DefaultFont, "Off", true, true)
             {
                 Activated = () => AppliedDrawView.Visible
             };
-            vSyncButton.Released += (sender, args) =>
+            _vSyncButton.Released += (sender, args) =>
             {
-                vSyncButton.DisplayedText = vSyncEnabled ? "Off" : "On";
+                _vSyncButton.DisplayedText = _vSyncEnabled ? "Off" : "On";
 
-                GameWindow.SetVSync(!vSyncEnabled);
-                vSyncEnabled = !vSyncEnabled;
+                GameWindow.SetVSync(!_vSyncEnabled);
+                _vSyncEnabled = !_vSyncEnabled;
             };
 
-            return vSyncButton;
+            return _vSyncButton;
         }
     }
 }

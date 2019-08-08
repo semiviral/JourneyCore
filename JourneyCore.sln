@@ -10,7 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JourneyCore.Client", "JourneyCore.Client\JourneyCore.Client.csproj", "{85830C0B-6B61-4AFC-8275-773BC93959C0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JourneyCore.Lib", "JourneyCore.Lib\JourneyCore.Lib.csproj", "{A17B2297-E3DB-4B53-9593-4E19910DF1CA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JourneyCore.Engine", "JourneyCore.Engine\JourneyCore.Engine.csproj", "{A17B2297-E3DB-4B53-9593-4E19910DF1CA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JourneyCore.Server", "JourneyCore.Server\JourneyCore.Server.csproj", "{D8875315-F97B-4103-9885-ECF98C6ABD18}"
 EndProject

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\JourneyCore.Lib\JourneyCore.Lib.csproj" />
+    <ProjectReference Include="..\JourneyCore.Engine\JourneyCore.Engine.csproj" />
   </ItemGroup>
 
 </Project>
